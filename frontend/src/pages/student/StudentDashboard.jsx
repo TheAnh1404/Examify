@@ -1,200 +1,186 @@
 import React, { useEffect, useState } from 'react';
-import API from '../../services/api';
-import { BookOpen, Award, CheckCircle, ChevronRight, Play, Eye, ShieldAlert } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { dashboardService } from '../../services/dashboardService';
+import { examService } from '../../services/examService';
+import { attemptService } from '../../services/attemptService';
+import PageHeader from '../../components/layout/PageHeader';
+import StatCard from '../../components/common/StatCard';
+import Card from '../../components/common/Card';
+import Loading from '../../components/common/Loading';
+import Badge from '../../components/common/Badge';
+import Button from '../../components/common/Button';
+import { authService } from '../../services/authService';
+import { BookOpen, ClipboardList, Award, CheckCircle, ArrowRight, Play, Eye, ShieldAlert } from 'lucide-react';
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
+  const user = authService.getCurrentUser() || { id: 'usr-student', name: 'Student' };
+
+  const [metrics, setMetrics] = useState(null);
   const [exams, setExams] = useState([]);
-  const [submissions, setSubmissions] = useState([]);
+  const [attempts, setAttempts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const fetchStudentData = async () => {
+    try {
+      setLoading(true);
+      const [metricsRes, examsRes, attemptsRes] = await Promise.all([
+        dashboardService.getStudentStats(user.id),
+        examService.getAll(),
+        attemptService.getByStudent(user.id)
+      ]);
+      setMetrics(metricsRes.data);
+      setExams(examsRes.data);
+      setAttempts(attemptsRes.data);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to fetch student dashboard data.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [examsRes, subsRes] = await Promise.all([
-          API.get('/exams'),
-          API.get('/submissions/student')
-        ]);
-        setExams(examsRes.data);
-        setSubmissions(subsRes.data);
-      } catch (err) {
-        console.error('Failed to load student dashboard:', err);
-        setError('Could not retrieve dashboard data from the server.');
-      } finally {
-        setLoading(false);
-      }
-    };
+    fetchStudentData();
+  }, [user.id]);
 
-    fetchData();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="h-10 w-10 rounded-full border-4 border-brand-500/20 border-t-brand-500 animate-spin"></div>
-      </div>
-    );
-  }
-
+  if (loading) return <Loading message="Assembling student portal..." />;
   if (error) {
     return (
-      <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center gap-3">
-        <ShieldAlert className="h-6 w-6" />
+      <div className="p-4 rounded-xl bg-red-50 border border-red-100 text-red-700 text-sm flex items-center gap-3">
+        <ShieldAlert className="h-5 w-5" />
         <p>{error}</p>
       </div>
     );
   }
 
-  // Calculate student stats
-  const totalTaken = submissions.length;
-  const passedSubmissions = submissions.filter(s => s.status === 'pass');
-  const passRate = totalTaken > 0 ? (passedSubmissions.length / totalTaken) * 100 : 0;
-  
-  const averageScore = totalTaken > 0 
-    ? submissions.reduce((sum, s) => {
-        const subPct = s.examTotalMarks > 0 ? (s.score / s.examTotalMarks) * 100 : 0;
-        return sum + subPct;
-      }, 0) / totalTaken
-    : 0;
-
   // Filter exams that are available (not taken yet)
-  const completedExamIds = submissions.map(s => s.examId);
+  const completedExamIds = attempts.map(a => a.examId);
   const availableExams = exams.filter(e => !completedExamIds.includes(e.id));
 
   return (
-    <div className="space-y-8">
-      {/* Welcome Banner */}
-      <div className="relative overflow-hidden rounded-2xl border border-brand-500/20 bg-brand-500/5 p-6 md:p-8">
-        <div className="relative z-10">
-          <h2 className="font-display font-bold text-2xl md:text-3xl text-slate-100 mb-1.5">Academic Dashboard</h2>
-          <p className="text-slate-400 text-sm md:text-base max-w-xl">
-            Welcome to your student portal. Review available assessments, test your skills, and view immediate graded feedback.
-          </p>
-        </div>
-        <div className="absolute right-0 bottom-0 top-0 w-1/3 bg-gradient-to-l from-brand-500/10 to-transparent pointer-events-none"></div>
-      </div>
+    <div className="space-y-6">
+      <PageHeader 
+        title="Student Learning Portal" 
+        subtitle="Review assigned assessments, test your skills, and check instant graded scorecards."
+      />
 
-      {/* Stats Cards */}
+      {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        {/* Stat 1 */}
-        <div className="glass-panel p-6 flex items-center gap-5 hover:border-brand-500/30 transition-all duration-300">
-          <div className="h-12 w-12 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-400">
-            <BookOpen className="h-6 w-6" />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Exams Taken</p>
-            <p className="font-display font-bold text-3xl text-slate-200 mt-1">{totalTaken}</p>
-          </div>
-        </div>
-
-        {/* Stat 2 */}
-        <div className="glass-panel p-6 flex items-center gap-5 hover:border-emerald-500/30 transition-all duration-300">
-          <div className="h-12 w-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-            <CheckCircle className="h-6 w-6" />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pass Rate</p>
-            <p className="font-display font-bold text-3xl text-slate-200 mt-1">{passRate.toFixed(0)}%</p>
-          </div>
-        </div>
-
-        {/* Stat 3 */}
-        <div className="glass-panel p-6 flex items-center gap-5 hover:border-indigo-500/30 transition-all duration-300">
-          <div className="h-12 w-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-            <Award className="h-6 w-6" />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Average Score</p>
-            <p className="font-display font-bold text-3xl text-slate-200 mt-1">{averageScore.toFixed(0)}%</p>
-          </div>
-        </div>
+        <StatCard 
+          title="Exams Completed" 
+          value={metrics.examsTaken} 
+          icon={<ClipboardList className="h-5 w-5" />} 
+        />
+        <StatCard 
+          title="Average Score" 
+          value={`${metrics.averageScore}%`} 
+          icon={<Award className="h-5 w-5 text-primary-600" />} 
+        />
+        <StatCard 
+          title="Passing Ratio" 
+          value={`${metrics.passRate}%`} 
+          icon={<CheckCircle className="h-5 w-5 text-accent-600" />} 
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Available Exams Card */}
-        <div className="glass-panel p-6 space-y-4">
-          <h3 className="font-semibold text-lg text-slate-200 border-b border-dark-800 pb-3">Available Examinations</h3>
-          
+        
+        {/* Available Exams */}
+        <Card 
+          title="Available Examinations" 
+          subtitle="Assessments ready to take. Select an exam to view directions."
+          actions={
+            <Link to="/student/exams" className="text-xs text-primary-600 hover:text-primary-750 font-bold flex items-center gap-1">
+              Browse All
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          }
+        >
           {availableExams.length === 0 ? (
-            <div className="p-8 text-center text-slate-500 text-sm">
-              All published exams completed! Check back later.
-            </div>
+            <p className="text-xs text-secondary-450 font-medium text-center py-6">
+              All published examinations completed! Keep up the good work.
+            </p>
           ) : (
-            <div className="divide-y divide-dark-800/60">
+            <div className="divide-y divide-secondary-200">
               {availableExams.map((exam) => (
                 <div key={exam.id} className="py-4 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
                   <div className="min-w-0 flex-1">
-                    <h4 className="font-semibold text-sm text-slate-200 truncate">{exam.title}</h4>
-                    <p className="text-xs text-slate-500 line-clamp-1 mt-0.5">{exam.description || 'No description'}</p>
-                    <div className="flex items-center gap-4 text-[10px] text-slate-400 mt-2">
+                    <h4 className="font-semibold text-sm text-secondary-800 truncate">{exam.title}</h4>
+                    <p className="text-xs text-secondary-400 mt-1 flex flex-wrap items-center gap-3 font-medium">
                       <span>{exam.duration} mins</span>
                       <span>•</span>
                       <span>{exam.questionCount} Questions</span>
                       <span>•</span>
-                      <span>{exam.totalMarks} pts</span>
-                    </div>
+                      <span className="font-bold text-primary-600">{exam.totalMarks} points</span>
+                    </p>
                   </div>
-                  
-                  <Link
-                    to={`/student/exams/take/${exam.id}`}
-                    className="glow-button flex items-center gap-1.5 py-1.5 px-3 text-xs shrink-0"
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => navigate(`/student/exams/${exam.id}/instruction`)}
+                    icon={<Play className="h-3.5 w-3.5" />}
                   >
-                    <Play className="h-3.5 w-3.5" />
                     Start
-                  </Link>
+                  </Button>
                 </div>
               ))}
             </div>
           )}
-        </div>
+        </Card>
 
-        {/* History / Graded Reports Card */}
-        <div className="glass-panel p-6 space-y-4">
-          <h3 className="font-semibold text-lg text-slate-200 border-b border-dark-800 pb-3">My Graded Submissions</h3>
-          
-          {submissions.length === 0 ? (
-            <div className="p-8 text-center text-slate-500 text-sm">
-              No submissions recorded yet. Take an exam to see results.
-            </div>
+        {/* History Attempts List */}
+        <Card 
+          title="My Submissions Log" 
+          subtitle="Audit scorecard summaries and check answers keys"
+          actions={
+            <Link to="/student/attempts" className="text-xs text-primary-600 hover:text-primary-750 font-bold flex items-center gap-1">
+              View History
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          }
+        >
+          {attempts.length === 0 ? (
+            <p className="text-xs text-secondary-450 font-medium text-center py-6">
+              No completed test logs recorded yet. Take an available quiz.
+            </p>
           ) : (
-            <div className="divide-y divide-dark-800/60">
-              {submissions.map((sub) => {
+            <div className="divide-y divide-secondary-200">
+              {attempts.map((sub) => {
                 const subPct = sub.examTotalMarks > 0 ? (sub.score / sub.examTotalMarks) * 100 : 0;
+                const isPass = sub.status.toUpperCase() === 'PASS';
+                
                 return (
                   <div key={sub.id} className="py-4 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
                     <div className="min-w-0 flex-1">
-                      <h4 className="font-semibold text-sm text-slate-200 truncate">{sub.examTitle}</h4>
-                      <div className="flex items-center gap-3 mt-1.5 text-xs">
-                        <span className="text-slate-300 font-semibold">{sub.score} / {sub.examTotalMarks} pts</span>
-                        <span className="text-slate-500">({subPct.toFixed(0)}%)</span>
+                      <h4 className="font-semibold text-sm text-secondary-800 truncate">{sub.examTitle}</h4>
+                      <p className="text-xs text-secondary-500 mt-1.5 flex flex-wrap items-center gap-3 font-medium">
+                        <span className="font-bold">{sub.score} / {sub.examTotalMarks} pts</span>
+                        <span>({subPct.toFixed(0)}%)</span>
                         <span>•</span>
-                        {sub.status === 'pass' ? (
-                          <span className="text-emerald-400 text-[10px] font-semibold uppercase tracking-wider">Pass</span>
+                        {isPass ? (
+                          <span className="text-accent-600 font-bold uppercase tracking-wider text-[10px]">Pass</span>
                         ) : (
-                          <span className="text-red-400 text-[10px] font-semibold uppercase tracking-wider">Fail</span>
+                          <span className="text-red-500 font-bold uppercase tracking-wider text-[10px]">Fail</span>
                         )}
-                      </div>
-                      <p className="text-[10px] text-slate-500 mt-1.5">
-                        Submitted: {new Date(sub.submittedAt).toLocaleDateString()}
                       </p>
                     </div>
-
-                    <Link
-                      to={`/student/history/${sub.id}`}
-                      className="secondary-button flex items-center gap-1.5 py-1.5 px-3 text-xs shrink-0 border-dark-700 bg-dark-800"
+                    
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => navigate(`/student/results/${sub.id}`)}
+                      icon={<Eye className="h-3.5 w-3.5 text-secondary-500" />}
                     >
-                      <Eye className="h-3.5 w-3.5 text-slate-400" />
                       Review
-                    </Link>
+                    </Button>
                   </div>
                 );
               })}
             </div>
           )}
-        </div>
+        </Card>
       </div>
     </div>
   );

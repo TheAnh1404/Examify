@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import API from '../services/api';
+import { authService } from '../services/authService';
 
 const AuthContext = createContext(null);
 
@@ -13,14 +14,29 @@ export const AuthProvider = ({ children }) => {
     const initAuth = async () => {
       if (token) {
         try {
+          // In mock stage, check local user first, then try API
+          const localUser = authService.getCurrentUser();
+          if (localUser) {
+            setUser(localUser);
+          }
+          
+          // Try to ping backend, if it fails, keep local user
           const res = await API.get('/auth/me');
-          setUser(res.data.user);
+          if (res.data && res.data.user) {
+            setUser(res.data.user);
+            localStorage.setItem('examify_user', JSON.stringify(res.data.user));
+          }
         } catch (error) {
-          console.error('Initial auth validation failed:', error);
-          // Token expired or invalid
-          localStorage.removeItem('examify_token');
-          setToken(null);
-          setUser(null);
+          console.log('Backend auth check failed, using local mock session', error.message || error);
+          // If we have a local mock user, keep it. Otherwise, clean up.
+          const localUser = authService.getCurrentUser();
+          if (!localUser) {
+            localStorage.removeItem('examify_token');
+            localStorage.removeItem('examify_role');
+            localStorage.removeItem('examify_user');
+            setToken(null);
+            setUser(null);
+          }
         }
       }
       setLoading(false);
@@ -31,34 +47,28 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const res = await API.post('/auth/login', { email, password });
-      const { token: newToken, user: newUser } = res.data;
-      
-      localStorage.setItem('examify_token', newToken);
-      setToken(newToken);
-      setUser(newUser);
-      return newUser;
+      const data = await authService.login(email, password);
+      setToken(data.token);
+      setUser(data.user);
+      return data.user;
     } catch (error) {
-      throw error.response?.data?.message || 'Login failed. Please try again.';
+      throw error.message || 'Login failed. Please try again.';
     }
   };
 
   const register = async (name, email, password, role) => {
     try {
-      const res = await API.post('/auth/register', { name, email, password, role });
-      const { token: newToken, user: newUser } = res.data;
-
-      localStorage.setItem('examify_token', newToken);
-      setToken(newToken);
-      setUser(newUser);
-      return newUser;
+      const data = await authService.register(name, email, password, role);
+      setToken(data.token);
+      setUser(data.user);
+      return data.user;
     } catch (error) {
-      throw error.response?.data?.message || 'Registration failed. Please try again.';
+      throw error.message || 'Registration failed. Please try again.';
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('examify_token');
+    authService.logout();
     setToken(null);
     setUser(null);
   };
@@ -83,3 +93,4 @@ export const useAuth = () => {
   }
   return context;
 };
+
