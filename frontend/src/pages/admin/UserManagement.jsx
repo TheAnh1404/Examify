@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { userService } from '../../services/userService';
-import PageHeader from '../../components/layout/PageHeader';
 import SearchBox from '../../components/common/SearchBox';
 import FilterBar from '../../components/common/FilterBar';
 import DataTable from '../../components/common/DataTable';
 import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
-import { Plus, Edit, Trash2, ShieldAlert, CheckCircle } from 'lucide-react';
+import Loading from '../../components/common/Loading';
+import { Plus, Edit, Trash2, ShieldAlert, CheckCircle2, UserCircle, Mail, Calendar } from 'lucide-react';
 import { authService } from '../../services/authService';
 
 const UserManagement = () => {
@@ -20,11 +20,9 @@ const UserManagement = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Filters
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
 
-  // Delete Dialog state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -73,7 +71,6 @@ const UserManagement = () => {
     }
   };
 
-  // Filter accounts
   const filteredUsers = users.filter((u) => {
     const matchesSearch = 
       u.name.toLowerCase().includes(search.toLowerCase()) || 
@@ -91,94 +88,115 @@ const UserManagement = () => {
 
   const columns = [
     { 
-      header: 'Name', 
+      header: 'User Profile', 
       key: 'name', 
-      render: (row) => <span className="font-semibold text-secondary-800">{row.name}</span> 
+      render: (row) => (
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-secondary-50 text-secondary-400 flex items-center justify-center border border-secondary-100">
+            <UserCircle className="h-6 w-6" />
+          </div>
+          <div>
+            <p className="font-bold text-secondary-900">{row.name}</p>
+            <div className="flex items-center gap-1.5 text-xs text-secondary-400 font-medium">
+              <Mail className="h-3 w-3" />
+              {row.email}
+            </div>
+          </div>
+        </div>
+      ) 
     },
-    { header: 'Email', key: 'email' },
     { 
-      header: 'Role', 
+      header: 'Role Permissions', 
       key: 'role', 
-      render: (row) => <Badge variant={getRoleBadgeVariant(row.role)}>{row.role}</Badge> 
+      render: (row) => <Badge variant={getRoleBadgeVariant(row.role)} dot>{row.role}</Badge> 
     },
     { 
-      header: 'Joined Date', 
+      header: 'Registration', 
       key: 'createdAt', 
       render: (row) => (
-        <span className="text-secondary-450 text-xs">
-          {new Date(row.createdAt).toLocaleDateString(undefined, {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-          })}
-        </span>
+        <div className="flex items-center gap-2 text-secondary-500">
+          <Calendar className="h-4 w-4" />
+          <span className="text-xs font-bold">
+            {new Date(row.createdAt).toLocaleDateString(undefined, {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric'
+            })}
+          </span>
+        </div>
       ) 
     },
     {
-      header: 'Actions',
+      header: '',
       key: 'actions',
       render: (row) => (
-        <div className="flex gap-2 justify-end">
+        <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
           <Button
             variant="secondary"
             size="sm"
             onClick={() => navigate(`/admin/users/${row.id}/edit`)}
-            icon={<Edit className="h-3.5 w-3.5" />}
+            icon={<Edit className="h-4 w-4" />}
           />
           <Button
             variant="danger"
             size="sm"
             onClick={() => handleDeleteClick(row)}
             disabled={row.id === currentUser.id}
-            icon={<Trash2 className="h-3.5 w-3.5" />}
+            icon={<Trash2 className="h-4 w-4" />}
           />
         </div>
       )
     }
   ];
 
-  return (
-    <div className="space-y-6">
-      <PageHeader 
-        title="User Account Management" 
-        subtitle="Manage and provision client credentials, teacher permissions, and student profiles."
-        actions={
-          <Button 
-            variant="primary" 
-            size="md" 
-            onClick={() => navigate('/admin/users/create')}
-            icon={<Plus className="h-4.5 w-4.5" />}
-          >
-            Create User
-          </Button>
-        }
-      />
+  if (loading) return (
+    <div className="min-h-[60vh] flex items-center justify-center">
+      <Loading message="Loading system users..." />
+    </div>
+  );
 
-      {/* Action Banners */}
+  return (
+    <div className="space-y-8 animate-fade-in">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <h1 className="h1 mb-1">User Management</h1>
+          <p className="p">Manage and provision client credentials, teacher permissions, and student profiles.</p>
+        </div>
+        <Button 
+          variant="primary" 
+          onClick={() => navigate('/admin/users/create')}
+          icon={<Plus className="h-5 w-5" />}
+          className="shadow-lg shadow-primary-500/20"
+        >
+          Create New User
+        </Button>
+      </div>
+
       {error && (
-        <div className="flex items-center gap-2.5 p-4 rounded-xl bg-red-50 border border-red-105 text-red-700 text-sm animate-slide-up">
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-danger-50 border border-danger-100 text-danger-700 text-sm font-semibold">
           <ShieldAlert className="h-5 w-5 shrink-0" />
           <span>{error}</span>
         </div>
       )}
       {success && (
-        <div className="flex items-center gap-2.5 p-4 rounded-xl bg-accent-50 border border-accent-100 text-accent-700 text-sm animate-slide-up">
-          <CheckCircle className="h-5 w-5 shrink-0" />
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-accent-50 border border-accent-100 text-accent-700 text-sm font-semibold">
+          <CheckCircle2 className="h-5 w-5 shrink-0" />
           <span>{success}</span>
         </div>
       )}
 
       {/* Table Filters */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white border border-secondary-200 rounded-xl p-4 shadow-sm shrink-0">
+      <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
         <SearchBox 
           value={search} 
           onChange={(e) => setSearch(e.target.value)} 
-          placeholder="Search by user name or email..." 
+          placeholder="Search by name or email..." 
         />
         
         <FilterBar 
           value={roleFilter} 
           onChange={(e) => setRoleFilter(e.target.value)}
+          label="Role:"
           options={[
             { value: 'ALL', label: 'All System Roles' },
             { value: 'ADMIN', label: 'Administrators' },
@@ -188,23 +206,21 @@ const UserManagement = () => {
         />
       </div>
 
-      {/* Grid listing */}
+      {/* User Listing */}
       <DataTable 
         columns={columns} 
         data={filteredUsers} 
-        loading={loading}
-        pageSize={6} 
+        pageSize={8} 
         emptyMessage="No account records matched the current criteria search."
       />
 
-      {/* Delete Dialog */}
       <ConfirmDialog 
         isOpen={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleConfirmDelete}
         title="Delete User Account"
-        message={`Are you sure you want to permanently delete user "${userToDelete?.name}"? All related data will be archived.`}
-        confirmText="Delete Account"
+        message={`Warning: You are about to permanently delete the account for "${userToDelete?.name}". This action cannot be undone.`}
+        confirmText="Confirm Deletion"
         loading={deleteLoading}
       />
     </div>

@@ -1,13 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { dashboardService } from '../../services/dashboardService';
 import { examService } from '../../services/examService';
-import PageHeader from '../../components/layout/PageHeader';
 import StatCard from '../../components/common/StatCard';
 import Card from '../../components/common/Card';
 import Loading from '../../components/common/Loading';
 import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
-import { BookOpen, FolderLock, Award, CheckCircle, Plus, Eye, Edit, Trash2, ShieldAlert } from 'lucide-react';
+import { 
+  BookOpen, 
+  FolderLock, 
+  Award, 
+  CheckCircle, 
+  Plus, 
+  Eye, 
+  Trash2, 
+  ShieldAlert, 
+  Users, 
+  ClipboardList,
+  ArrowRight,
+  TrendingUp,
+  BarChart3
+} from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 const TeacherDashboard = () => {
@@ -45,7 +58,6 @@ const TeacherDashboard = () => {
       setError('');
       await examService.delete(id);
       setExams(prev => prev.filter(e => e.id !== id));
-      // Refresh statistics
       const statsRes = await dashboardService.getTeacherStats();
       setStats(statsRes.data);
     } catch (err) {
@@ -53,12 +65,17 @@ const TeacherDashboard = () => {
     }
   };
 
-  if (loading) return <Loading message="Assembling teacher portal..." />;
+  if (loading) return (
+    <div className="min-h-[60vh] flex items-center justify-center">
+      <Loading message="Assembling teacher portal..." />
+    </div>
+  );
+
   if (error) {
     return (
-      <div className="p-4 rounded-xl bg-red-50 border border-red-100 text-red-700 text-sm flex items-center gap-3">
-        <ShieldAlert className="h-5 w-5 animate-pulse" />
-        <p>{error}</p>
+      <div className="p-6 rounded-2xl bg-danger-50 border border-danger-100 text-danger-700 flex items-center gap-4 animate-fade-in">
+        <ShieldAlert className="h-6 w-6 shrink-0" />
+        <p className="font-semibold">{error}</p>
       </div>
     );
   }
@@ -66,113 +83,140 @@ const TeacherDashboard = () => {
   const { stats: metrics } = stats;
 
   return (
-    <div className="space-y-6">
-      <PageHeader 
-        title="Instructor Operations Hub" 
-        subtitle="Author assessments, audit question banks, and review proctored student submissions."
-        actions={
+    <div className="space-y-8 animate-fade-in">
+      {/* Welcome Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <h1 className="h1 mb-1">Instructor Hub</h1>
+          <p className="p">Author assessments, audit question banks, and review proctored submissions.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate('/teacher/questions')}
+            icon={<FolderLock className="h-4 w-4" />}
+          >
+            Question Bank
+          </Button>
           <Button 
             variant="primary" 
-            size="md" 
             onClick={() => navigate('/teacher/exams/create')}
-            icon={<Plus className="h-4.5 w-4.5" />}
+            icon={<Plus className="h-5 w-5" />}
+            className="shadow-lg shadow-primary-500/20"
           >
             Create Exam
           </Button>
-        }
-      />
+        </div>
+      </div>
 
-      {/* Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {/* Metrics Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard 
           title="Published Exams" 
           value={metrics.totalExams} 
-          icon={<BookOpen className="h-5 w-5" />} 
+          icon={BookOpen} 
+          trendValue="+2"
+          trendType="up"
+          description="Total active assessments"
         />
         <StatCard 
           title="Total Submissions" 
           value={metrics.totalSubmissions} 
-          icon={<ClipboardListIcon />} 
+          icon={ClipboardList} 
           trendValue="+18%" 
+          trendType="up"
+          description="Global student attempts"
         />
         <StatCard 
-          title="Average Pass Rate" 
+          title="Avg. Pass Rate" 
           value={`${metrics.passRate}%`} 
-          icon={<CheckCircle className="h-5 w-5 text-accent-600" />} 
+          icon={CheckCircle} 
+          trendValue="+5%"
+          trendType="up"
+          description="Student success metric"
         />
         <StatCard 
           title="Student Pool" 
           value={metrics.totalStudents} 
-          icon={<UsersIcon />} 
+          icon={Users} 
+          description="Enrolled test takers"
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Exams Table Panel */}
         <Card 
-          title="My Active Examinations" 
+          title="Active Examinations" 
           subtitle="Overview of published questionnaires and taker logs" 
           className="lg:col-span-2"
           bodyClassName="p-0"
         >
           {exams.length === 0 ? (
-            <div className="p-8 text-center text-sm text-secondary-550 font-medium">
-              No exams built yet.{' '}
-              <Link to="/teacher/exams/create" className="text-primary-600 hover:text-primary-750 font-bold">
-                Create one now
-              </Link>
+            <div className="p-12 text-center">
+              <div className="h-16 w-16 rounded-2xl bg-secondary-50 text-secondary-300 flex items-center justify-center mx-auto mb-4">
+                <BookOpen className="h-8 w-8" />
+              </div>
+              <h4 className="text-secondary-900 font-bold mb-1">No exams built yet</h4>
+              <p className="text-secondary-500 text-sm mb-6">Start by creating your first examination sheet.</p>
+              <Button variant="primary" onClick={() => navigate('/teacher/exams/create')}>
+                Create First Exam
+              </Button>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm border-collapse text-secondary-700">
-                <thead className="bg-secondary-50 border-b border-secondary-200 text-secondary-505 text-xs font-semibold uppercase select-none">
-                  <tr>
-                    <th className="px-6 py-3.5">Exam Details</th>
-                    <th className="px-6 py-3.5">Subject</th>
-                    <th className="px-6 py-3.5">Duration</th>
-                    <th className="px-6 py-3.5">Marks</th>
-                    <th className="px-6 py-3.5 text-right">Actions</th>
+              <table className="w-full text-left text-sm border-collapse">
+                <thead>
+                  <tr className="bg-secondary-50/50 border-b border-secondary-100">
+                    <th className="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-widest">Exam Details</th>
+                    <th className="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-widest">Category</th>
+                    <th className="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-widest text-center">Stats</th>
+                    <th className="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-widest text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-secondary-200">
+                <tbody className="divide-y divide-secondary-100">
                   {exams.map((exam) => (
-                    <tr key={exam.id} className="hover:bg-secondary-50/50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div>
-                          <Link to={`/teacher/exams/${exam.id}`} className="font-semibold text-secondary-800 hover:text-primary-600 transition-colors">
-                            {exam.title}
-                          </Link>
-                          <p className="text-xs text-secondary-400 mt-0.5 line-clamp-1 max-w-xs">{exam.description || 'No description'}</p>
+                    <tr key={exam.id} className="hover:bg-secondary-50/30 transition-all group">
+                      <td className="px-6 py-5">
+                        <Link to={`/teacher/exams/${exam.id}`} className="font-bold text-secondary-900 hover:text-primary-600 transition-colors block mb-1">
+                          {exam.title}
+                        </Link>
+                        <div className="flex items-center gap-3 text-xs text-secondary-400 font-medium">
+                          <span className="flex items-center gap-1"><TrendingUp className="h-3 w-3" /> {exam.duration}m</span>
+                          <span className="h-1 w-1 rounded-full bg-secondary-200"></span>
+                          <span>{exam.totalMarks} Points</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 font-medium">
+                      <td className="px-6 py-5">
                         <Badge variant="indigo">{exam.subjectName}</Badge>
                       </td>
-                      <td className="px-6 py-4 text-secondary-500 font-medium">{exam.duration} mins</td>
-                      <td className="px-6 py-4 text-secondary-550 font-bold">{exam.totalMarks} pts</td>
-                      <td className="px-6 py-4 text-right space-x-1.5 shrink-0">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => navigate(`/teacher/exams/${exam.id}`)}
-                          icon={<Eye className="h-3.5 w-3.5 text-secondary-500" />}
-                          title="View Details"
-                        />
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => navigate(`/teacher/exams/${exam.id}/questions`)}
-                          icon={<FolderLock className="h-3.5 w-3.5 text-secondary-500" />}
-                          title="Manage Questions"
-                        />
-                        <Button
-                          variant="danger"
-                          size="sm"
-                          onClick={() => handleDeleteExam(exam.id, exam.title)}
-                          icon={<Trash2 className="h-3.5 w-3.5" />}
-                          title="Delete Exam"
-                        />
+                      <td className="px-6 py-5 text-center">
+                        <div className="inline-flex flex-col items-center">
+                          <span className="text-sm font-bold text-secondary-900">0</span>
+                          <span className="text-[10px] text-secondary-400 font-bold uppercase tracking-widest">Attempts</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5 text-right">
+                        <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => navigate(`/teacher/exams/${exam.id}`)}
+                            icon={<Eye className="h-4 w-4" />}
+                          />
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => navigate(`/teacher/exams/${exam.id}/questions`)}
+                            icon={<FolderLock className="h-4 w-4" />}
+                          />
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => handleDeleteExam(exam.id, exam.title)}
+                            icon={<Trash2 className="h-4 w-4" />}
+                          />
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -183,65 +227,46 @@ const TeacherDashboard = () => {
         </Card>
 
         {/* Quick Operations links */}
-        <Card title="Assessments Operations" subtitle="Perform common operations">
-          <div className="space-y-3.5">
-            <Link 
-              to="/teacher/questions" 
-              className="flex items-center justify-between p-3.5 rounded-lg border border-secondary-200 bg-secondary-50 hover:bg-secondary-100/50 transition-colors group"
-            >
-              <div className="flex items-center gap-3">
-                <FolderLock className="h-5 w-5 text-accent-600" />
-                <span className="text-sm font-semibold text-secondary-800">Browse Question Bank</span>
-              </div>
-              <ArrowRight className="h-4 w-4 text-secondary-400 group-hover:translate-x-0.5 transition-transform" />
-            </Link>
+        <div className="space-y-6">
+          <Card title="Quick Actions" subtitle="Perform common operations">
+            <div className="space-y-3">
+              {[
+                { to: '/teacher/questions', icon: FolderLock, color: 'text-primary-600 bg-primary-50', label: 'Question Bank' },
+                { to: '/teacher/questions/create', icon: Plus, color: 'text-accent-600 bg-accent-50', label: 'New Question' },
+                { to: '/teacher/results', icon: Award, color: 'text-indigo-600 bg-indigo-50', label: 'Student Results' },
+                { to: '/teacher/analytics', icon: BarChart3, color: 'text-warning-600 bg-warning-50', label: 'Performance Analytics' }
+              ].map((link, idx) => (
+                <Link 
+                  key={idx}
+                  to={link.to} 
+                  className="flex items-center justify-between p-4 rounded-xl border border-secondary-100 bg-white hover:bg-secondary-50 hover:border-secondary-200 transition-all group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`h-10 w-10 rounded-xl ${link.color} flex items-center justify-center transition-transform group-hover:scale-110`}>
+                      <link.icon className="h-5 w-5" />
+                    </div>
+                    <span className="text-sm font-bold text-secondary-900">{link.label}</span>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-secondary-300 group-hover:text-primary-600 group-hover:translate-x-1 transition-all" />
+                </Link>
+              ))}
+            </div>
+          </Card>
 
-            <Link 
-              to="/teacher/questions/create" 
-              className="flex items-center justify-between p-3.5 rounded-lg border border-secondary-200 bg-secondary-50 hover:bg-secondary-100/50 transition-colors group"
-            >
-              <div className="flex items-center gap-3">
-                <Plus className="h-5 w-5 text-primary-600" />
-                <span className="text-sm font-semibold text-secondary-800">Draft Question Prompts</span>
-              </div>
-              <ArrowRight className="h-4 w-4 text-secondary-400 group-hover:translate-x-0.5 transition-transform" />
-            </Link>
-
-            <Link 
-              to="/teacher/results" 
-              className="flex items-center justify-between p-3.5 rounded-lg border border-secondary-200 bg-secondary-50 hover:bg-secondary-100/50 transition-colors group"
-            >
-              <div className="flex items-center gap-3">
-                <Award className="h-5 w-5 text-indigo-600" />
-                <span className="text-sm font-semibold text-secondary-800">Audit Student Result Sheets</span>
-              </div>
-              <ArrowRight className="h-4 w-4 text-secondary-400 group-hover:translate-x-0.5 transition-transform" />
-            </Link>
-
-            <Link 
-              to="/teacher/analytics" 
-              className="flex items-center justify-between p-3.5 rounded-lg border border-secondary-200 bg-secondary-50 hover:bg-secondary-100/50 transition-colors group"
-            >
-              <div className="flex items-center gap-3">
-                <LineChart className="h-5 w-5 text-amber-500" />
-                <span className="text-sm font-semibold text-secondary-800">Analytics & Leaderboards</span>
-              </div>
-              <ArrowRight className="h-4 w-4 text-secondary-400 group-hover:translate-x-0.5 transition-transform" />
-            </Link>
-          </div>
-        </Card>
+          <Card className="bg-primary-600 border-none relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500" />
+            <div className="relative z-10 text-white">
+              <h4 className="text-lg font-bold mb-2">Need help?</h4>
+              <p className="text-primary-100 text-xs leading-relaxed mb-4">Check out our documentation on how to create effective multi-choice assessments.</p>
+              <Button variant="ghost" className="text-white hover:bg-white/10 p-0 h-auto font-bold text-xs uppercase tracking-widest">
+                Read Guide <ArrowRight className="h-3 w-3 ml-1" />
+              </Button>
+            </div>
+          </Card>
+        </div>
       </div>
     </div>
   );
 };
-
-// Simple inline icons
-const ClipboardListIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
-);
-
-const UsersIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-users"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-);
 
 export default TeacherDashboard;

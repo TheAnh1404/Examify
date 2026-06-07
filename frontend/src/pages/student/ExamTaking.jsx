@@ -6,7 +6,7 @@ import Loading from '../../components/common/Loading';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
-import { Clock, ShieldAlert, AlertTriangle, ChevronLeft, ChevronRight, Send, GraduationCap } from 'lucide-react';
+import { Clock, ShieldAlert, AlertTriangle, ChevronLeft, ChevronRight, Send, GraduationCap, CheckCircle2 } from 'lucide-react';
 
 const ExamTaking = () => {
   const { id: examId } = useParams();
@@ -16,17 +16,14 @@ const ExamTaking = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Taker parameters
   const [currentIdx, setCurrentIdx] = useState(0);
-  const [answers, setAnswers] = useState([]); // Array of { questionId, selectedOption }
-  const [timeLeft, setTimeLeft] = useState(0); // in seconds
+  const [answers, setAnswers] = useState([]); // { questionId, selectedOption }
+  const [timeLeft, setTimeLeft] = useState(0);
   const [startedAt] = useState(new Date().toISOString());
   
-  // Security
   const [tabFocusLosses, setTabFocusLosses] = useState(0);
   const [showWarning, setShowWarning] = useState(false);
   
-  // Dialog submissions
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -36,7 +33,6 @@ const ExamTaking = () => {
         const res = await examService.getById(examId);
         setExam(res.data);
         setTimeLeft(res.data.duration * 60);
-        // Initialize empty option keys
         setAnswers(res.data.resolvedQuestions.map(q => ({
           questionId: q.id,
           selectedOption: null
@@ -51,7 +47,6 @@ const ExamTaking = () => {
     fetchExamTemplate();
   }, [examId]);
 
-  // Security 1: Prevent page refreshes/unload accidental exits
   useEffect(() => {
     const handleBeforeUnload = (e) => {
       e.preventDefault();
@@ -64,13 +59,12 @@ const ExamTaking = () => {
     };
   }, []);
 
-  // Security 2: Monitor browser focus shifts
   useEffect(() => {
     const handleVisibility = () => {
       if (document.hidden) {
         setTabFocusLosses(prev => prev + 1);
         setShowWarning(true);
-        setTimeout(() => setShowWarning(false), 5000); // clear banner after 5s
+        setTimeout(() => setShowWarning(false), 5000);
       }
     };
     document.addEventListener('visibilitychange', handleVisibility);
@@ -79,7 +73,6 @@ const ExamTaking = () => {
     };
   }, []);
 
-  // Timer tick tick down
   useEffect(() => {
     if (timeLeft <= 0 && exam) {
       handleAutoSubmit();
@@ -113,23 +106,16 @@ const ExamTaking = () => {
     }
   };
 
-  const handleJump = (idx) => {
-    setCurrentIdx(idx);
-  };
-
-  // Central submit executor
   const performSubmission = async () => {
     if (submitting) return;
     setSubmitting(true);
     setError('');
 
     try {
-      // Clear safety listener
       window.onbeforeunload = null;
-
       const formattedAnswers = answers.map(a => ({
         questionId: a.questionId,
-        selectedOption: a.selectedOption !== null ? Number(a.selectedOption) : -1 // -1 = blank
+        selectedOption: a.selectedOption !== null ? Number(a.selectedOption) : -1
       }));
 
       const res = await attemptService.submitAttempt(
@@ -140,7 +126,6 @@ const ExamTaking = () => {
       );
 
       setConfirmOpen(false);
-      // Route student directly to their attempt results page
       navigate(`/student/results/${res.data.id}`);
     } catch (err) {
       console.error(err);
@@ -154,7 +139,6 @@ const ExamTaking = () => {
   };
 
   const handleAutoSubmit = () => {
-    console.log('Timer expired. Auto-submitting assessment responses.');
     performSubmission();
   };
 
@@ -168,14 +152,14 @@ const ExamTaking = () => {
 
   if (error && !submitting) {
     return (
-      <div className="min-h-screen bg-bg flex flex-col items-center justify-center p-6 text-center select-none">
-        <div className="bg-white border border-secondary-200 rounded-xl max-w-md w-full p-8 space-y-5 shadow-lg">
-          <div className="h-12 w-12 rounded-full bg-red-50 text-red-500 flex items-center justify-center border border-red-100 mx-auto">
-            <ShieldAlert className="h-6 w-6" />
+      <div className="min-h-screen bg-bg flex items-center justify-center p-6">
+        <div className="saas-card max-w-md w-full p-10 text-center space-y-6">
+          <div className="h-16 w-16 rounded-2xl bg-danger-50 text-danger-600 flex items-center justify-center mx-auto shadow-sm">
+            <ShieldAlert className="h-8 w-8" />
           </div>
-          <h3 className="font-semibold text-lg text-secondary-800">Exam Error</h3>
-          <p className="text-sm text-secondary-500">{error}</p>
-          <Button onClick={() => navigate('/student/dashboard')} variant="primary" className="w-full">
+          <h3 className="text-2xl font-bold text-secondary-900 tracking-tight">Access Denied</h3>
+          <p className="text-secondary-500 font-medium leading-relaxed">{error}</p>
+          <Button onClick={() => navigate('/student/dashboard')} variant="primary" fullWidth size="lg">
             Return to Dashboard
           </Button>
         </div>
@@ -185,216 +169,209 @@ const ExamTaking = () => {
 
   const currentQ = exam.resolvedQuestions[currentIdx];
   const selectedAns = answers.find(a => a.questionId === currentQ.id)?.selectedOption;
-  const isUnanswered = selectedAns === null;
-
-  // Timer color states
-  const timeLow = timeLeft < 120; // 2 mins
-  const timeUrgent = timeLeft < 30; // 30 secs
-
   const unansweredCount = answers.filter(a => a.selectedOption === null).length;
+  
+  const timeLow = timeLeft < 120;
+  const timeUrgent = timeLeft < 30;
 
   return (
-    <div className="min-h-screen bg-bg flex flex-col font-sans">
+    <div className="min-h-screen bg-bg flex flex-col select-none">
       
-      {/* Proctor Fullscreen Header */}
-      <header className="h-16 bg-white border-b border-secondary-200 px-6 sticky top-0 z-50 flex items-center justify-between shrink-0 select-none">
-        <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-lg bg-primary-600 flex items-center justify-center text-white font-bold shadow-sm shadow-primary-500/10">
+      {/* Immersive Proctor Header */}
+      <header className="h-16 bg-white border-b border-secondary-100 px-8 sticky top-0 z-50 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-4">
+          <div className="h-9 w-9 rounded-xl bg-primary-600 flex items-center justify-center text-white shadow-lg shadow-primary-500/20">
             <GraduationCap className="h-5.5 w-5.5" />
           </div>
-          <div>
-            <h1 className="font-semibold text-sm sm:text-base text-secondary-800 truncate max-w-[150px] sm:max-w-md leading-none">
+          <div className="hidden sm:block">
+            <h1 className="font-bold text-secondary-900 leading-none mb-1">
               {exam.title}
             </h1>
-            <span className="text-[10px] text-secondary-400 font-semibold uppercase tracking-wider block mt-1">
-              Assessment Proctoring Session
+            <span className="text-[10px] text-primary-600 font-bold uppercase tracking-widest">
+              Live Proctoring Active
             </span>
           </div>
         </div>
 
-        {/* Security Incident counts */}
+        {/* Warning Badge */}
         {tabFocusLosses > 0 && (
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-100 text-amber-600 text-xs font-semibold">
+          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-danger-50 border border-danger-100 text-danger-700 text-[10px] font-bold uppercase tracking-wider animate-fade-in">
             <ShieldAlert className="h-4 w-4" />
             <span>Incidents: {tabFocusLosses}</span>
           </div>
         )}
 
-        {/* Timer Box */}
+        {/* High-visibility Timer */}
         <div className={`
-          flex items-center gap-2 px-3.5 py-1.5 rounded-lg border font-mono font-bold text-xs sm:text-sm shadow-sm transition-all duration-200
+          flex items-center gap-2.5 px-5 py-2 rounded-xl border font-mono font-bold text-lg shadow-sm transition-all duration-300
           ${timeUrgent 
-            ? 'bg-red-50 border-red-200 text-red-600 animate-pulse' 
+            ? 'bg-danger-600 border-danger-700 text-white animate-pulse' 
             : timeLow 
-              ? 'bg-amber-50 border-amber-200 text-amber-600' 
-              : 'bg-white border-secondary-300 text-secondary-800'}
+              ? 'bg-warning-50 border-warning-200 text-warning-700' 
+              : 'bg-secondary-900 border-secondary-950 text-white shadow-lg shadow-secondary-900/20'}
         `}>
-          <Clock className="h-4 w-4" />
+          <Clock className="h-5 w-5" />
           <span>{formatTimer(timeLeft)}</span>
         </div>
       </header>
 
-      {/* Proctor Banner warnings */}
+      {/* Warning Overlay */}
       {showWarning && (
-        <div className="bg-amber-50 border-b border-amber-100 px-6 py-2.5 text-center text-xs text-amber-700 font-semibold animate-slide-up flex items-center justify-center gap-2 shrink-0">
-          <AlertTriangle className="h-4.5 w-4.5 shrink-0" />
-          <span>
-            <strong>Warning:</strong> Browser focus changes detected. Tab switching logs warnings. Proctor Incident #{tabFocusLosses} registered.
-          </span>
+        <div className="bg-danger-600 text-white px-8 py-2.5 text-center text-xs font-bold uppercase tracking-widest animate-fade-in shrink-0">
+          <AlertTriangle className="h-4 w-4 inline-block mr-2 -mt-0.5" />
+          <span>Warning: Tab Switching Detected. Incident #{tabFocusLosses} Recorded.</span>
         </div>
       )}
 
-      {/* Main Workspace grid */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+      {/* Main Workspace */}
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         
-        {/* Left: Taker panel */}
-        <div className="flex-1 overflow-y-auto p-6 sm:p-8 flex flex-col justify-between">
-          <div className="max-w-2xl w-full mx-auto space-y-6">
-            
-            {/* Card wrapper */}
-            <div className="bg-white border border-secondary-200 rounded-xl shadow-sm p-6 sm:p-8 space-y-6">
-              <div className="flex items-center justify-between border-b border-secondary-100 pb-3">
-                <span className="px-2.5 py-1 rounded bg-primary-50 border border-primary-100 text-primary-750 font-bold text-xs">
-                  Question {currentIdx + 1} of {exam.resolvedQuestions.length}
-                </span>
-                <span className="text-xs text-secondary-400 font-semibold">{currentQ.marks} points</span>
+        {/* Left: Question Navigator (Desktop) */}
+        <aside className="hidden lg:flex w-80 bg-white border-r border-secondary-100 p-8 flex-col shrink-0 overflow-y-auto">
+          <h4 className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mb-6">Question Sheet</h4>
+          
+          <div className="grid grid-cols-4 gap-3 mb-8">
+            {exam.resolvedQuestions.map((q, idx) => {
+              const isAnswered = answers.find(a => a.questionId === q.id)?.selectedOption !== null;
+              const isActive = currentIdx === idx;
+
+              return (
+                <button
+                  key={q.id}
+                  onClick={() => setCurrentIdx(idx)}
+                  className={`
+                    h-11 w-11 rounded-xl font-bold text-sm transition-all duration-200 border-2
+                    ${isActive 
+                      ? 'bg-primary-600 border-primary-600 text-white shadow-lg shadow-primary-500/25' 
+                      : isAnswered 
+                        ? 'bg-primary-50 border-primary-100 text-primary-600' 
+                        : 'bg-secondary-50 border-secondary-100 text-secondary-400 hover:border-secondary-300 hover:text-secondary-600'}
+                  `}
+                >
+                  {idx + 1}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-auto space-y-6">
+            <div className="p-5 rounded-2xl bg-secondary-50 border border-secondary-100 space-y-4">
+              <h5 className="text-[10px] font-bold text-secondary-900 uppercase tracking-widest">Progress</h5>
+              <div className="flex justify-between items-center text-sm font-bold">
+                <span className="text-secondary-500">Answered</span>
+                <span className="text-primary-600">{exam.resolvedQuestions.length - unansweredCount} / {exam.resolvedQuestions.length}</span>
               </div>
-
-              {/* Question prompting */}
-              <h2 className="font-semibold text-base sm:text-lg text-secondary-800 leading-relaxed">
-                {currentQ.text}
-              </h2>
-
-              {/* Option cards */}
-              <div className="space-y-3 pt-2 select-none">
-                {currentQ.options.map((opt, idx) => {
-                  const label = String.fromCharCode(65 + idx); // A, B, C, D
-                  const isSelected = selectedAns === idx;
-
-                  return (
-                    <div 
-                      key={idx}
-                      onClick={() => handleSelectOption(currentQ.id, idx)}
-                      className={`
-                        cursor-pointer border rounded-xl p-4 flex items-center gap-4 transition-all duration-150
-                        ${isSelected 
-                          ? 'border-primary-500 bg-primary-50/20 text-secondary-850' 
-                          : 'border-secondary-200 bg-white text-secondary-500 hover:border-secondary-300 hover:bg-secondary-50/20'}
-                      `}
-                    >
-                      <span className={`
-                        h-7 w-7 rounded-lg border text-xs font-bold flex items-center justify-center shrink-0 transition-colors
-                        ${isSelected 
-                          ? 'bg-primary-600 border-primary-700 text-white' 
-                          : 'bg-secondary-50 border-secondary-200 text-secondary-400'}
-                      `}>
-                        {label}
-                      </span>
-                      <span className="text-sm font-medium leading-snug">{opt}</span>
-                    </div>
-                  );
-                })}
+              <div className="w-full h-2 bg-secondary-200 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-primary-600 transition-all duration-500" 
+                  style={{ width: `${((exam.resolvedQuestions.length - unansweredCount) / exam.resolvedQuestions.length) * 100}%` }}
+                />
               </div>
             </div>
 
-            {/* Prev / Next controls */}
-            <div className="flex items-center justify-between select-none">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={handlePrev}
-                disabled={currentIdx === 0}
-                icon={<ChevronLeft className="h-4 w-4" />}
-              >
-                Previous Question
-              </Button>
-              
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={handleNext}
-                disabled={currentIdx === exam.resolvedQuestions.length - 1}
-                className="flex-row-reverse"
-                icon={<ChevronRight className="h-4 w-4" />}
-              >
-                Next Question
-              </Button>
-            </div>
-
-          </div>
-        </div>
-
-        {/* Right: Side proctored status & Nav list */}
-        <aside className="w-full md:w-80 bg-white border-t md:border-t-0 md:border-l border-secondary-200 p-6 flex flex-col shrink-0 space-y-6">
-          <div className="select-none">
-            <h4 className="font-semibold text-secondary-700 text-xs uppercase tracking-wider mb-4">Question Sheets</h4>
-            
-            {/* Grid */}
-            <div className="grid grid-cols-5 gap-2">
-              {exam.resolvedQuestions.map((q, idx) => {
-                const isSelected = answers.find(a => a.questionId === q.id)?.selectedOption !== null;
-                const isActive = currentIdx === idx;
-
-                let style = 'bg-secondary-50 border-secondary-200 text-secondary-500 hover:border-secondary-300';
-                if (isActive) {
-                  style = 'bg-primary-50 border-primary-500 text-primary-750 font-bold';
-                } else if (isSelected) {
-                  style = 'bg-primary-600 text-white border-primary-700';
-                }
-
-                return (
-                  <button
-                    key={q.id}
-                    onClick={() => handleJump(idx)}
-                    className={`
-                      h-9 w-9 rounded-lg border text-xs font-semibold flex items-center justify-center transition-all
-                      ${style}
-                    `}
-                  >
-                    {idx + 1}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="pt-6 border-t border-secondary-200 flex-1 flex flex-col justify-between">
-            <div className="space-y-4 select-none">
-              <h4 className="font-semibold text-secondary-755 text-xs uppercase tracking-wider">Exam Guidelines</h4>
-              
-              <ul className="text-xs text-secondary-500 space-y-2.5 font-medium leading-relaxed">
-                <li className="flex items-start gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-secondary-400 mt-1.5 shrink-0"></span>
-                  <span>Avoid switching tabs. Screen updates log focus warnings to the database.</span>
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-secondary-400 mt-1.5 shrink-0"></span>
-                  <span>Quizzes submit automatically on clock countdown expiration.</span>
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-secondary-400 mt-1.5 shrink-0"></span>
-                  <span>Check your entries using the navigator panel above.</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="pt-6 border-t border-secondary-200">
-              <Button
-                variant="success" // emerald submit
-                size="md"
-                onClick={handleManualSubmitClick}
-                disabled={submitting}
-                className="w-full flex items-center justify-center gap-2 py-3"
-                icon={<Send className="h-4.5 w-4.5" />}
-              >
-                Submit Exam Sheet
-              </Button>
-            </div>
+            <Button
+              variant="primary"
+              onClick={handleManualSubmitClick}
+              disabled={submitting}
+              fullWidth
+              size="lg"
+              className="py-4 shadow-xl shadow-primary-500/25"
+              icon={<Send className="h-5 w-5" />}
+            >
+              Submit Sheet
+            </Button>
           </div>
         </aside>
+
+        {/* Center: Question Content */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-8 lg:p-12">
+          <div className="max-w-3xl mx-auto space-y-8">
+            
+            <div className="saas-card shadow-xl overflow-visible border-none bg-white">
+              <div className="px-8 py-6 border-b border-secondary-50 flex items-center justify-between">
+                <span className="text-xs font-bold text-primary-600 uppercase tracking-widest bg-primary-50 px-3 py-1 rounded-lg">
+                  Question {currentIdx + 1}
+                </span>
+                <span className="text-xs font-bold text-secondary-400 uppercase tracking-widest">
+                  {currentQ.marks} Points
+                </span>
+              </div>
+
+              <div className="p-8 sm:p-12">
+                <h2 className="text-xl sm:text-2xl font-bold text-secondary-900 leading-snug mb-10">
+                  {currentQ.text}
+                </h2>
+
+                <div className="space-y-4">
+                  {currentQ.options.map((opt, idx) => {
+                    const isSelected = selectedAns === idx;
+                    return (
+                      <div 
+                        key={idx}
+                        onClick={() => handleSelectOption(currentQ.id, idx)}
+                        className={`
+                          group cursor-pointer rounded-2xl p-6 flex items-center gap-6 transition-all duration-200 border-2
+                          ${isSelected 
+                            ? 'border-primary-600 bg-primary-50/20' 
+                            : 'border-secondary-100 bg-white hover:border-secondary-200 hover:bg-secondary-50/50'}
+                        `}
+                      >
+                        <div className={`
+                          h-10 w-10 rounded-xl font-bold text-lg flex items-center justify-center shrink-0 transition-all
+                          ${isSelected 
+                            ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/25' 
+                            : 'bg-secondary-50 text-secondary-400 group-hover:bg-secondary-100 group-hover:text-secondary-600'}
+                        `}>
+                          {String.fromCharCode(65 + idx)}
+                        </div>
+                        <span className={`text-base font-bold transition-colors ${isSelected ? 'text-secondary-900' : 'text-secondary-600'}`}>
+                          {opt}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="px-8 py-6 bg-secondary-50/30 flex items-center justify-between border-t border-secondary-50 rounded-b-2xl">
+                <Button
+                  variant="outline"
+                  onClick={handlePrev}
+                  disabled={currentIdx === 0}
+                  icon={<ChevronLeft className="h-5 w-5" />}
+                  className="px-6"
+                >
+                  Previous
+                </Button>
+                
+                <Button
+                  variant={currentIdx === exam.resolvedQuestions.length - 1 ? 'primary' : 'outline'}
+                  onClick={currentIdx === exam.resolvedQuestions.length - 1 ? handleManualSubmitClick : handleNext}
+                  className="px-6"
+                  icon={currentIdx === exam.resolvedQuestions.length - 1 ? <Send className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+                  iconRight
+                >
+                  {currentIdx === exam.resolvedQuestions.length - 1 ? 'Finish Exam' : 'Next Question'}
+                </Button>
+              </div>
+            </div>
+
+            {/* Mobile Navigator (Horizontal Scroll) */}
+            <div className="lg:hidden p-4 rounded-2xl bg-white border border-secondary-100 flex items-center gap-2 overflow-x-auto no-scrollbar shadow-sm">
+              {exam.resolvedQuestions.map((q, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentIdx(idx)}
+                  className={`h-10 w-10 rounded-lg font-bold text-xs shrink-0 transition-all ${currentIdx === idx ? 'bg-primary-600 text-white' : 'bg-secondary-50 text-secondary-500'}`}
+                >
+                  {idx + 1}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Manual Submit Confirmation */}
       <ConfirmDialog 
         isOpen={confirmOpen}
         onClose={() => setConfirmOpen(false)}
@@ -402,11 +379,11 @@ const ExamTaking = () => {
         title="Submit Examination"
         message={
           unansweredCount > 0
-            ? `You have left ${unansweredCount} questions unanswered. Are you sure you want to finalize and submit?`
-            : 'Are you sure you want to finalize and submit your answers sheet?'
+            ? `Warning: You have ${unansweredCount} unanswered questions. Are you sure you want to finalize your submission?`
+            : 'Ready to finalize your assessment? You will not be able to change your answers after submission.'
         }
-        confirmText="Yes, Submit Exam"
-        type="warning" // warning emerald gate
+        confirmText="Yes, Submit Final"
+        type="warning"
         loading={submitting}
       />
     </div>

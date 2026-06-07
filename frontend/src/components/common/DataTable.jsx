@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import Loading from './Loading';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const DataTable = ({
-  columns = [], // [{ header, key, render }]
+  columns = [], // [{ header, key, render, className }]
   data = [],
   loading = false,
-  pageSize = 5,
+  pageSize = 10,
   emptyMessage = 'No records available.'
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -19,34 +20,41 @@ const DataTable = ({
   };
 
   if (loading) {
-    return <Loading message="Loading data rows..." />;
+    return (
+      <div className="saas-card p-12 flex justify-center items-center">
+        <Loading message="Fetching records..." />
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-4">
-      {/* Table Panel */}
-      <div className="bg-white border border-secondary-200 rounded-xl shadow-sm overflow-hidden w-full">
+    <div className="space-y-4 animate-fade-in">
+      {/* Table Container */}
+      <div className="saas-card">
         {data.length === 0 ? (
-          <div className="p-8 text-center text-sm text-secondary-500 font-medium">
+          <div className="p-12 text-center text-sm text-secondary-500 font-medium">
             {emptyMessage}
           </div>
         ) : (
-          <div className="overflow-x-auto w-full">
-            <table className="w-full text-left text-sm border-collapse text-secondary-700">
-              <thead className="bg-secondary-50 border-b border-secondary-200 text-secondary-500 text-xs font-semibold uppercase tracking-wider select-none">
-                <tr>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm border-collapse">
+              <thead>
+                <tr className="bg-secondary-50/50 border-b border-secondary-100">
                   {columns.map((col, idx) => (
-                    <th key={col.key || idx} className="px-6 py-3.5">
+                    <th 
+                      key={col.key || idx} 
+                      className={`px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider ${col.className || ''}`}
+                    >
                       {col.header}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-secondary-200">
+              <tbody className="divide-y divide-secondary-100">
                 {paginatedData.map((row, rowIdx) => (
-                  <tr key={row.id || rowIdx} className="hover:bg-secondary-50/50 transition-colors">
+                  <tr key={row.id || rowIdx} className="hover:bg-secondary-50/30 transition-colors group">
                     {columns.map((col, colIdx) => (
-                      <td key={colIdx} className="px-6 py-4">
+                      <td key={colIdx} className={`px-6 py-4 text-secondary-700 font-medium ${col.className || ''}`}>
                         {col.render ? col.render(row, rowIdx) : row[col.key]}
                       </td>
                     ))}
@@ -58,38 +66,54 @@ const DataTable = ({
         )}
       </div>
 
-      {/* Pagination Controls */}
+      {/* Modern Pagination */}
       {data.length > pageSize && (
-        <div className="flex items-center justify-between px-2 text-sm text-secondary-500 select-none flex-wrap gap-2 shrink-0">
-          <div>
-            Showing <span className="font-semibold text-secondary-800">{startIndex + 1}</span> to{' '}
-            <span className="font-semibold text-secondary-800">
+        <div className="flex items-center justify-between px-2 py-1">
+          <p className="text-sm text-secondary-500">
+            Showing <span className="font-bold text-secondary-900">{startIndex + 1}</span> to{' '}
+            <span className="font-bold text-secondary-900">
               {Math.min(startIndex + pageSize, data.length)}
             </span>{' '}
-            of <span className="font-semibold text-secondary-800">{data.length}</span> rows
-          </div>
+            of <span className="font-bold text-secondary-900">{data.length}</span> results
+          </p>
           
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="px-3 py-1.5 rounded-lg border border-secondary-300 bg-white hover:bg-secondary-50 disabled:opacity-40 disabled:pointer-events-none transition-colors"
+              className="p-2 rounded-lg border border-secondary-200 bg-white text-secondary-600 hover:bg-secondary-50 hover:text-secondary-900 disabled:opacity-40 disabled:pointer-events-none transition-all"
             >
-              Previous
+              <ChevronLeft className="h-5 w-5" />
             </button>
             
-            <div className="flex items-center text-xs font-semibold">
-              <span className="px-3 py-1.5 rounded-lg bg-primary-50 border border-primary-100 text-primary-750">
-                Page {currentPage} of {totalPages}
-              </span>
+            <div className="flex items-center gap-1">
+              {[...Array(totalPages)].map((_, i) => {
+                const pageNum = i + 1;
+                // Only show a limited range of pages if totalPages is large
+                if (totalPages > 5 && Math.abs(pageNum - currentPage) > 2) return null;
+                
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => handlePageChange(pageNum)}
+                    className={`h-9 w-9 rounded-lg text-sm font-bold transition-all ${
+                      currentPage === pageNum
+                        ? 'bg-primary-600 text-white shadow-md shadow-primary-500/20'
+                        : 'text-secondary-500 hover:bg-secondary-100 hover:text-secondary-900'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
             </div>
 
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="px-3 py-1.5 rounded-lg border border-secondary-300 bg-white hover:bg-secondary-50 disabled:opacity-40 disabled:pointer-events-none transition-colors"
+              className="p-2 rounded-lg border border-secondary-200 bg-white text-secondary-600 hover:bg-secondary-50 hover:text-secondary-900 disabled:opacity-40 disabled:pointer-events-none transition-all"
             >
-              Next
+              <ChevronRight className="h-5 w-5" />
             </button>
           </div>
         </div>

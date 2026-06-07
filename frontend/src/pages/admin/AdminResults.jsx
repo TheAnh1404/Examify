@@ -6,14 +6,13 @@ import Badge from '../../components/common/Badge';
 import Loading from '../../components/common/Loading';
 import SearchBox from '../../components/common/SearchBox';
 import FilterBar from '../../components/common/FilterBar';
-import { AlertTriangle, ShieldAlert } from 'lucide-react';
+import { AlertTriangle, ShieldAlert, FileSpreadsheet, User, BookOpen } from 'lucide-react';
 
 const AdminResults = () => {
   const [attempts, setAttempts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Filters
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
 
@@ -34,7 +33,6 @@ const AdminResults = () => {
     fetchAttempts();
   }, []);
 
-  // Filter lists
   const filteredAttempts = attempts.filter((att) => {
     const matchesSearch = 
       att.studentName.toLowerCase().includes(search.toLowerCase()) || 
@@ -49,91 +47,120 @@ const AdminResults = () => {
       header: 'Student', 
       key: 'studentName', 
       render: (row) => (
-        <div>
-          <p className="font-semibold text-secondary-800">{row.studentName}</p>
-          <p className="text-xs text-secondary-400 mt-0.5">{row.studentEmail}</p>
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-xl bg-secondary-50 text-secondary-400 flex items-center justify-center border border-secondary-100">
+            <User className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="font-bold text-secondary-900">{row.studentName}</p>
+            <p className="text-xs text-secondary-400 font-medium">{row.studentEmail}</p>
+          </div>
         </div>
       ) 
     },
-    { header: 'Exam Title', key: 'examTitle' },
     { 
-      header: 'Score', 
+      header: 'Examination', 
+      key: 'examTitle',
+      render: (row) => (
+        <div className="flex items-center gap-2">
+          <BookOpen className="h-4 w-4 text-primary-500" />
+          <span className="font-bold text-secondary-800">{row.examTitle}</span>
+        </div>
+      )
+    },
+    { 
+      header: 'Performance', 
       key: 'score', 
       render: (row) => (
-        <span className="font-mono font-bold text-secondary-805">
-          {row.score} / {row.examTotalMarks} pts
-        </span>
+        <div className="flex flex-col">
+          <span className="font-bold text-secondary-900">
+            {row.score} / {row.examTotalMarks} pts
+          </span>
+          <span className="text-[10px] text-secondary-400 font-bold uppercase tracking-widest">
+            {((row.score / row.examTotalMarks) * 100).toFixed(0)}% Accuracy
+          </span>
+        </div>
       ) 
     },
     { 
       header: 'Status', 
       key: 'status', 
       render: (row) => (
-        <Badge variant={row.status.toUpperCase() === 'PASS' ? 'success' : 'danger'}>
+        <Badge variant={row.status.toUpperCase() === 'PASS' ? 'success' : 'danger'} dot>
           {row.status}
         </Badge>
       ) 
     },
     { 
-      header: 'Security Proctor Logs', 
+      header: 'Security Logs', 
       key: 'tabFocusLosses', 
       render: (row) => (
         row.tabFocusLosses > 0 ? (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded bg-amber-50 border border-amber-100 text-amber-600 font-sans">
-            <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-            {row.tabFocusLosses} Tab Violations
-          </span>
+          <Badge variant="warning" className="lowercase">
+            <AlertTriangle className="h-3 w-3 mr-1" />
+            {row.tabFocusLosses} violations
+          </Badge>
         ) : (
-          <span className="text-xs text-secondary-400 font-medium">Secure</span>
+          <Badge variant="slate">Secure</Badge>
         )
       ) 
     },
     { 
-      header: 'Submission Date', 
+      header: 'Submitted', 
       key: 'submittedAt', 
       render: (row) => (
-        <span className="text-secondary-450 text-xs">
+        <span className="text-secondary-500 font-bold text-xs">
           {new Date(row.submittedAt).toLocaleDateString(undefined, {
-            year: 'numeric',
             month: 'short',
             day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+            year: 'numeric'
           })}
         </span>
       ) 
     }
   ];
 
+  if (loading) return (
+    <div className="min-h-[60vh] flex items-center justify-center">
+      <Loading message="Fetching student gradebook..." />
+    </div>
+  );
+
   return (
-    <div className="space-y-6">
-      <PageHeader 
-        title="SaaS Submissions Log" 
-        subtitle="Review student scorecard entries and security logs globally."
-      />
+    <div className="space-y-8 animate-fade-in">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <h1 className="h1 mb-1">Submissions Log</h1>
+          <p className="p">Review student scorecard entries and proctoring security logs globally.</p>
+        </div>
+        <Button variant="outline" icon={<FileSpreadsheet className="h-4 w-4" />} onClick={() => window.print()}>
+          Export Data
+        </Button>
+      </div>
 
       {error && (
-        <div className="p-4 rounded-xl bg-red-50 border border-red-100 text-red-700 text-sm flex items-center gap-3">
-          <ShieldAlert className="h-5 w-5" />
-          <p>{error}</p>
+        <div className="p-6 rounded-2xl bg-danger-50 border border-danger-100 text-danger-700 flex items-center gap-4">
+          <ShieldAlert className="h-6 w-6 shrink-0" />
+          <p className="font-bold">{error}</p>
         </div>
       )}
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white border border-secondary-200 rounded-xl p-4 shadow-sm shrink-0">
+      <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
         <SearchBox 
           value={search} 
           onChange={(e) => setSearch(e.target.value)} 
-          placeholder="Search by student name or exam..." 
+          placeholder="Search student or exam..." 
         />
         
         <FilterBar 
           value={statusFilter} 
           onChange={(e) => setStatusFilter(e.target.value)}
+          label="Status:"
           options={[
-            { value: 'ALL', label: 'All Attempt Statuses' },
-            { value: 'PASS', label: 'Passing Scores' },
-            { value: 'FAIL', label: 'Failing Scores' }
+            { value: 'ALL', label: 'All Results' },
+            { value: 'PASS', label: 'Passing Only' },
+            { value: 'FAIL', label: 'Failing Only' }
           ]} 
         />
       </div>
@@ -142,9 +169,8 @@ const AdminResults = () => {
       <DataTable 
         columns={columns} 
         data={filteredAttempts} 
-        loading={loading}
-        pageSize={6} 
-        emptyMessage="No student attempts match the search filter."
+        pageSize={10} 
+        emptyMessage="No student attempts match the current filters."
       />
     </div>
   );

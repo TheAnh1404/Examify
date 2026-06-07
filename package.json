@@ -1,0 +1,12 @@
+{
+  "name": "examify-workspace",
+  "version": "1.0.0",
+  "description": "Workspace for Examify examination platform",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "cli": "node cli.js"
+  }
+}

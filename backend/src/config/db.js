@@ -6,6 +6,14 @@ const hashPassword = (password) => bcrypt.hashSync(password, 10);
 export const db = {
   users: [
     {
+      id: "usr-student-809772",
+      name: "Tuan Nguyen",
+      email: "tuan@examify.com",
+      password: hashPassword("tuan123"),
+      role: "student",
+      createdAt: new Date("2026-06-07T11:13:29.772Z")
+    },
+    {
       id: "usr-admin-1",
       name: "System Administrator",
       email: "admin@examify.com",

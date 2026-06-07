@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { questionService } from '../../services/questionService';
 import { subjectService } from '../../services/subjectService';
-import PageHeader from '../../components/layout/PageHeader';
 import SearchBox from '../../components/common/SearchBox';
 import FilterBar from '../../components/common/FilterBar';
 import DataTable from '../../components/common/DataTable';
 import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
-import { Plus, Eye, Edit, Trash2, ShieldAlert, CheckCircle } from 'lucide-react';
+import Loading from '../../components/common/Loading';
+import { Plus, Eye, Edit, Trash2, ShieldAlert, CheckCircle2, BookMarked, HelpCircle } from 'lucide-react';
 
 const QuestionBank = () => {
   const navigate = useNavigate();
@@ -20,11 +20,9 @@ const QuestionBank = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Filters
   const [search, setSearch] = useState('');
   const [subjectFilter, setSubjectFilter] = useState('ALL');
 
-  // Deletions
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [questionToDelete, setQuestionToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -76,7 +74,6 @@ const QuestionBank = () => {
     }
   };
 
-  // Filter list
   const filteredQuestions = questions.filter((q) => {
     const matchesSearch = q.text.toLowerCase().includes(search.toLowerCase());
     const matchesSubject = subjectFilter === 'ALL' || q.subjectId === subjectFilter;
@@ -84,7 +81,7 @@ const QuestionBank = () => {
   });
 
   const getDifficultyVariant = (diff) => {
-    const d = diff.toLowerCase();
+    const d = diff?.toLowerCase() || 'medium';
     if (d === 'easy') return 'success';
     if (d === 'medium') return 'warning';
     return 'danger';
@@ -95,90 +92,105 @@ const QuestionBank = () => {
       header: 'Subject', 
       key: 'subjectCode', 
       render: (row) => (
-        <span className="font-mono font-bold text-xs bg-secondary-100 border border-secondary-200 text-secondary-800 px-2 py-0.5 rounded">
-          {row.subjectCode || 'No Subject'}
-        </span>
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 rounded-lg bg-secondary-50 text-secondary-500">
+            <BookMarked className="h-4 w-4" />
+          </div>
+          <span className="font-bold text-secondary-900">
+            {row.subjectCode || 'N/A'}
+          </span>
+        </div>
       ) 
     },
     { 
       header: 'Question Prompt', 
       key: 'text', 
       render: (row) => (
-        <Link to={`/teacher/questions/${row.id}`} className="font-medium text-secondary-800 hover:text-primary-600 transition-colors line-clamp-2 max-w-lg">
-          {row.text}
-        </Link>
+        <div className="max-w-md">
+          <Link to={`/teacher/questions/${row.id}`} className="font-bold text-secondary-900 hover:text-primary-600 transition-colors line-clamp-1">
+            {row.text}
+          </Link>
+          <p className="text-xs text-secondary-400 font-medium mt-0.5">{row.options?.length || 0} options available</p>
+        </div>
       ) 
     },
     { 
-      header: 'Weight', 
+      header: 'Points', 
       key: 'marks', 
-      render: (row) => <span className="font-semibold">{row.marks} pts</span> 
+      render: (row) => <span className="font-bold text-secondary-700">{row.marks} pts</span> 
     },
     { 
       header: 'Difficulty', 
       key: 'difficulty', 
-      render: (row) => <Badge variant={getDifficultyVariant(row.difficulty)}>{row.difficulty}</Badge> 
+      render: (row) => <Badge variant={getDifficultyVariant(row.difficulty)} dot>{row.difficulty}</Badge> 
     },
     {
-      header: 'Actions',
+      header: '',
       key: 'actions',
       render: (row) => (
-        <div className="flex gap-2 justify-end shrink-0">
+        <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
           <Button
             variant="secondary"
             size="sm"
             onClick={() => navigate(`/teacher/questions/${row.id}`)}
-            icon={<Eye className="h-3.5 w-3.5 text-secondary-500" />}
+            icon={<Eye className="h-4 w-4" />}
           />
           <Button
             variant="secondary"
             size="sm"
             onClick={() => navigate(`/teacher/questions/${row.id}/edit`)}
-            icon={<Edit className="h-3.5 w-3.5 text-secondary-500" />}
+            icon={<Edit className="h-4 w-4" />}
           />
           <Button
             variant="danger"
             size="sm"
             onClick={() => handleDeleteClick(row)}
-            icon={<Trash2 className="h-3.5 w-3.5" />}
+            icon={<Trash2 className="h-4 w-4" />}
           />
         </div>
       )
     }
   ];
 
+  if (loading) return (
+    <div className="min-h-[60vh] flex items-center justify-center">
+      <Loading message="Loading questionnaires..." />
+    </div>
+  );
+
   return (
-    <div className="space-y-6">
-      <PageHeader 
-        title="Question Bank Catalog" 
-        subtitle="Manage and pool subject questions. Link them into active examination sheets."
-        actions={
-          <Button 
-            variant="primary" 
-            size="md" 
-            onClick={() => navigate('/teacher/questions/create')}
-            icon={<Plus className="h-4.5 w-4.5" />}
-          >
-            Create Question
-          </Button>
-        }
-      />
+    <div className="space-y-8 animate-fade-in">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <h1 className="h1 mb-1">Question Bank</h1>
+          <p className="p">Manage and pool subject questions. Link them into active examination sheets.</p>
+        </div>
+        <Button 
+          variant="primary" 
+          onClick={() => navigate('/teacher/questions/create')}
+          icon={<Plus className="h-5 w-5" />}
+          className="shadow-lg shadow-primary-500/20"
+        >
+          Add Question
+        </Button>
+      </div>
 
       {error && (
-        <div className="flex items-center gap-2.5 p-4 rounded-xl bg-red-50 border border-red-100 text-red-700 text-sm animate-slide-up">
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-danger-50 border border-danger-100 text-danger-700 text-sm font-semibold">
           <ShieldAlert className="h-5 w-5 shrink-0" />
           <span>{error}</span>
         </div>
       )}
       {success && (
-        <div className="flex items-center gap-2.5 p-4 rounded-xl bg-accent-50 border border-accent-100 text-accent-700 text-sm animate-slide-up">
-          <CheckCircle className="h-5 w-5 shrink-0" />
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-accent-50 border border-accent-100 text-accent-700 text-sm font-semibold">
+          <CheckCircle2 className="h-5 w-5 shrink-0" />
           <span>{success}</span>
         </div>
       )}
 
       {/* Filters Toolbar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white border border-secondary-200 rounded-xl p-4 shadow-sm shrink-0">
+      <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
         <SearchBox 
           value={search} 
           onChange={(e) => setSearch(e.target.value)} 
@@ -188,8 +200,9 @@ const QuestionBank = () => {
         <FilterBar 
           value={subjectFilter} 
           onChange={(e) => setSubjectFilter(e.target.value)}
+          label="Subject:"
           options={[
-            { value: 'ALL', label: 'All Subject Categories' },
+            { value: 'ALL', label: 'All Categories' },
             ...subjects.map(s => ({ value: s.id, label: s.name }))
           ]} 
         />
@@ -199,19 +212,17 @@ const QuestionBank = () => {
       <DataTable 
         columns={columns} 
         data={filteredQuestions} 
-        loading={loading}
-        pageSize={6} 
+        pageSize={8} 
         emptyMessage="No question records matched the current filters."
       />
 
-      {/* Delete Confirmation */}
       <ConfirmDialog 
         isOpen={deleteOpen}
         onClose={() => setDeleteOpen(false)}
         onConfirm={handleConfirmDelete}
         title="Delete Question Prompt"
-        message="Are you sure you want to permanently delete this question from the Question Bank pool? (Note: Questions linked in published examinations cannot be deleted)."
-        confirmText="Delete Question"
+        message="Are you sure you want to permanently delete this question from the pool? Questions linked in published examinations cannot be deleted."
+        confirmText="Confirm Delete"
         loading={deleteLoading}
       />
     </div>

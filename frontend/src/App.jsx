@@ -56,10 +56,10 @@ function App() {
         <Routes>
           {/* Public & Guest Routes */}
           <Route path="/" element={<PublicLayout><LandingPage /></PublicLayout>} />
-          <Route path="/login" element={<PublicLayout><LoginPage /></PublicLayout>} />
-          <Route path="/register" element={<PublicLayout><RegisterPage /></PublicLayout>} />
-          <Route path="/forgot-password" element={<PublicLayout><ForgotPasswordPage /></PublicLayout>} />
-          <Route path="/reset-password" element={<PublicLayout><ResetPasswordPage /></PublicLayout>} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           
           {/* Error pages */}
           <Route path="/403" element={<Unauthorized />} />

@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { examService } from '../../services/examService';
-import PageHeader from '../../components/layout/PageHeader';
 import Card from '../../components/common/Card';
 import Loading from '../../components/common/Loading';
 import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
-import { ArrowLeft, Edit, FolderLock, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, FolderLock, ShieldAlert, Clock, Award, BookOpen, ListChecks } from 'lucide-react';
 
 const ExamDetail = () => {
   const { id } = useParams();
@@ -32,120 +31,178 @@ const ExamDetail = () => {
     fetchExam();
   }, [id]);
 
-  if (loading) return <Loading message="Loading exam parameters..." />;
+  if (loading) return (
+    <div className="min-h-[60vh] flex items-center justify-center">
+      <Loading message="Loading exam parameters..." />
+    </div>
+  );
 
-  if (error) {
+  if (error || !exam) {
     return (
-      <div className="p-4 rounded-xl bg-red-55 border border-red-100 text-red-700 text-sm flex items-center gap-3">
-        <ShieldAlert className="h-5 w-5" />
-        <p>{error}</p>
+      <div className="p-8 rounded-2xl bg-danger-50 border border-danger-100 text-danger-700 flex flex-col items-center gap-4 text-center animate-fade-in">
+        <ShieldAlert className="h-10 w-10 shrink-0" />
+        <div>
+          <h4 className="text-lg font-bold">Access Error</h4>
+          <p className="font-medium text-sm mt-1">{error || 'Exam details could not be found.'}</p>
+        </div>
+        <Button onClick={() => navigate('/teacher/exams')} size="md" variant="primary" className="mt-2">
+          Back to List
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
-      <div className="flex items-center gap-3 shrink-0">
-        <Link 
-          to="/teacher/exams" 
-          className="p-2 rounded-lg bg-white border border-secondary-300 hover:bg-secondary-50 text-secondary-500 hover:text-secondary-800 transition-colors shadow-sm"
-        >
-          <ArrowLeft className="h-4.5 w-4.5" />
-        </Link>
-        <div>
-          <PageHeader 
-            title="Exam Template Preview" 
-            subtitle={`Reviewing details for ID: ${id}`}
-            actions={
-              <>
-                <Button
-                  variant="secondary"
-                  onClick={() => navigate(`/teacher/exams/${id}/questions`)}
-                  icon={<FolderLock className="h-4 w-4" />}
-                  size="sm"
-                >
-                  Manage Questions
-                </Button>
-              </>
-            }
-          />
+    <div className="space-y-8 max-w-4xl mx-auto animate-fade-in">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
+          <Link 
+            to="/teacher/exams" 
+            className="h-10 w-10 flex items-center justify-center rounded-xl bg-white border border-secondary-200 text-secondary-500 hover:text-secondary-900 hover:border-secondary-300 transition-all shadow-sm"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <div>
+            <h1 className="h1 mb-1">Exam Preview</h1>
+            <p className="p">Reviewing structure for {exam.title}</p>
+          </div>
         </div>
+        <Button
+          variant="primary"
+          onClick={() => navigate(`/teacher/exams/${id}/questions`)}
+          icon={<FolderLock className="h-4 w-4" />}
+          className="shadow-lg shadow-primary-500/20"
+        >
+          Manage Questions
+        </Button>
       </div>
 
       {/* Settings Grid */}
-      <Card title="Exam Settings Summary" subtitle={`${exam.subjectCode} - ${exam.subjectName}`}>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4 select-none">
-          <div className="p-3 bg-secondary-50 border border-secondary-100 rounded-lg">
-            <span className="text-[10px] text-secondary-400 uppercase font-semibold block">Duration</span>
-            <span className="text-sm font-bold text-secondary-800">{exam.duration} minutes</span>
-          </div>
-          <div className="p-3 bg-secondary-50 border border-secondary-100 rounded-lg">
-            <span className="text-[10px] text-secondary-400 uppercase font-semibold block">Weighting</span>
-            <span className="text-sm font-bold text-secondary-800">{exam.totalMarks} points</span>
-          </div>
-          <div className="p-3 bg-secondary-50 border border-secondary-100 rounded-lg">
-            <span className="text-[10px] text-secondary-400 uppercase font-semibold block">Passing Threshold</span>
-            <span className="text-sm font-bold text-secondary-800">{exam.passPercentage}%</span>
-          </div>
-          <div className="p-3 bg-secondary-50 border border-secondary-100 rounded-lg">
-            <span className="text-[10px] text-secondary-400 uppercase font-semibold block">Questions</span>
-            <span className="text-sm font-bold text-secondary-800">{exam.resolvedQuestions.length} Qs</span>
-          </div>
-        </div>
-
-        <div className="space-y-1 pt-2">
-          <span className="text-xs font-semibold text-secondary-400 uppercase tracking-widest block">Instructions Description</span>
-          <p className="text-sm text-secondary-600 leading-relaxed font-medium">{exam.description || 'No instructions provided.'}</p>
-        </div>
-      </Card>
-
-      {/* Questions Sheet */}
-      <div className="space-y-4">
-        <h3 className="font-semibold text-lg text-secondary-800 border-b border-secondary-200 pb-2">Questions Sheet</h3>
-        
-        {exam.resolvedQuestions.length === 0 ? (
-          <EmptyState 
-            title="Exam is empty"
-            description="There are no questions added to this exam template. Please link questions."
-            actionText="Link Questions"
-            onAction={() => navigate(`/teacher/exams/${id}/questions`)}
-          />
-        ) : (
-          exam.resolvedQuestions.map((q, idx) => (
-            <Card 
-              key={q.id} 
-              title={`Question ${idx + 1}`} 
-              actions={<span className="text-xs font-bold text-secondary-500">{q.marks} pts</span>}
-            >
-              <div className="space-y-4">
-                <p className="font-semibold text-secondary-800 text-sm leading-snug">{q.text}</p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-1 select-none">
-                  {q.options.map((opt, oIdx) => {
-                    const isCorrect = q.correctOption === oIdx;
-                    return (
-                      <div 
-                        key={oIdx} 
-                        className={`
-                          p-3 rounded-lg border text-xs flex justify-between items-center
-                          ${isCorrect 
-                            ? 'border-accent bg-accent-50/20 text-secondary-800 font-semibold' 
-                            : 'border-secondary-200 text-secondary-450'}
-                        `}
-                      >
-                        <span>{String.fromCharCode(65 + oIdx)}. {opt}</span>
-                        {isCorrect && (
-                          <span className="text-[8px] font-bold text-accent-700 bg-accent-100 rounded px-1 uppercase tracking-wider">
-                            Answer Key
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="md:col-span-2">
+          <Card title="Assessment Configuration" icon={BookOpen}>
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="p-4 bg-secondary-50 border border-secondary-100 rounded-2xl">
+                  <div className="flex items-center gap-2 text-secondary-400 mb-1">
+                    <Clock className="h-3.5 w-3.5" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Time</span>
+                  </div>
+                  <span className="text-sm font-bold text-secondary-900">{exam.duration}m</span>
+                </div>
+                <div className="p-4 bg-secondary-50 border border-secondary-100 rounded-2xl">
+                  <div className="flex items-center gap-2 text-secondary-400 mb-1">
+                    <Award className="h-3.5 w-3.5" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Marks</span>
+                  </div>
+                  <span className="text-sm font-bold text-secondary-900">{exam.totalMarks}pt</span>
+                </div>
+                <div className="p-4 bg-secondary-50 border border-secondary-100 rounded-2xl">
+                  <div className="flex items-center gap-2 text-secondary-400 mb-1">
+                    <ListChecks className="h-3.5 w-3.5" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Pass %</span>
+                  </div>
+                  <span className="text-sm font-bold text-secondary-900">{exam.passPercentage}%</span>
+                </div>
+                <div className="p-4 bg-secondary-50 border border-secondary-100 rounded-2xl">
+                  <div className="flex items-center gap-2 text-secondary-400 mb-1">
+                    <BookOpen className="h-3.5 w-3.5" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Items</span>
+                  </div>
+                  <span className="text-sm font-bold text-secondary-900">{exam.resolvedQuestions.length}</span>
                 </div>
               </div>
-            </Card>
-          ))
+
+              <div className="space-y-2">
+                <h4 className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest">Instructional Description</h4>
+                <p className="text-sm text-secondary-600 leading-relaxed font-medium bg-secondary-50/50 p-4 rounded-xl border border-secondary-100/50">
+                  {exam.description || 'No instructions provided for this exam.'}
+                </p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        <div className="space-y-6">
+          <Card title="Subject Meta" className="bg-primary-600 border-none text-white">
+            <div className="space-y-4">
+              <div>
+                <span className="text-[10px] font-bold text-primary-200 uppercase tracking-widest block mb-1">Category Code</span>
+                <span className="text-lg font-bold">{exam.subjectCode}</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-primary-200 uppercase tracking-widest block mb-1">Subject Name</span>
+                <span className="text-lg font-bold">{exam.subjectName}</span>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      {/* Questions Sheet */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between border-b border-secondary-100 pb-4">
+          <h3 className="text-lg font-bold text-secondary-900 tracking-tight">Examination Sheet</h3>
+          <span className="text-xs font-bold text-secondary-400 uppercase tracking-widest">{exam.resolvedQuestions.length} Questions</span>
+        </div>
+        
+        {exam.resolvedQuestions.length === 0 ? (
+          <div className="p-12 text-center saas-card bg-white border-dashed border-2">
+            <div className="h-16 w-16 rounded-2xl bg-secondary-50 text-secondary-300 flex items-center justify-center mx-auto mb-4">
+              <BookOpen className="h-8 w-8" />
+            </div>
+            <h4 className="text-secondary-900 font-bold mb-1">Empty Sheet</h4>
+            <p className="text-secondary-500 text-sm mb-6">No questions have been linked to this template yet.</p>
+            <Button variant="outline" onClick={() => navigate(`/teacher/exams/${id}/questions`)}>
+              Add Questions Now
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {exam.resolvedQuestions.map((q, idx) => (
+              <Card key={q.id} bodyClassName="p-6 sm:p-8 overflow-hidden">
+                <div className="space-y-6">
+                  <div className="flex justify-between items-start gap-4">
+                    <div className="flex gap-4">
+                      <div className="h-8 w-8 rounded-xl bg-secondary-50 text-secondary-500 font-bold text-xs flex items-center justify-center shrink-0 border border-secondary-100">
+                        {idx + 1}
+                      </div>
+                      <h4 className="font-bold text-secondary-900 leading-relaxed max-w-xl">
+                        {q.text}
+                      </h4>
+                    </div>
+                    <span className="text-xs font-bold text-secondary-400 uppercase tracking-widest bg-secondary-50 px-2 py-1 rounded-lg border border-secondary-100">
+                      {q.marks} Pts
+                    </span>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {q.options.map((opt, oIdx) => {
+                      const isCorrect = q.correctOption === oIdx;
+                      return (
+                        <div 
+                          key={oIdx} 
+                          className={`
+                            px-4 py-3.5 rounded-xl border text-sm flex justify-between items-center transition-all
+                            ${isCorrect 
+                              ? 'border-accent-500 bg-accent-50/10 text-accent-700 font-bold' 
+                              : 'border-secondary-100 text-secondary-500'}
+                          `}
+                        >
+                          <span className="leading-snug">{String.fromCharCode(65 + oIdx)}. {opt}</span>
+                          {isCorrect && (
+                            <span className="text-[9px] font-bold text-white bg-accent-600 rounded-lg px-2 py-1 uppercase tracking-widest">
+                              Key
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
         )}
       </div>
     </div>

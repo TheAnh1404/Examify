@@ -16,7 +16,7 @@ const Textarea = ({
     <div className={`space-y-1.5 w-full ${className}`}>
       {label && (
         <label htmlFor={name} className="saas-label">
-          {label} {required && <span className="text-red-500">*</span>}
+          {label} {required && <span className="text-danger-500">*</span>}
         </label>
       )}
       
@@ -29,14 +29,14 @@ const Textarea = ({
         required={required}
         rows={rows}
         className={`
-          saas-input resize-none
-          ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-secondary-300 focus:border-primary-500'}
+          saas-input resize-none py-3
+          ${error ? 'border-danger-500 focus:border-danger-500 focus:ring-danger-500/10' : ''}
         `}
         {...props}
       />
       
       {error && (
-        <p className="text-xs font-semibold text-red-500 mt-1 flex items-center gap-1 animate-slide-up">
+        <p className="text-xs font-medium text-danger-600 mt-1 flex items-center gap-1 animate-fade-in">
           {error}
         </p>
       )}
