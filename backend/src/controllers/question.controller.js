@@ -19,12 +19,22 @@ export const getQuestions = async (req, res, next) => {
     const questions = await prisma.question.findMany({
       where,
       include: {
-        subject: { select: { name: true, code: true } }
+        subject: { select: { id: true, name: true, code: true } },
+        createdBy: { select: { id: true, fullName: true } }
       },
       orderBy: { createdAt: 'desc' }
     });
 
-    return successResponse(res, questions, 'Questions retrieved successfully');
+    // If for some reason a student is allowed here, hide correct answers
+    const processedQuestions = questions.map(q => {
+      if (role === 'STUDENT') {
+        const { correctAnswer, ...rest } = q;
+        return rest;
+      }
+      return q;
+    });
+
+    return successResponse(res, processedQuestions, 'Questions retrieved successfully');
   } catch (error) {
     next(error);
   }
@@ -38,7 +48,8 @@ export const getQuestionById = async (req, res, next) => {
     const question = await prisma.question.findUnique({
       where: { id: questionId },
       include: {
-        subject: { select: { name: true, code: true } }
+        subject: { select: { id: true, name: true, code: true } },
+        createdBy: { select: { id: true, fullName: true } }
       }
     });
 
@@ -47,6 +58,12 @@ export const getQuestionById = async (req, res, next) => {
     // Ownership check for teachers
     if (role === 'TEACHER' && question.createdById !== userId) {
       return errorResponse(res, 'Access denied. You can only view your own questions.', 403);
+    }
+
+    // Hide correct answer for students
+    if (role === 'STUDENT') {
+      const { correctAnswer, ...rest } = question;
+      return successResponse(res, rest, 'Question retrieved successfully');
     }
 
     return successResponse(res, question, 'Question retrieved successfully');
@@ -60,6 +77,24 @@ export const createQuestion = async (req, res, next) => {
     const { subjectId, content, optionA, optionB, optionC, optionD, correctAnswer, difficulty } = req.body;
     const userId = req.user.id;
 
+    // Validation
+    if (!subjectId || !content || !optionA || !optionB || !optionC || !optionD || !correctAnswer) {
+      return errorResponse(res, 'All fields are required', 400);
+    }
+
+    if (!['A', 'B', 'C', 'D'].includes(correctAnswer)) {
+      return errorResponse(res, 'Correct answer must be A, B, C, or D', 400);
+    }
+
+    if (difficulty && !['EASY', 'MEDIUM', 'HARD'].includes(difficulty)) {
+      return errorResponse(res, 'Difficulty must be EASY, MEDIUM, or HARD', 400);
+    }
+
+    const subject = await prisma.subject.findUnique({ where: { id: parseInt(subjectId) } });
+    if (!subject) {
+      return errorResponse(res, 'Subject not found', 404);
+    }
+
     const question = await prisma.question.create({
       data: {
         subjectId: parseInt(subjectId),
@@ -71,6 +106,9 @@ export const createQuestion = async (req, res, next) => {
         optionD,
         correctAnswer,
         difficulty: difficulty || 'EASY'
+      },
+      include: {
+        subject: { select: { name: true } }
       }
     });
 
@@ -88,8 +126,24 @@ export const updateQuestion = async (req, res, next) => {
 
     const existingQuestion = await prisma.question.findUnique({ where: { id: questionId } });
     if (!existingQuestion) return errorResponse(res, 'Question not found', 404);
+    
+    // Ownership check
     if (existingQuestion.createdById !== userId && req.user.role !== 'ADMIN') {
-      return errorResponse(res, 'Access denied.', 403);
+      return errorResponse(res, 'Access denied. You do not own this question.', 403);
+    }
+
+    // Validation if fields are provided
+    if (correctAnswer && !['A', 'B', 'C', 'D'].includes(correctAnswer)) {
+      return errorResponse(res, 'Correct answer must be A, B, C, or D', 400);
+    }
+
+    if (difficulty && !['EASY', 'MEDIUM', 'HARD'].includes(difficulty)) {
+      return errorResponse(res, 'Difficulty must be EASY, MEDIUM, or HARD', 400);
+    }
+
+    if (subjectId) {
+      const subject = await prisma.subject.findUnique({ where: { id: parseInt(subjectId) } });
+      if (!subject) return errorResponse(res, 'Subject not found', 404);
     }
 
     const question = await prisma.question.update({

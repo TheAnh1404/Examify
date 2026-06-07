@@ -1,82 +1,46 @@
 import API from './api';
-import { db } from '../data/mockData';
 
 export const authService = {
   login: async (email, password) => {
-    // Simulate latency
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Find user
-    const user = db.users.find(u => u.email.toLowerCase() === email.toLowerCase());
-    
-    if (!user || user.password !== password) {
-      return Promise.reject(new Error('Invalid email address or password.'));
-    }
+    try {
+      const response = await API.post('/auth/login', { email, password });
+      const { user, token } = response.data.data;
 
-    // Set mock session details
-    const mockToken = `mock-jwt-token-for-${user.id}`;
-    localStorage.setItem('examify_token', mockToken);
-    localStorage.setItem('examify_role', user.role);
-    localStorage.setItem('examify_user', JSON.stringify({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role
-    }));
-
-    return {
-      token: mockToken,
-      user: {
+      localStorage.setItem('examify_token', token);
+      localStorage.setItem('examify_role', user.role);
+      localStorage.setItem('examify_user', JSON.stringify({
         id: user.id,
-        name: user.name,
+        name: user.fullName,
         email: user.email,
         role: user.role
-      }
-    };
-    // Later integration:
-    // const res = await API.post('/auth/login', { email, password });
-    // return res.data;
+      }));
+
+      return { user, token };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Login failed. Please verify your credentials.';
+      throw new Error(message);
+    }
   },
 
-  register: async (name, email, password, role) => {
-    await new Promise(resolve => setTimeout(resolve, 500));
+  register: async (fullName, email, password, role) => {
+    try {
+      const response = await API.post('/auth/register', { fullName, email, password, role });
+      const { user, token } = response.data.data;
 
-    const exists = db.users.find(u => u.email.toLowerCase() === email.toLowerCase());
-    if (exists) {
-      return Promise.reject(new Error('Email is already registered.'));
+      localStorage.setItem('examify_token', token);
+      localStorage.setItem('examify_role', user.role);
+      localStorage.setItem('examify_user', JSON.stringify({
+        id: user.id,
+        name: user.fullName,
+        email: user.email,
+        role: user.role
+      }));
+
+      return { user, token };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Registration failed. Try a different email address.';
+      throw new Error(message);
     }
-
-    const newUser = {
-      id: `usr-${Date.now()}`,
-      name,
-      email,
-      password,
-      role: role.toUpperCase(),
-      createdAt: new Date().toISOString()
-    };
-
-    db.users.push(newUser);
-    db.save('users');
-
-    const mockToken = `mock-jwt-token-for-${newUser.id}`;
-    localStorage.setItem('examify_token', mockToken);
-    localStorage.setItem('examify_role', newUser.role);
-    localStorage.setItem('examify_user', JSON.stringify({
-      id: newUser.id,
-      name: newUser.name,
-      email: newUser.email,
-      role: newUser.role
-    }));
-
-    return {
-      token: mockToken,
-      user: {
-        id: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role
-      }
-    };
   },
 
   logout: () => {
@@ -92,17 +56,22 @@ export const authService = {
   },
 
   forgotPassword: async (email) => {
-    await new Promise(resolve => setTimeout(resolve, 400));
-    const exists = db.users.find(u => u.email.toLowerCase() === email.toLowerCase());
-    if (!exists) {
-      return Promise.reject(new Error('No account found with this email.'));
+    try {
+      const response = await API.post('/auth/forgot-password', { email });
+      return response.data;
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to request password reset.';
+      throw new Error(message);
     }
-    return { message: 'Reset link has been dispatched to your inbox.' };
   },
 
-  resetPassword: async (token, newPassword) => {
-    await new Promise(resolve => setTimeout(resolve, 400));
-    // in mock, just return success
-    return { message: 'Password reset successful.' };
+  resetPassword: async (token, newPassword, confirmPassword) => {
+    try {
+      const response = await API.post('/auth/reset-password', { token, newPassword, confirmPassword });
+      return response.data;
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to reset password.';
+      throw new Error(message);
+    }
   }
 };

@@ -15,9 +15,16 @@ router.post('/', roleMiddleware('TEACHER', 'ADMIN'), examController.createExam);
 router.put('/:id', roleMiddleware('TEACHER', 'ADMIN'), examController.updateExam);
 router.delete('/:id', roleMiddleware('TEACHER', 'ADMIN'), examController.deleteExam);
 
+// Question management
 router.post('/:id/questions', roleMiddleware('TEACHER', 'ADMIN'), examController.addQuestionToExam);
 router.delete('/:id/questions/:questionId', roleMiddleware('TEACHER', 'ADMIN'), examController.removeQuestionFromExam);
 
+// Student assignment management
+router.post('/:id/students', roleMiddleware('TEACHER', 'ADMIN'), examController.assignStudents);
+router.delete('/:id/students/:studentId', roleMiddleware('TEACHER', 'ADMIN'), examController.removeStudent);
+router.get('/:id/students', roleMiddleware('TEACHER', 'ADMIN'), examController.getAssignedStudents);
+
+// Lifecycle management
 router.patch('/:id/publish', roleMiddleware('TEACHER', 'ADMIN'), examController.publishExam);
 router.patch('/:id/close', roleMiddleware('TEACHER', 'ADMIN'), examController.closeExam);
 

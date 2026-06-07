@@ -49,25 +49,25 @@ const AdminDashboard = () => {
   const { stats, leaderboard } = statsData;
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-10 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
         <div>
-          <h1 className="h1 mb-1">System Control Center</h1>
-          <p className="p">Overview of system-wide SaaS stats, subject categories, and user allocations.</p>
+          <h1 className="text-4xl font-extrabold text-secondary-900 tracking-tight mb-2">System Control Center</h1>
+          <p className="text-secondary-500 font-medium">Overview of system-wide SaaS stats, subject categories, and user allocations.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" onClick={() => navigate('/admin/settings')} icon={<Settings className="h-4 w-4" />}>
+        <div className="flex items-center gap-4">
+          <Button variant="secondary" onClick={() => navigate('/admin/settings')} icon={<Settings size={18} />}>
             Config
           </Button>
-          <Button variant="primary" onClick={() => navigate('/admin/users/create')} icon={<Activity className="h-4 w-4" />}>
+          <Button variant="primary" onClick={() => navigate('/admin/users/create')} icon={<Activity size={18} />}>
             Provision User
           </Button>
         </div>
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
         <StatCard 
           title="Total Students" 
           value={stats.totalStudents} 
@@ -105,42 +105,42 @@ const AdminDashboard = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         {/* Leaderboard Panel */}
         <Card 
           title="Student Leaderboard" 
-          subtitle="Highest performing student metrics across all exam attempts" 
-          className="lg:col-span-2"
+          subtitle="Highest performing student metrics across all attempts" 
+          className="lg:col-span-2 shadow-xl shadow-secondary-200/20"
           bodyClassName="p-0"
         >
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm border-collapse">
               <thead>
-                <tr className="bg-secondary-50/50 border-b border-secondary-100">
-                  <th className="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-widest">Student Profile</th>
-                  <th className="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-widest text-center">Attempts</th>
-                  <th className="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-widest text-right">Avg Performance</th>
+                <tr className="bg-secondary-50/30 border-b border-secondary-50">
+                  <th className="px-8 py-5 text-[10px] font-extrabold text-secondary-400 uppercase tracking-[0.15em]">Student Profile</th>
+                  <th className="px-8 py-5 text-[10px] font-extrabold text-secondary-400 uppercase tracking-[0.15em] text-center">Attempts</th>
+                  <th className="px-8 py-5 text-[10px] font-extrabold text-secondary-400 uppercase tracking-[0.15em] text-right">Avg Performance</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-secondary-100">
+              <tbody className="divide-y divide-secondary-50">
                 {leaderboard.map((student, idx) => (
-                  <tr key={idx} className="hover:bg-secondary-50/30 transition-all group">
-                    <td className="px-6 py-5">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center font-bold text-sm">
+                  <tr key={idx} className="hover:bg-primary-50/30 transition-all group">
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-2xl bg-primary-500/10 text-primary-600 flex items-center justify-center font-extrabold text-lg">
                           {student.studentName.charAt(0)}
                         </div>
                         <div>
                           <p className="font-bold text-secondary-900 group-hover:text-primary-600 transition-colors">{student.studentName}</p>
-                          <p className="text-xs text-secondary-400 font-medium">{student.studentEmail}</p>
+                          <p className="text-xs text-secondary-400 font-bold uppercase tracking-tight">{student.studentEmail}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-5 text-center font-bold text-secondary-600">
+                    <td className="px-8 py-6 text-center font-extrabold text-secondary-600">
                       {student.examsTaken}
                     </td>
-                    <td className="px-6 py-5 text-right">
-                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-accent-50 border border-accent-100 text-accent-700 font-bold text-xs">
+                    <td className="px-8 py-6 text-right">
+                      <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl bg-accent-50 border border-accent-100 text-accent-700 font-extrabold text-xs shadow-sm">
                         <TrendingUp className="h-3 w-3" />
                         {student.averageScore}%
                       </div>
@@ -150,8 +150,8 @@ const AdminDashboard = () => {
               </tbody>
             </table>
           </div>
-          <div className="p-4 bg-secondary-50/50 border-t border-secondary-100 flex justify-center">
-            <Link to="/admin/results" className="text-xs font-bold text-primary-600 hover:text-primary-700 flex items-center gap-1.5 uppercase tracking-widest">
+          <div className="p-6 bg-secondary-50/30 border-t border-secondary-50 flex justify-center">
+            <Link to="/admin/results" className="text-[10px] font-extrabold text-primary-500 hover:text-primary-700 flex items-center gap-2 uppercase tracking-widest transition-all">
               Review All System Results
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
@@ -159,41 +159,41 @@ const AdminDashboard = () => {
         </Card>
 
         {/* Quick Management Links */}
-        <div className="space-y-6">
-          <Card title="Administration" subtitle="Core system management">
-            <div className="space-y-3">
+        <div className="space-y-8">
+          <Card title="Administration" subtitle="Core system management" className="shadow-xl shadow-secondary-200/20">
+            <div className="space-y-4">
               {[
-                { to: '/admin/users', icon: Users, color: 'text-primary-600 bg-primary-50', label: 'User Accounts' },
-                { to: '/admin/subjects', icon: BookOpen, color: 'text-accent-600 bg-accent-50', label: 'Subject Categories' },
-                { to: '/admin/settings', icon: Settings, color: 'text-secondary-600 bg-secondary-50', label: 'System Parameters' }
+                { to: '/admin/users', icon: Users, color: 'text-primary-500 bg-primary-50', label: 'User Accounts' },
+                { to: '/admin/subjects', icon: BookOpen, color: 'text-accent-500 bg-accent-50', label: 'Subject Categories' },
+                { to: '/admin/settings', icon: Settings, color: 'text-secondary-400 bg-secondary-50', label: 'System Parameters' }
               ].map((link, idx) => (
                 <Link 
                   key={idx}
                   to={link.to} 
-                  className="flex items-center justify-between p-4 rounded-xl border border-secondary-100 bg-white hover:bg-secondary-50 hover:border-secondary-200 transition-all group"
+                  className="flex items-center justify-between p-5 rounded-2xl border border-secondary-50 bg-white hover:bg-secondary-50 hover:border-secondary-100 transition-all group"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className={`h-10 w-10 rounded-xl ${link.color} flex items-center justify-center transition-transform group-hover:scale-110`}>
-                      <link.icon className="h-5 w-5" />
+                  <div className="flex items-center gap-4">
+                    <div className={`h-12 w-12 rounded-[1.25rem] ${link.color} flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm`}>
+                      <link.icon className="h-6 w-6" />
                     </div>
-                    <span className="text-sm font-bold text-secondary-900">{link.label}</span>
+                    <span className="text-sm font-extrabold text-secondary-900">{link.label}</span>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-secondary-300 group-hover:text-primary-600 group-hover:translate-x-1 transition-all" />
+                  <ArrowRight className="h-5 w-5 text-secondary-200 group-hover:text-primary-500 group-hover:translate-x-1 transition-all" />
                 </Link>
               ))}
             </div>
           </Card>
 
-          <Card className="bg-secondary-900 border-none relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500" />
-            <div className="relative z-10 text-white">
-              <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center mb-4">
-                <Activity className="h-5 w-5 text-primary-400" />
+          <Card className="bg-secondary-900 border-none relative overflow-hidden group shadow-2xl shadow-primary-900/20">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/20 rounded-full blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500" />
+            <div className="relative z-10 text-white p-2">
+              <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center mb-6 ring-1 ring-white/20">
+                <Activity className="h-6 w-6 text-primary-400" />
               </div>
-              <h4 className="text-lg font-bold mb-2">System Health</h4>
-              <p className="text-secondary-400 text-xs leading-relaxed mb-6">Database engine is running on in-memory mode. SQL migration is ready.</p>
-              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-accent-400">
-                <div className="h-2 w-2 rounded-full bg-accent-500 animate-pulse" />
+              <h4 className="text-xl font-extrabold mb-3 tracking-tight">System Health</h4>
+              <p className="text-secondary-400 text-xs font-bold leading-relaxed mb-8 uppercase tracking-wide">Enterprise SQL Engine is connected and synchronized.</p>
+              <div className="flex items-center gap-3 text-[10px] font-extrabold uppercase tracking-[0.2em] text-accent-400">
+                <div className="h-2.5 w-2.5 rounded-full bg-accent-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
                 Operational
               </div>
             </div>

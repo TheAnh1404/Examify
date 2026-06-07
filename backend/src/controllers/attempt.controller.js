@@ -1,20 +1,44 @@
+import bcrypt from 'bcryptjs';
 import prisma from '../utils/prisma.js';
 import { successResponse, errorResponse } from '../utils/response.js';
 import * as gradingService from '../services/grading.service.js';
 
 export const startAttempt = async (req, res, next) => {
   try {
-    const { examId } = req.body;
+    const { examId, accessPassword } = req.body;
     const studentId = req.user.id;
 
-    // Check if exam is published
+    // Check if exam exists and its status
     const exam = await prisma.exam.findUnique({
       where: { id: parseInt(examId) },
-      include: { _count: { select: { examQuestions: true } } }
+      include: { 
+        _count: { select: { examQuestions: true } }
+      }
     });
 
     if (!exam || exam.status !== 'PUBLISHED') {
-      return errorResponse(res, 'Exam not available', 400);
+      return errorResponse(res, 'Exam not available', 403);
+    }
+
+    // Access control for PRIVATE exams
+    if (exam.visibility === 'PRIVATE') {
+      const assigned = await prisma.examStudent.findUnique({
+        where: { examId_studentId: { examId: parseInt(examId), studentId } }
+      });
+      if (!assigned && req.user.role === 'STUDENT') {
+        return errorResponse(res, 'Access denied. You are not assigned to this private exam.', 403);
+      }
+    }
+
+    // Password protection check
+    if (exam.accessPasswordHash) {
+      if (!accessPassword) {
+        return errorResponse(res, 'Access password required', 403);
+      }
+      const isMatch = await bcrypt.compare(accessPassword, exam.accessPasswordHash);
+      if (!isMatch) {
+        return errorResponse(res, 'Invalid access password', 403);
+      }
     }
 
     // Check if student already has an in-progress attempt for this exam
@@ -94,6 +118,7 @@ export const getAttemptResult = async (req, res, next) => {
     const attempt = await prisma.examAttempt.findUnique({
       where: { id: attemptId },
       include: {
+        student: { select: { fullName: true, email: true } },
         exam: {
           include: {
             subject: true,
@@ -135,6 +160,26 @@ export const getStudentHistory = async (req, res, next) => {
     });
 
     return successResponse(res, history, 'Student history retrieved');
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAllAttempts = async (req, res, next) => {
+  try {
+    const attempts = await prisma.examAttempt.findMany({
+      include: {
+        student: { select: { fullName: true, email: true } },
+        exam: {
+          include: {
+            examQuestions: true
+          }
+        }
+      },
+      orderBy: { startedAt: 'desc' }
+    });
+
+    return successResponse(res, attempts, 'All exam attempts retrieved');
   } catch (error) {
     next(error);
   }

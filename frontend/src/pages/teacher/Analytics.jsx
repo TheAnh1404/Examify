@@ -54,22 +54,22 @@ const Analytics = () => {
         <StatCard 
           title="Average Passing Rate" 
           value={`${stats.passRate}%`} 
-          icon={<Award className="h-5 w-5" />} 
+          icon={Award} 
         />
         <StatCard 
           title="Total Attempts Logged" 
           value={stats.totalSubmissions} 
-          icon={<LineChart className="h-5 w-5" />} 
+          icon={LineChart} 
         />
         <StatCard 
           title="Active Student Pool" 
           value={stats.totalStudents} 
-          icon={<Users className="h-5 w-5" />} 
+          icon={Users} 
         />
         <StatCard 
           title="Published Exams" 
           value={stats.totalExams} 
-          icon={<FileQuestion className="h-5 w-5" />} 
+          icon={FileQuestion} 
         />
       </div>
 

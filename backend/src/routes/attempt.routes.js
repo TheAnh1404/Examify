@@ -12,5 +12,6 @@ router.post('/:id/answers', roleMiddleware('STUDENT'), attemptController.saveAns
 router.post('/:id/submit', roleMiddleware('STUDENT'), attemptController.submitAttempt);
 router.get('/:id/result', attemptController.getAttemptResult);
 router.get('/student/history', roleMiddleware('STUDENT'), attemptController.getStudentHistory);
+router.get('/', roleMiddleware('ADMIN', 'TEACHER'), attemptController.getAllAttempts);
 
 export default router;

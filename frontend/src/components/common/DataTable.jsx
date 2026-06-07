@@ -39,22 +39,22 @@ const DataTable = ({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm border-collapse">
               <thead>
-                <tr className="bg-secondary-50/50 border-b border-secondary-100">
+                <tr className="bg-secondary-50/30 border-b border-secondary-50">
                   {columns.map((col, idx) => (
                     <th 
                       key={col.key || idx} 
-                      className={`px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider ${col.className || ''}`}
+                      className={`px-8 py-5 text-[10px] font-extrabold text-secondary-400 uppercase tracking-[0.15em] ${col.className || ''}`}
                     >
                       {col.header}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-secondary-100">
+              <tbody className="divide-y divide-secondary-50">
                 {paginatedData.map((row, rowIdx) => (
-                  <tr key={row.id || rowIdx} className="hover:bg-secondary-50/30 transition-colors group">
+                  <tr key={row.id || rowIdx} className="hover:bg-primary-50/30 transition-colors group">
                     {columns.map((col, colIdx) => (
-                      <td key={colIdx} className={`px-6 py-4 text-secondary-700 font-medium ${col.className || ''}`}>
+                      <td key={colIdx} className={`px-8 py-5 text-secondary-700 font-semibold ${col.className || ''}`}>
                         {col.render ? col.render(row, rowIdx) : row[col.key]}
                       </td>
                     ))}
@@ -81,12 +81,12 @@ const DataTable = ({
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="p-2 rounded-lg border border-secondary-200 bg-white text-secondary-600 hover:bg-secondary-50 hover:text-secondary-900 disabled:opacity-40 disabled:pointer-events-none transition-all"
+              className="p-2 rounded-xl border border-secondary-100 bg-white text-secondary-500 hover:bg-secondary-50 hover:text-secondary-900 disabled:opacity-40 disabled:pointer-events-none transition-all shadow-sm"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
             
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               {[...Array(totalPages)].map((_, i) => {
                 const pageNum = i + 1;
                 // Only show a limited range of pages if totalPages is large
@@ -96,10 +96,10 @@ const DataTable = ({
                   <button
                     key={pageNum}
                     onClick={() => handlePageChange(pageNum)}
-                    className={`h-9 w-9 rounded-lg text-sm font-bold transition-all ${
+                    className={`h-9 w-9 rounded-xl text-sm font-extrabold transition-all ${
                       currentPage === pageNum
-                        ? 'bg-primary-600 text-white shadow-md shadow-primary-500/20'
-                        : 'text-secondary-500 hover:bg-secondary-100 hover:text-secondary-900'
+                        ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20'
+                        : 'text-secondary-400 hover:bg-secondary-50 hover:text-secondary-900'
                     }`}
                   >
                     {pageNum}
@@ -111,7 +111,7 @@ const DataTable = ({
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="p-2 rounded-lg border border-secondary-200 bg-white text-secondary-600 hover:bg-secondary-50 hover:text-secondary-900 disabled:opacity-40 disabled:pointer-events-none transition-all"
+              className="p-2 rounded-xl border border-secondary-100 bg-white text-secondary-500 hover:bg-secondary-50 hover:text-secondary-900 disabled:opacity-40 disabled:pointer-events-none transition-all shadow-sm"
             >
               <ChevronRight className="h-5 w-5" />
             </button>

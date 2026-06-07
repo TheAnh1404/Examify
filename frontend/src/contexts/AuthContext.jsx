@@ -21,10 +21,20 @@ export const AuthProvider = ({ children }) => {
           }
           
           // Try to ping backend, if it fails, keep local user
-          const res = await API.get('/auth/me');
-          if (res.data && res.data.user) {
-            setUser(res.data.user);
-            localStorage.setItem('examify_user', JSON.stringify(res.data.user));
+          const res = await API.get('/auth/profile');
+          if (res.data && res.data.data) {
+            setUser({
+              id: res.data.data.id,
+              name: res.data.data.fullName,
+              email: res.data.data.email,
+              role: res.data.data.role
+            });
+            localStorage.setItem('examify_user', JSON.stringify({
+              id: res.data.data.id,
+              name: res.data.data.fullName,
+              email: res.data.data.email,
+              role: res.data.data.role
+            }));
           }
         } catch (error) {
           console.log('Backend auth check failed, using local mock session', error.message || error);

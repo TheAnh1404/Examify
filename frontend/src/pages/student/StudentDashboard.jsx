@@ -63,19 +63,19 @@ const StudentDashboard = () => {
   const availableExams = exams.filter(e => !completedExamIds.includes(e.id));
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="space-y-10 animate-fade-in">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
         <div>
-          <h1 className="h1 mb-1">Learning Portal</h1>
-          <p className="p">Review assigned assessments, test your skills, and check instant scorecards.</p>
+          <h1 className="text-4xl font-extrabold text-secondary-900 tracking-tight mb-2">Learning Portal</h1>
+          <p className="text-secondary-500 font-medium">Review assigned assessments, test your skills, and check instant scorecards.</p>
         </div>
-        <Button variant="primary" onClick={() => navigate('/student/exams')} icon={<BookOpen className="h-4 w-4" />} className="shadow-lg shadow-primary-500/20">
+        <Button variant="primary" onClick={() => navigate('/student/exams')} icon={<BookOpen size={18} />} className="shadow-xl shadow-primary-500/30">
           Browse Catalog
         </Button>
       </div>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
         <StatCard 
           title="Exams Completed" 
           value={metrics.examsTaken} 
@@ -98,44 +98,45 @@ const StudentDashboard = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         
         {/* Available Exams */}
         <Card 
           title="Available Assessments" 
           subtitle="Tests ready for you to attempt"
           bodyClassName="p-0"
+          className="shadow-xl shadow-secondary-200/20"
           actions={
-            <Link to="/student/exams" className="text-xs font-bold text-primary-600 hover:text-primary-700 flex items-center gap-1 uppercase tracking-widest">
+            <Link to="/student/exams" className="text-[10px] font-extrabold text-primary-500 hover:text-primary-700 flex items-center gap-2 uppercase tracking-widest transition-all">
               Browse All
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           }
         >
           {availableExams.length === 0 ? (
-            <div className="p-12 text-center">
-              <div className="h-12 w-12 rounded-xl bg-secondary-50 text-secondary-300 flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 className="h-6 w-6" />
+            <div className="p-16 text-center">
+              <div className="h-16 w-16 rounded-3xl bg-secondary-50 text-secondary-200 flex items-center justify-center mx-auto mb-6 ring-1 ring-secondary-100">
+                <CheckCircle2 className="h-8 w-8" />
               </div>
-              <p className="text-sm font-bold text-secondary-900">All caught up!</p>
-              <p className="text-xs text-secondary-500 mt-1">No pending examinations assigned.</p>
+              <p className="text-sm font-extrabold text-secondary-900 uppercase tracking-tight">All caught up!</p>
+              <p className="text-xs text-secondary-400 font-bold uppercase tracking-widest mt-2">No pending examinations assigned.</p>
             </div>
           ) : (
-            <div className="divide-y divide-secondary-100">
+            <div className="divide-y divide-secondary-50">
               {availableExams.slice(0, 4).map((exam) => (
-                <div key={exam.id} className="p-6 hover:bg-secondary-50/30 transition-all flex items-center justify-between gap-4 group">
+                <div key={exam.id} className="p-8 hover:bg-primary-50/30 transition-all flex items-center justify-between gap-6 group">
                   <div className="min-w-0 flex-1">
-                    <h4 className="font-bold text-secondary-900 truncate group-hover:text-primary-600 transition-colors">{exam.title}</h4>
-                    <div className="flex items-center gap-3 mt-1.5">
-                      <Badge variant="slate" className="text-[9px]">{exam.subjectName}</Badge>
-                      <span className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest">{exam.duration} mins</span>
+                    <h4 className="font-extrabold text-secondary-900 truncate group-hover:text-primary-600 transition-colors tracking-tight text-base">{exam.title}</h4>
+                    <div className="flex items-center gap-4 mt-2">
+                      <Badge variant="slate">{exam.subjectName}</Badge>
+                      <span className="text-[9px] font-extrabold text-secondary-400 uppercase tracking-[0.15em]">{exam.duration} mins</span>
                     </div>
                   </div>
                   <Button
                     variant="secondary"
                     size="sm"
                     onClick={() => navigate(`/student/exams/${exam.id}/instruction`)}
-                    icon={<Play className="h-3 w-3 fill-current" />}
+                    icon={<Play size={14} className="fill-current" />}
                   >
                     Start
                   </Button>
@@ -150,34 +151,35 @@ const StudentDashboard = () => {
           title="Recent Results" 
           subtitle="Latest graded scorecard summaries"
           bodyClassName="p-0"
+          className="shadow-xl shadow-secondary-200/20"
           actions={
-            <Link to="/student/attempts" className="text-xs font-bold text-primary-600 hover:text-primary-700 flex items-center gap-1 uppercase tracking-widest">
+            <Link to="/student/attempts" className="text-[10px] font-extrabold text-primary-500 hover:text-primary-700 flex items-center gap-2 uppercase tracking-widest transition-all">
               Full History
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           }
         >
           {attempts.length === 0 ? (
-            <div className="p-12 text-center">
-              <div className="h-12 w-12 rounded-xl bg-secondary-50 text-secondary-300 flex items-center justify-center mx-auto mb-4">
-                <Calendar className="h-6 w-6" />
+            <div className="p-16 text-center">
+              <div className="h-16 w-16 rounded-3xl bg-secondary-50 text-secondary-200 flex items-center justify-center mx-auto mb-6 ring-1 ring-secondary-100">
+                <Calendar className="h-8 w-8" />
               </div>
-              <p className="text-sm font-bold text-secondary-900">No attempts yet</p>
-              <p className="text-xs text-secondary-500 mt-1">Start your first exam to see results.</p>
+              <p className="text-sm font-extrabold text-secondary-900 uppercase tracking-tight">No attempts yet</p>
+              <p className="text-xs text-secondary-400 font-bold uppercase tracking-widest mt-2">Start your first exam to see results.</p>
             </div>
           ) : (
-            <div className="divide-y divide-secondary-100">
+            <div className="divide-y divide-secondary-50">
               {attempts.slice(0, 4).map((sub) => {
                 const subPct = sub.examTotalMarks > 0 ? (sub.score / sub.examTotalMarks) * 100 : 0;
                 const isPass = sub.status.toUpperCase() === 'PASS';
                 
                 return (
-                  <div key={sub.id} className="p-6 hover:bg-secondary-50/30 transition-all flex items-center justify-between gap-4">
+                  <div key={sub.id} className="p-8 hover:bg-primary-50/30 transition-all flex items-center justify-between gap-6">
                     <div className="min-w-0 flex-1">
-                      <h4 className="font-bold text-secondary-900 truncate">{sub.examTitle}</h4>
-                      <div className="flex items-center gap-3 mt-1.5">
+                      <h4 className="font-extrabold text-secondary-900 truncate tracking-tight text-base">{sub.examTitle}</h4>
+                      <div className="flex items-center gap-4 mt-2">
                         <Badge variant={isPass ? 'success' : 'danger'} dot>{sub.status}</Badge>
-                        <span className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest">{sub.score} / {sub.examTotalMarks} pts ({subPct.toFixed(0)}%)</span>
+                        <span className="text-[9px] font-extrabold text-secondary-400 uppercase tracking-[0.15em]">{sub.score} / {sub.examTotalMarks} pts ({subPct.toFixed(0)}%)</span>
                       </div>
                     </div>
                     
@@ -185,7 +187,7 @@ const StudentDashboard = () => {
                       variant="secondary"
                       size="sm"
                       onClick={() => navigate(`/student/results/${sub.id}`)}
-                      icon={<Eye className="h-3.5 w-3.5" />}
+                      icon={<Eye size={14} />}
                     >
                       Report
                     </Button>

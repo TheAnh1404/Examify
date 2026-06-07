@@ -42,6 +42,11 @@ enum AttemptStatus {
   SUBMITTED
 }
 
+enum ExamVisibility {
+  PUBLIC
+  PRIVATE
+}
+
 model User {
   id           Int        @id @default(autoincrement())
   fullName     String     @map("full_name")
@@ -55,9 +60,10 @@ model User {
   passwordResetToken   String?   @map("password_reset_token")
   passwordResetExpires DateTime? @map("password_reset_expires")
 
-  questions Question[]
-  exams     Exam[]
-  attempts  ExamAttempt[]
+  questions      Question[]
+  exams          Exam[]
+  attempts       ExamAttempt[]
+  assignedExams  ExamStudent[]
 
   @@map("users")
 }
@@ -99,22 +105,25 @@ model Question {
 }
 
 model Exam {
-  id              Int        @id @default(autoincrement())
-  subjectId       Int        @map("subject_id")
-  createdById     Int        @map("created_by")
+  id              Int            @id @default(autoincrement())
+  subjectId       Int            @map("subject_id")
+  createdById     Int            @map("created_by")
   title           String
   description     String?
-  durationMinutes Int        @map("duration_minutes")
-  startTime       DateTime?  @map("start_time")
-  endTime         DateTime?  @map("end_time")
-  status          ExamStatus @default(DRAFT)
-  createdAt       DateTime   @default(now()) @map("created_at")
-  updatedAt       DateTime   @updatedAt @map("updated_at")
+  durationMinutes Int            @map("duration_minutes")
+  startTime       DateTime?      @map("start_time")
+  endTime         DateTime?      @map("end_time")
+  status          ExamStatus     @default(DRAFT)
+  visibility      ExamVisibility @default(PRIVATE)
+  accessPasswordHash String?     @map("access_password_hash")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
 
-  subject       Subject        @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  createdBy     User           @relation(fields: [createdById], references: [id], onDelete: Cascade)
-  examQuestions ExamQuestion[]
-  attempts      ExamAttempt[]
+  subject          Subject        @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  createdBy        User           @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  examQuestions    ExamQuestion[]
+  attempts         ExamAttempt[]
+  assignedStudents ExamStudent[]
 
   @@map("exams")
 }
@@ -131,6 +140,19 @@ model ExamQuestion {
 
   @@unique([examId, questionId])
   @@map("exam_questions")
+}
+
+model ExamStudent {
+  id         Int      @id @default(autoincrement())
+  examId     Int      @map("exam_id")
+  studentId  Int      @map("student_id")
+  assignedAt DateTime @default(now()) @map("assigned_at")
+
+  exam    Exam @relation(fields: [examId], references: [id], onDelete: Cascade)
+  student User @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([examId, studentId])
+  @@map("exam_students")
 }
 
 model ExamAttempt {

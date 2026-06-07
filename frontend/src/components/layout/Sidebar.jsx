@@ -50,20 +50,20 @@ const Sidebar = ({ onClose }) => {
   const navLinks = getNavLinks();
 
   return (
-    <aside className="w-64 bg-secondary-900 text-slate-350 shrink-0 hidden md:flex md:flex-col border-r border-secondary-800">
+    <aside className="w-72 h-screen sticky top-0 bg-[#0F172A] text-slate-400 shrink-0 hidden md:flex md:flex-col border-r border-slate-800/50">
       {/* Brand Logo header */}
-      <div className="h-16 flex items-center gap-2.5 px-6 border-b border-secondary-800">
-        <Logo className="h-8 w-8" />
+      <div className="h-24 flex items-center gap-4 px-8 border-b border-slate-800/50">
+        <Logo className="h-10 w-10" />
         <div>
-          <span className="font-semibold text-white tracking-wide text-base">Examify</span>
-          <span className="text-[9px] text-accent block -mt-1 font-sans uppercase font-bold tracking-wider">
+          <span className="font-extrabold text-white tracking-tight text-xl block">Examify</span>
+          <span className="text-[10px] text-primary-400 block -mt-0.5 font-bold uppercase tracking-widest">
             {roleUpper} PORTAL
           </span>
         </div>
       </div>
 
       {/* Nav List */}
-      <nav className="flex-1 px-4 py-8 space-y-1.5 overflow-y-auto">
+      <nav className="flex-1 px-4 py-8 space-y-1 overflow-y-auto">
         {navLinks.map((link) => {
           const IconComponent = link.icon;
           return (
@@ -72,16 +72,17 @@ const Sidebar = ({ onClose }) => {
               to={link.path}
               onClick={onClose}
               className={({ isActive }) => `
-                flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200 group
+                flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-sm font-bold transition-all duration-200 group
                 ${isActive 
-                  ? 'bg-primary-50 text-primary-600 shadow-sm shadow-primary-500/5' 
-                  : 'text-secondary-500 hover:text-secondary-900 hover:bg-secondary-50'}
+                  ? 'bg-primary-500/10 text-primary-400 shadow-sm' 
+                  : 'hover:text-white hover:bg-white/5'}
               `}
             >
               {({ isActive }) => (
                 <>
-                  <IconComponent className={`h-5 w-5 transition-colors ${isActive ? 'text-primary-600' : 'group-hover:text-secondary-900'}`} />
+                  <IconComponent className={`h-5 w-5 transition-colors ${isActive ? 'text-primary-400' : 'text-slate-500 group-hover:text-primary-400'}`} />
                   <span>{link.name}</span>
+                  {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary-400 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />}
                 </>
               )}
             </NavLink>
@@ -90,14 +91,14 @@ const Sidebar = ({ onClose }) => {
       </nav>
 
       {/* Version footer */}
-      <div className="p-6 border-t border-secondary-100 bg-secondary-50/30">
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-secondary-200 shadow-sm">
-          <div className="h-8 w-8 rounded-lg bg-secondary-100 flex items-center justify-center text-secondary-500">
+      <div className="p-6 border-t border-slate-800/50">
+        <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/5">
+          <div className="h-9 w-9 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400">
             <span className="text-xs font-bold">v2</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-secondary-900 uppercase">Version 2.0.4</span>
-            <span className="text-[9px] text-secondary-400 font-medium">Stable Release</span>
+            <span className="text-[11px] font-bold text-white uppercase tracking-tight">Version 2.0.4</span>
+            <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Enterprise Ready</span>
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { attemptService } from '../../services/attemptService';
+import Button from '../../components/common/Button';
 import PageHeader from '../../components/layout/PageHeader';
 import DataTable from '../../components/common/DataTable';
 import Badge from '../../components/common/Badge';

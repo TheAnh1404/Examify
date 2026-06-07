@@ -32,22 +32,8 @@ export const getStudentDashboard = async (req, res, next) => {
 export const getExamStatistics = async (req, res, next) => {
   try {
     const examId = parseInt(req.params.id);
-    const attempts = await prisma.examAttempt.findMany({
-      where: { examId, status: 'SUBMITTED' },
-      include: {
-        student: { select: { fullName: true, email: true } }
-      },
-      orderBy: { score: 'desc' }
-    });
-
-    const scores = attempts.map(a => Number(a.score));
-    const averageScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
-
-    return successResponse(res, {
-      totalAttempts: attempts.length,
-      averageScore: averageScore.toFixed(2),
-      attempts
-    }, 'Exam statistics retrieved');
+    const stats = await dashboardService.getExamStats(examId, req.user.id, req.user.role);
+    return successResponse(res, stats, 'Exam statistics retrieved');
   } catch (error) {
     next(error);
   }

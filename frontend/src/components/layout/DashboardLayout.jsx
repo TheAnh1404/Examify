@@ -7,11 +7,9 @@ const DashboardLayout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-bg">
+    <div className="flex min-h-screen bg-[#F9FAFB]">
       {/* Sidebar for Desktop */}
-      <div className="hidden md:block">
-        <Sidebar />
-      </div>
+      <Sidebar />
 
       {/* Mobile Sidebar Overlay */}
       <div className={`
@@ -20,19 +18,19 @@ const DashboardLayout = ({ children }) => {
       `}>
         {/* Backdrop */}
         <div 
-          className="absolute inset-0 bg-secondary-900/60 backdrop-blur-sm" 
+          className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" 
           onClick={() => setIsSidebarOpen(false)} 
         />
         
         {/* Mobile Sidebar drawer */}
         <div className={`
-          absolute top-0 bottom-0 left-0 w-64 bg-white transition-transform duration-300 ease-out flex flex-col shadow-2xl
+          absolute top-0 bottom-0 left-0 w-72 bg-[#0F172A] transition-transform duration-300 ease-out flex flex-col shadow-2xl
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         `}>
-          <div className="flex justify-end p-4 border-b border-secondary-100">
+          <div className="flex justify-end p-6 border-b border-slate-800/50">
             <button 
               onClick={() => setIsSidebarOpen(false)}
-              className="p-2 rounded-xl text-secondary-500 hover:bg-secondary-50 transition-colors"
+              className="p-2.5 rounded-xl text-slate-400 hover:bg-white/5 transition-colors border border-white/5"
             >
               <X className="h-6 w-6" />
             </button>
@@ -47,16 +45,22 @@ const DashboardLayout = ({ children }) => {
       <div className="flex-1 flex flex-col min-w-0">
         <Topbar onMenuClick={() => setIsSidebarOpen(true)} />
         
-        <main className="flex-1 p-4 sm:p-8 overflow-y-auto animate-fade-in">
+        <main className="flex-1 p-6 sm:p-10 overflow-y-auto animate-fade-in">
           <div className="max-w-[1600px] mx-auto">
             {children}
           </div>
         </main>
 
-        <footer className="px-8 py-4 text-center sm:text-left">
-          <p className="text-xs font-bold text-secondary-400 uppercase tracking-widest">
-            © 2026 Examify Platforms. All rights reserved.
-          </p>
+        <footer className="px-10 py-6 border-t border-secondary-50 bg-white/50 backdrop-blur-sm">
+          <div className="max-w-[1600px] mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p className="text-[10px] font-extrabold text-secondary-400 uppercase tracking-widest">
+              © 2026 Examify Enterprise. All rights reserved.
+            </p>
+            <div className="flex items-center gap-6">
+              <span className="text-[10px] font-bold text-primary-500 uppercase tracking-widest cursor-pointer hover:underline">Privacy Policy</span>
+              <span className="text-[10px] font-bold text-primary-500 uppercase tracking-widest cursor-pointer hover:underline">Terms of Service</span>
+            </div>
+          </div>
         </footer>
       </div>
     </div>
