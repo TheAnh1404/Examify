@@ -1,11 +1,12 @@
-import { Router } from 'express';
-import AuthController from '../controllers/auth.controller.js';
-import { authenticateJWT } from '../middlewares/auth.middleware.js';
+import express from 'express';
+import * as authController from '../controllers/auth.controller.js';
+import { authMiddleware } from '../middlewares/auth.middleware.js';
 
-const router = Router();
+const router = express.Router();
 
-router.post('/register', AuthController.register);
-router.post('/login', AuthController.login);
-router.get('/me', authenticateJWT, AuthController.getMe);
+router.post('/register', authController.register);
+router.post('/login', authController.login);
+router.get('/profile', authMiddleware, authController.getProfile);
+router.post('/logout', authMiddleware, authController.logout);
 
 export default router;

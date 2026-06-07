@@ -1,55 +1,50 @@
 import express from 'express';
 import cors from 'cors';
+import { env } from './config/env.js';
+import { errorMiddleware } from './middlewares/error.middleware.js';
+import { notFoundMiddleware } from './middlewares/notFound.middleware.js';
 
-// Import routers
+// Import routes
 import authRoutes from './routes/auth.routes.js';
-import adminRoutes from './routes/admin.routes.js';
+import userRoutes from './routes/user.routes.js';
+import subjectRoutes from './routes/subject.routes.js';
+import questionRoutes from './routes/question.routes.js';
 import examRoutes from './routes/exam.routes.js';
-import submissionRoutes from './routes/submission.routes.js';
+import attemptRoutes from './routes/attempt.routes.js';
+import dashboardRoutes from './routes/dashboard.routes.js';
 
 const app = express();
 
 // Middlewares
 app.use(cors({
-  origin: '*', // For development flexibility. In production, restrict to specific clients.
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  origin: env.CLIENT_URL,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 
-// Request logging middleware
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
-  next();
-});
-
-// Root API status endpoint
-app.get('/', (req, res) => {
+// Health check
+app.get('/api/health', (req, res) => {
   res.json({
-    message: 'Welcome to the Examify REST API.',
-    status: 'Healthy',
-    timestamp: new Date()
+    status: 'UP',
+    timestamp: new Date(),
+    environment: env.NODE_ENV
   });
 });
 
-// Bind API routes
+// API Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/subjects', subjectRoutes);
+app.use('/api/questions', questionRoutes);
 app.use('/api/exams', examRoutes);
-app.use('/api/submissions', submissionRoutes);
+app.use('/api/exam-attempts', attemptRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
-// 404 Route handler
-app.use((req, res, next) => {
-  res.status(404).json({ message: `API endpoint '${req.originalUrl}' not found.` });
-});
+// Not Found Middleware
+app.use(notFoundMiddleware);
 
-// Global Error Handler
-app.use((err, req, res, next) => {
-  console.error('Unhandled server error:', err);
-  res.status(err.status || 500).json({
-    message: err.message || 'An unexpected error occurred on the server.',
-    error: process.env.NODE_ENV === 'development' ? err.stack : {}
-  });
-});
+// Error Middleware
+app.use(errorMiddleware);
 
 export default app;

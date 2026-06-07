@@ -1,0 +1,163 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+}
+
+enum UserStatus {
+  ACTIVE
+  LOCKED
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum CorrectAnswer {
+  A
+  B
+  C
+  D
+}
+
+enum ExamStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+}
+
+model User {
+  id           Int        @id @default(autoincrement())
+  fullName     String     @map("full_name")
+  email        String     @unique
+  passwordHash String     @map("password_hash")
+  role         Role
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  questions Question[]
+  exams     Exam[]
+  attempts  ExamAttempt[]
+
+  @@map("users")
+}
+
+model Subject {
+  id          Int      @id @default(autoincrement())
+  name        String
+  code        String   @unique
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  questions Question[]
+  exams     Exam[]
+
+  @@map("subjects")
+}
+
+model Question {
+  id            Int           @id @default(autoincrement())
+  subjectId     Int           @map("subject_id")
+  createdById   Int           @map("created_by")
+  content       String
+  optionA       String        @map("option_a")
+  optionB       String        @map("option_b")
+  optionC       String        @map("option_c")
+  optionD       String        @map("option_d")
+  correctAnswer CorrectAnswer @map("correct_answer")
+  difficulty    Difficulty    @default(EASY)
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  subject        Subject         @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  createdBy      User            @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  examQuestions  ExamQuestion[]
+  studentAnswers StudentAnswer[]
+
+  @@map("questions")
+}
+
+model Exam {
+  id              Int        @id @default(autoincrement())
+  subjectId       Int        @map("subject_id")
+  createdById     Int        @map("created_by")
+  title           String
+  description     String?
+  durationMinutes Int        @map("duration_minutes")
+  startTime       DateTime?  @map("start_time")
+  endTime         DateTime?  @map("end_time")
+  status          ExamStatus @default(DRAFT)
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+
+  subject       Subject        @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  createdBy     User           @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  examQuestions ExamQuestion[]
+  attempts      ExamAttempt[]
+
+  @@map("exams")
+}
+
+model ExamQuestion {
+  id            Int     @id @default(autoincrement())
+  examId        Int     @map("exam_id")
+  questionId    Int     @map("question_id")
+  questionOrder Int?    @map("question_order")
+  point         Decimal @default(1.0)
+
+  exam     Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([examId, questionId])
+  @@map("exam_questions")
+}
+
+model ExamAttempt {
+  id             Int           @id @default(autoincrement())
+  examId         Int           @map("exam_id")
+  studentId      Int           @map("student_id")
+  startedAt      DateTime      @default(now()) @map("started_at")
+  submittedAt    DateTime?     @map("submitted_at")
+  totalQuestions Int           @default(0) @map("total_questions")
+  correctCount   Int           @default(0) @map("correct_count")
+  score          Decimal       @default(0)
+  status         AttemptStatus @default(IN_PROGRESS)
+
+  exam    Exam            @relation(fields: [examId], references: [id], onDelete: Cascade)
+  student User            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  answers StudentAnswer[]
+
+  @@map("exam_attempts")
+}
+
+model StudentAnswer {
+  id             Int            @id @default(autoincrement())
+  attemptId      Int            @map("attempt_id")
+  questionId     Int            @map("question_id")
+  selectedAnswer CorrectAnswer? @map("selected_answer")
+  isCorrect      Boolean        @default(false) @map("is_correct")
+
+  attempt  ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([attemptId, questionId])
+  @@map("student_answers")
+}

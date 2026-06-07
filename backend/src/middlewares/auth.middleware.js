@@ -1,19 +1,43 @@
 import jwt from 'jsonwebtoken';
+import { env } from '../config/env.js';
+import prisma from '../utils/prisma.js';
+import { errorResponse } from '../utils/response.js';
 
-export const authenticateJWT = (req, res, next) => {
-  const authHeader = req.headers.authorization;
+export const authMiddleware = async (req, res, next) => {
+  let token;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Access denied. No token provided.' });
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    try {
+      token = req.headers.authorization.split(' ')[1];
+      const decoded = jwt.verify(token, env.JWT_SECRET);
+
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.id },
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          role: true,
+          status: true
+        }
+      });
+
+      if (!user) {
+        return errorResponse(res, 'User not found', 401);
+      }
+
+      if (user.status === 'LOCKED') {
+        return errorResponse(res, 'Your account is locked. Please contact admin.', 403);
+      }
+
+      req.user = user;
+      next();
+    } catch (error) {
+      return errorResponse(res, 'Not authorized, token failed', 401);
+    }
   }
 
-  const token = authHeader.split(' ')[1];
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'examify_jwt_super_secret_session_key_2026');
-    req.user = decoded; // Contains id, email, role, name
-    next();
-  } catch (error) {
-    return res.status(403).json({ message: 'Invalid or expired token.' });
+  if (!token) {
+    return errorResponse(res, 'Not authorized, no token', 401);
   }
 };

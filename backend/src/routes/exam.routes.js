@@ -1,19 +1,24 @@
-import { Router } from 'express';
-import ExamController from '../controllers/exam.controller.js';
-import { authenticateJWT } from '../middlewares/auth.middleware.js';
-import { authorizeRoles } from '../middlewares/role.middleware.js';
+import express from 'express';
+import * as examController from '../controllers/exam.controller.js';
+import { authMiddleware } from '../middlewares/auth.middleware.js';
+import { roleMiddleware } from '../middlewares/role.middleware.js';
 
-const router = Router();
+const router = express.Router();
 
-// Require login for all exam routes
-router.use(authenticateJWT);
+router.use(authMiddleware);
 
-// Static routes first to prevent parameter collisions
-router.get('/teacher/all', authorizeRoles('teacher', 'admin'), ExamController.getTeacherExams);
-router.get('/', ExamController.getAllExams);
-router.get('/:id', ExamController.getExamById); // Note: renamed to /teacher/all to avoid clash with /:id
-router.post('/', authorizeRoles('teacher', 'admin'), ExamController.createExam);
-router.put('/:id', authorizeRoles('teacher', 'admin'), ExamController.updateExam);
-router.delete('/:id', authorizeRoles('teacher', 'admin'), ExamController.deleteExam);
+router.get('/', examController.getExams);
+router.get('/:id', examController.getExamById);
+
+// Teacher/Admin only for CUD and management
+router.post('/', roleMiddleware('TEACHER', 'ADMIN'), examController.createExam);
+router.put('/:id', roleMiddleware('TEACHER', 'ADMIN'), examController.updateExam);
+router.delete('/:id', roleMiddleware('TEACHER', 'ADMIN'), examController.deleteExam);
+
+router.post('/:id/questions', roleMiddleware('TEACHER', 'ADMIN'), examController.addQuestionToExam);
+router.delete('/:id/questions/:questionId', roleMiddleware('TEACHER', 'ADMIN'), examController.removeQuestionFromExam);
+
+router.patch('/:id/publish', roleMiddleware('TEACHER', 'ADMIN'), examController.publishExam);
+router.patch('/:id/close', roleMiddleware('TEACHER', 'ADMIN'), examController.closeExam);
 
 export default router;

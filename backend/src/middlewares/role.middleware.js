@@ -1,15 +1,10 @@
-export const authorizeRoles = (...allowedRoles) => {
+import { errorResponse } from '../utils/response.js';
+
+export const roleMiddleware = (...roles) => {
   return (req, res, next) => {
-    if (!req.user) {
-      return res.status(401).json({ message: 'Unauthorized. Please log in first.' });
+    if (!req.user || !roles.includes(req.user.role)) {
+      return errorResponse(res, `Access denied. Role ${roles.join(' or ')} required.`, 403);
     }
-
-    if (!allowedRoles.includes(req.user.role)) {
-      return res.status(403).json({ 
-        message: `Forbidden. Access restricted to roles: [${allowedRoles.join(', ')}]. Your role: ${req.user.role}` 
-      });
-    }
-
     next();
   };
 };
