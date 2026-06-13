@@ -47,6 +47,12 @@ enum ExamVisibility {
   PRIVATE
 }
 
+enum EnrollmentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id           Int        @id @default(autoincrement())
   fullName     String     @map("full_name")
@@ -70,8 +76,9 @@ model User {
   assignedTeacherSubjects TeacherSubject[] @relation("TeacherSubjectAssignedBy")
 
   // Classroom relations
-  teachingClassrooms Classroom[]    @relation("ClassroomTeacher")
-  enrolledClassrooms ClassStudent[]
+  teachingClassrooms   Classroom[]          @relation("ClassroomTeacher")
+  enrolledClassrooms   ClassStudent[]
+  enrollmentRequests   EnrollmentRequest[]
 
   @@map("users")
 }
@@ -96,8 +103,9 @@ model Classroom {
 
   teacher  User            @relation("ClassroomTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
   subject  Subject         @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  students ClassStudent[]
-  exams    ExamClassroom[]
+  students           ClassStudent[]
+  exams              ExamClassroom[]
+  enrollmentRequests EnrollmentRequest[]
 
   @@map("classrooms")
 }
@@ -279,4 +287,20 @@ model StudentAnswer {
 
   @@unique([attemptId, questionId])
   @@map("student_answers")
+}
+
+model EnrollmentRequest {
+  id          Int              @id @default(autoincrement())
+  studentId   Int              @map("student_id")
+  classroomId Int              @map("classroom_id")
+  status      EnrollmentStatus @default(PENDING)
+  message     String?          @db.Text
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  student     User             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  classroom   Classroom        @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, classroomId])
+  @@map("enrollment_requests")
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { classroomService } from '../../services/classroomService';
 import { authService } from '../../services/authService';
@@ -10,7 +10,7 @@ import Loading from '../../components/common/Loading';
 import DataTable from '../../components/common/DataTable';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Modal from '../../components/common/Modal';
-import { GraduationCap, Users, BookOpen, UserPlus, Trash2, ArrowLeft, School, Search, X, Check, SearchIcon, ChevronRight } from 'lucide-react';
+import { GraduationCap, Users, BookOpen, UserPlus, Trash2, ArrowLeft, School, Search, Check, ChevronRight, Clock, CheckCircle, XCircle, MessageSquare, UserCheck, Inbox } from 'lucide-react';
 
 const ClassroomDetail = () => {
   const { id: classroomId } = useParams();
@@ -22,15 +22,23 @@ const ClassroomDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Tabs
+  const [activeTab, setActiveTab] = useState('roster');
+
   // Add Student State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const [addingStudentId, setAddingStudentId] = useState(null);
-  
+
   // Remove Confirm
   const [removeConfirm, setRemoveConfirm] = useState({ isOpen: false, studentId: null, studentName: '' });
+
+  // Enrollment Requests (Teacher)
+  const [enrollmentRequests, setEnrollmentRequests] = useState([]);
+  const [enrollmentLoading, setEnrollmentLoading] = useState(false);
+  const [processingRequestId, setProcessingRequestId] = useState(null);
 
   const fetchClassroom = async () => {
     try {
@@ -44,9 +52,35 @@ const ClassroomDetail = () => {
     }
   };
 
+  const fetchEnrollmentRequests = async () => {
+    if (!isTeacher) return;
+    try {
+      setEnrollmentLoading(true);
+      const res = await classroomService.getEnrollmentRequests(classroomId);
+      setEnrollmentRequests(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setEnrollmentLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchClassroom();
   }, [classroomId]);
+
+  useEffect(() => {
+    if (isTeacher && activeTab === 'enrollments') {
+      fetchEnrollmentRequests();
+    }
+  }, [activeTab, isTeacher, classroomId]);
+
+  // Also fetch enrollment count on initial load for badge
+  useEffect(() => {
+    if (isTeacher) {
+      fetchEnrollmentRequests();
+    }
+  }, [classroomId, isTeacher]);
 
   // Debounced search
   useEffect(() => {
@@ -91,6 +125,19 @@ const ClassroomDetail = () => {
     }
   };
 
+  const handleUpdateEnrollment = async (requestId, status) => {
+    setProcessingRequestId(requestId);
+    try {
+      await classroomService.updateEnrollmentStatus(requestId, { status });
+      // Refresh both enrollment requests and classroom data
+      await Promise.all([fetchEnrollmentRequests(), fetchClassroom()]);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setProcessingRequestId(null);
+    }
+  };
+
   if (loading) return <Loading message="Entering virtual classroom..." />;
   if (error) return (
     <div className="p-8 text-center space-y-4">
@@ -98,6 +145,8 @@ const ClassroomDetail = () => {
       <Button onClick={() => navigate(-1)}>Go Back</Button>
     </div>
   );
+
+  const pendingEnrollmentCount = enrollmentRequests.length;
 
   const studentColumns = [
     {
@@ -132,7 +181,7 @@ const ClassroomDetail = () => {
     {
       header: 'Actions',
       render: (_, row) => isTeacher && (
-        <button 
+        <button
           onClick={() => setRemoveConfirm({ isOpen: true, studentId: row.studentId, studentName: row.student.fullName })}
           className="p-2 text-secondary-400 hover:text-danger-600 transition-colors"
         >
@@ -157,7 +206,7 @@ const ClassroomDetail = () => {
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <button 
+          <button
             onClick={() => navigate(-1)}
             className="h-12 w-12 rounded-2xl bg-white border border-secondary-100 flex items-center justify-center text-secondary-400 hover:text-primary-600 hover:border-primary-200 transition-all shadow-sm"
           >
@@ -181,10 +230,10 @@ const ClassroomDetail = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
+
         {/* Left: Info & Students */}
         <div className="lg:col-span-2 space-y-8">
-          
+
           {/* Instructor Card (For Student) */}
           {!isTeacher && (
             <Card title="Instructor Information" className="bg-primary-600 text-white border-none shadow-xl shadow-primary-500/20">
@@ -205,22 +254,148 @@ const ClassroomDetail = () => {
             </Card>
           )}
 
-          {/* Student Roster */}
-          <Card 
-            title="Class Roster" 
-            subtitle={`${classroom.students.length} students enrolled in this session`}
-            actions={isTeacher && (
-              <Button onClick={() => setIsAddModalOpen(true)} variant="primary" size="sm" icon={<UserPlus size={14} />}>
-                Enroll Student
-              </Button>
-            )}
-          >
-            <DataTable 
-              columns={studentColumns}
-              data={classroom.students}
-              loading={loading}
-            />
-          </Card>
+          {/* Tabs for Teacher */}
+          {isTeacher && (
+            <div className="flex gap-2 p-1.5 bg-secondary-50 rounded-2xl w-fit">
+              <button
+                onClick={() => setActiveTab('roster')}
+                className={`px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300 ${
+                  activeTab === 'roster'
+                    ? 'bg-white text-secondary-900 shadow-lg shadow-secondary-200/50'
+                    : 'text-secondary-500 hover:text-secondary-700'
+                }`}
+              >
+                Class Roster
+              </button>
+              <button
+                onClick={() => setActiveTab('enrollments')}
+                className={`px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300 flex items-center gap-2.5 ${
+                  activeTab === 'enrollments'
+                    ? 'bg-white text-secondary-900 shadow-lg shadow-secondary-200/50'
+                    : 'text-secondary-500 hover:text-secondary-700'
+                }`}
+              >
+                Enrollment Requests
+                {pendingEnrollmentCount > 0 && (
+                  <span className="h-5 min-w-[20px] px-1.5 rounded-full bg-amber-500 text-white text-[10px] font-black flex items-center justify-center animate-pulse">
+                    {pendingEnrollmentCount}
+                  </span>
+                )}
+              </button>
+            </div>
+          )}
+
+          {/* Tab: Class Roster */}
+          {(activeTab === 'roster' || !isTeacher) && (
+            <Card
+              title="Class Roster"
+              subtitle={`${classroom.students.length} students enrolled in this session`}
+              actions={isTeacher && (
+                <Button onClick={() => setIsAddModalOpen(true)} variant="primary" size="sm" icon={<UserPlus size={14} />}>
+                  Enroll Student
+                </Button>
+              )}
+            >
+              <DataTable
+                columns={studentColumns}
+                data={classroom.students}
+                loading={loading}
+              />
+            </Card>
+          )}
+
+          {/* Tab: Enrollment Requests (Teacher) */}
+          {isTeacher && activeTab === 'enrollments' && (
+            <Card
+              title="Pending Enrollment Requests"
+              subtitle={`${pendingEnrollmentCount} students waiting for approval`}
+            >
+              {enrollmentLoading ? (
+                <Loading message="Loading enrollment requests..." />
+              ) : enrollmentRequests.length === 0 ? (
+                <div className="py-16 text-center space-y-4">
+                  <div className="h-16 w-16 rounded-full bg-secondary-50 flex items-center justify-center mx-auto">
+                    <Inbox className="h-8 w-8 text-secondary-200" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-secondary-500">No Pending Requests</p>
+                    <p className="text-xs text-secondary-400 font-medium mt-1">All enrollment requests have been processed.</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {enrollmentRequests.map((req) => (
+                    <div
+                      key={req.id}
+                      className="flex items-center justify-between p-5 rounded-2xl bg-white border border-secondary-100 hover:border-primary-100 hover:shadow-lg hover:shadow-primary-500/5 transition-all group"
+                    >
+                      <div className="flex items-center gap-5 flex-1 min-w-0">
+                        <div className="h-14 w-14 rounded-2xl bg-secondary-100 flex items-center justify-center overflow-hidden shrink-0">
+                          {req.student.avatarUrl ? (
+                            <img src={req.student.avatarUrl} alt={req.student.fullName} className="h-full w-full object-cover" />
+                          ) : (
+                            <Users className="h-7 w-7 text-secondary-400" />
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-3 mb-1">
+                            <h4 className="font-black text-secondary-900 truncate">{req.student.fullName}</h4>
+                            <Badge variant="warning" className="text-[8px] tracking-widest uppercase shrink-0 flex items-center gap-1">
+                              <Clock className="h-2.5 w-2.5" />
+                              Pending
+                            </Badge>
+                          </div>
+                          <p className="text-[10px] text-secondary-400 font-bold uppercase tracking-widest truncate">{req.student.email}</p>
+                          <div className="flex items-center gap-4 mt-1.5">
+                            <span className="text-[10px] text-secondary-400 font-bold flex items-center gap-1.5">
+                              <School className="h-3 w-3" />
+                              {req.student.schoolName || 'Global'}
+                            </span>
+                            <span className="text-[10px] text-secondary-400 font-bold flex items-center gap-1.5">
+                              <Clock className="h-3 w-3" />
+                              {new Date(req.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </span>
+                          </div>
+                          {req.message && (
+                            <div className="mt-3 flex items-start gap-2 bg-secondary-50 rounded-xl px-3.5 py-2.5">
+                              <MessageSquare className="h-3.5 w-3.5 text-secondary-400 mt-0.5 shrink-0" />
+                              <p className="text-xs text-secondary-600 font-medium line-clamp-2">{req.message}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2.5 ml-4 shrink-0">
+                        <button
+                          disabled={processingRequestId === req.id}
+                          onClick={() => handleUpdateEnrollment(req.id, 'REJECTED')}
+                          className="h-11 w-11 rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all duration-300 disabled:opacity-50 shadow-sm hover:shadow-lg hover:shadow-red-500/20"
+                          title="Reject"
+                        >
+                          <XCircle className="h-5 w-5" />
+                        </button>
+                        <button
+                          disabled={processingRequestId === req.id}
+                          onClick={() => handleUpdateEnrollment(req.id, 'APPROVED')}
+                          className="h-11 px-5 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white flex items-center gap-2 transition-all duration-300 disabled:opacity-50 font-bold text-xs shadow-sm hover:shadow-lg hover:shadow-emerald-500/20"
+                          title="Approve"
+                        >
+                          {processingRequestId === req.id ? (
+                            <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                          ) : (
+                            <>
+                              <CheckCircle className="h-4.5 w-4.5" />
+                              Approve
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          )}
         </div>
 
         {/* Right: Exams & Content */}
@@ -237,8 +412,25 @@ const ClassroomDetail = () => {
             </div>
           </div>
 
-          <Card 
-            title="Assigned Assessments" 
+          {isTeacher && pendingEnrollmentCount > 0 && activeTab !== 'enrollments' && (
+            <div
+              onClick={() => setActiveTab('enrollments')}
+              className="bg-amber-50 border border-amber-200 rounded-[2rem] p-6 cursor-pointer hover:bg-amber-100 transition-all group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <UserCheck className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-sm font-black text-amber-900">{pendingEnrollmentCount} Pending Request{pendingEnrollmentCount > 1 ? 's' : ''}</p>
+                  <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest mt-0.5">Click to review</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <Card
+            title="Assigned Assessments"
             subtitle="Tests linked to this classroom"
             bodyClassName="p-0"
           >
@@ -258,7 +450,7 @@ const ClassroomDetail = () => {
                         <span className="text-[9px] font-bold text-secondary-400 uppercase tracking-widest">{exam.durationMinutes}m</span>
                       </div>
                     </div>
-                    <button 
+                    <button
                       onClick={() => navigate(isTeacher ? `/teacher/exams/${exam.id}` : `/student/exams/${exam.id}/instruction`)}
                       className="h-8 w-8 rounded-lg bg-secondary-100 flex items-center justify-center text-secondary-500 hover:bg-primary-600 hover:text-white transition-all shadow-sm"
                     >
@@ -352,9 +544,9 @@ const ClassroomDetail = () => {
                         Enrolled
                       </div>
                     ) : (
-                      <Button 
-                        size="sm" 
-                        variant="primary" 
+                      <Button
+                        size="sm"
+                        variant="primary"
                         loading={addingStudentId === student.id}
                         onClick={() => handleEnrollStudent(student.id)}
                         className="px-6 rounded-xl shadow-lg shadow-primary-500/20"
@@ -367,7 +559,7 @@ const ClassroomDetail = () => {
               })
             )}
           </div>
-          
+
           <div className="pt-4 border-t border-secondary-50 flex justify-between items-center">
              <p className="text-[10px] text-secondary-400 font-bold uppercase tracking-widest">Showing up to 10 results</p>
              <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>Close</Button>

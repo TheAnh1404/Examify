@@ -54,5 +54,27 @@ export const classroomService = {
 
   removeStudent: async (classId, studentId) => {
     return handle(() => API.delete(`/classrooms/${classId}/students/${studentId}`), 'Failed to remove student');
+  },
+
+  // Enrollment request APIs
+  checkCode: async (code) => {
+    return handle(() => API.get(`/classrooms/check-code/${code}`), 'Failed to check class code');
+  },
+
+  enrollRequest: async (data) => {
+    return handle(() => API.post('/classrooms/enroll', data), 'Failed to send join request');
+  },
+
+  getMyRequests: async () => {
+    return handle(() => API.get('/classrooms/my-requests'), 'Failed to fetch requests');
+  },
+
+  getEnrollmentRequests: async (classId, params = {}) => {
+    return handle(() => API.get(`/classrooms/${classId}/enrollments`, { params }), 'Failed to fetch enrollment requests');
+  },
+
+  updateEnrollmentStatus: async (requestId, data) => {
+    return handle(() => API.patch(`/classrooms/enrollments/${requestId}`, data), 'Failed to update enrollment status');
   }
 };
+
