@@ -91,15 +91,24 @@ export const getClassroomById = async (req, res, next) => {
 
 export const createClassroom = async (req, res, next) => {
   try {
-    const { name, code, description, schoolName, subjectId } = req.body;
+    let { name, code, description, schoolName, subjectId, bannerUrl } = req.body;
     const teacherId = req.user.id;
 
-    if (!name || !code || !subjectId) {
-      return errorResponse(res, 'Name, code, and subjectId are required', 400);
+    if (!name || !subjectId) {
+      return errorResponse(res, 'Name and subjectId are required', 400);
+    }
+
+    // Auto-generate code if not provided
+    if (!code) {
+      code = name.substring(0, 3).toUpperCase() + Math.random().toString(36).substring(2, 7).toUpperCase();
     }
 
     const existingCode = await prisma.classroom.findUnique({ where: { code } });
-    if (existingCode) return errorResponse(res, 'Classroom code already in use', 400);
+    if (existingCode) return errorResponse(res, 'Classroom code already in use. Please provide a unique code.', 400);
+
+    // Verify subject exists
+    const subject = await prisma.subject.findUnique({ where: { id: parseInt(subjectId) } });
+    if (!subject) return errorResponse(res, 'Invalid subjectId', 400);
 
     const classroom = await prisma.classroom.create({
       data: {
@@ -107,6 +116,7 @@ export const createClassroom = async (req, res, next) => {
         code,
         description,
         schoolName,
+        bannerUrl,
         teacherId,
         subjectId: parseInt(subjectId)
       },
@@ -124,7 +134,7 @@ export const createClassroom = async (req, res, next) => {
 export const updateClassroom = async (req, res, next) => {
   try {
     const classroomId = parseInt(req.params.id);
-    const { name, description, schoolName, subjectId } = req.body;
+    const { name, description, schoolName, subjectId, bannerUrl, status } = req.body;
 
     const classroom = await prisma.classroom.findUnique({ where: { id: classroomId } });
     if (!classroom) return errorResponse(res, 'Classroom not found', 404);
@@ -138,6 +148,8 @@ export const updateClassroom = async (req, res, next) => {
         name,
         description,
         schoolName,
+        bannerUrl,
+        status,
         subjectId: subjectId ? parseInt(subjectId) : undefined
       }
     });
@@ -165,22 +177,61 @@ export const deleteClassroom = async (req, res, next) => {
   }
 };
 
+export const searchStudents = async (req, res, next) => {
+  try {
+    const { query } = req.query;
+    if (!query || query.length < 2) {
+      return successResponse(res, [], 'Search query too short');
+    }
+
+    const students = await prisma.user.findMany({
+      where: {
+        role: 'STUDENT',
+        status: 'ACTIVE',
+        OR: [
+          { fullName: { contains: query, mode: 'insensitive' } },
+          { email: { contains: query, mode: 'insensitive' } },
+          { schoolName: { contains: query, mode: 'insensitive' } },
+          { id: isNaN(parseInt(query)) ? undefined : parseInt(query) }
+        ].filter(Boolean)
+      },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        avatarUrl: true,
+        schoolName: true
+      },
+      take: 10
+    });
+
+    return successResponse(res, students, 'Students found successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const addStudentToClass = async (req, res, next) => {
   try {
     const classroomId = parseInt(req.params.id);
-    const { studentEmail } = req.body;
+    const { studentId, studentEmail } = req.body;
 
-    if (!studentEmail) return errorResponse(res, 'Student email is required', 400);
+    let targetStudentId = studentId;
 
-    const student = await prisma.user.findUnique({ where: { email: studentEmail.toLowerCase() } });
-    if (!student || student.role !== 'STUDENT') {
-      return errorResponse(res, 'Student not found', 404);
+    if (!targetStudentId && studentEmail) {
+      const student = await prisma.user.findUnique({ where: { email: studentEmail.toLowerCase() } });
+      if (!student || student.role !== 'STUDENT') {
+        return errorResponse(res, 'Student not found with this email', 404);
+      }
+      targetStudentId = student.id;
     }
+
+    if (!targetStudentId) return errorResponse(res, 'Student ID or Email is required', 400);
 
     const enrollment = await prisma.classStudent.create({
       data: {
         classroomId,
-        studentId: student.id
+        studentId: parseInt(targetStudentId)
       },
       include: {
         student: { select: { id: true, fullName: true, email: true } }

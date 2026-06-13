@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { classroomService } from '../../services/classroomService';
 import { authService } from '../../services/authService';
@@ -6,11 +6,11 @@ import PageHeader from '../../components/layout/PageHeader';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
-import Input from '../../components/common/Input';
 import Loading from '../../components/common/Loading';
 import DataTable from '../../components/common/DataTable';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
-import { GraduationCap, Users, BookOpen, UserPlus, Mail, Trash2, ArrowLeft, School, Calendar, ChevronRight } from 'lucide-react';
+import Modal from '../../components/common/Modal';
+import { GraduationCap, Users, BookOpen, UserPlus, Trash2, ArrowLeft, School, Search, X, Check, SearchIcon, ChevronRight } from 'lucide-react';
 
 const ClassroomDetail = () => {
   const { id: classroomId } = useParams();
@@ -23,8 +23,11 @@ const ClassroomDetail = () => {
   const [error, setError] = useState('');
 
   // Add Student State
-  const [studentEmail, setStudentEmail] = useState('');
-  const [addingStudent, setAddingStudent] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [addingStudentId, setAddingStudentId] = useState(null);
   
   // Remove Confirm
   const [removeConfirm, setRemoveConfirm] = useState({ isOpen: false, studentId: null, studentName: '' });
@@ -45,18 +48,36 @@ const ClassroomDetail = () => {
     fetchClassroom();
   }, [classroomId]);
 
-  const handleAddStudent = async (e) => {
-    e.preventDefault();
-    if (!studentEmail) return;
-    setAddingStudent(true);
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (searchQuery.length >= 2) {
+        setSearching(true);
+        try {
+          const res = await classroomService.searchStudents(searchQuery);
+          setSearchResults(res.data);
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setSearching(false);
+        }
+      } else {
+        setSearchResults([]);
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const handleEnrollStudent = async (studentId) => {
+    setAddingStudentId(studentId);
     try {
-      await classroomService.addStudent(classroomId, studentEmail);
-      setStudentEmail('');
+      await classroomService.addStudent(classroomId, { studentId });
       fetchClassroom();
     } catch (err) {
       alert(err.message);
     } finally {
-      setAddingStudent(false);
+      setAddingStudentId(null);
     }
   };
 
@@ -99,6 +120,11 @@ const ClassroomDetail = () => {
       )
     },
     {
+      header: 'Institution',
+      accessor: 'student.schoolName',
+      render: (val) => <span className="text-xs font-bold text-secondary-500">{val || 'Global'}</span>
+    },
+    {
       header: 'Joined Date',
       accessor: 'joinedAt',
       render: (val) => <span className="text-xs font-bold text-secondary-500">{new Date(val).toLocaleDateString()}</span>
@@ -118,6 +144,17 @@ const ClassroomDetail = () => {
 
   return (
     <div className="space-y-8 animate-fade-in">
+      {classroom.bannerUrl && (
+        <div className="h-48 md:h-64 w-full rounded-[2.5rem] overflow-hidden shadow-2xl relative group">
+          <img src={classroom.bannerUrl} alt={classroom.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-[2s]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-secondary-900/80 via-transparent to-transparent"></div>
+          <div className="absolute bottom-10 left-10">
+            <Badge variant="primary" className="mb-3 px-4 py-1.5 text-xs tracking-widest uppercase bg-primary-600/90 backdrop-blur-md border-none">{classroom.subject?.name}</Badge>
+            <h1 className="text-4xl font-black text-white tracking-tight drop-shadow-lg">{classroom.name}</h1>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <button 
@@ -126,13 +163,20 @@ const ClassroomDetail = () => {
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-3xl font-black text-secondary-900 tracking-tight">{classroom.name}</h1>
-              <Badge variant="slate" className="font-mono">{classroom.code}</Badge>
+          {!classroom.bannerUrl && (
+            <div>
+              <div className="flex items-center gap-3 mb-1">
+                <h1 className="text-3xl font-black text-secondary-900 tracking-tight">{classroom.name}</h1>
+                <Badge variant="slate" className="font-mono">{classroom.code}</Badge>
+              </div>
+              <p className="text-secondary-500 font-medium">{classroom.subject?.name} • {classroom.schoolName || 'Global'}</p>
             </div>
-            <p className="text-secondary-500 font-medium">{classroom.subject?.name} • {classroom.schoolName || 'Global'}</p>
-          </div>
+          )}
+          {classroom.bannerUrl && (
+             <div>
+                <p className="text-secondary-500 font-medium">Code: <span className="font-mono font-bold text-secondary-900">{classroom.code}</span> • {classroom.schoolName || 'Global Institution'}</p>
+             </div>
+          )}
         </div>
       </div>
 
@@ -166,18 +210,9 @@ const ClassroomDetail = () => {
             title="Class Roster" 
             subtitle={`${classroom.students.length} students enrolled in this session`}
             actions={isTeacher && (
-              <form onSubmit={handleAddStudent} className="flex gap-2">
-                <input 
-                  type="email" 
-                  placeholder="Student email..." 
-                  className="bg-secondary-50 border-none rounded-xl px-4 py-2 text-xs font-bold outline-none focus:ring-2 focus:ring-primary-500 w-48 transition-all"
-                  value={studentEmail}
-                  onChange={(e) => setStudentEmail(e.target.value)}
-                />
-                <Button type="submit" variant="primary" size="sm" loading={addingStudent} icon={<UserPlus size={14} />}>
-                  Enroll
-                </Button>
-              </form>
+              <Button onClick={() => setIsAddModalOpen(true)} variant="primary" size="sm" icon={<UserPlus size={14} />}>
+                Enroll Student
+              </Button>
             )}
           >
             <DataTable 
@@ -190,6 +225,18 @@ const ClassroomDetail = () => {
 
         {/* Right: Exams & Content */}
         <div className="space-y-8">
+          {/* Stats Card */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white p-6 rounded-[2rem] border border-secondary-50 shadow-sm">
+              <p className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1">Students</p>
+              <h4 className="text-2xl font-black text-secondary-900">{classroom.students.length}</h4>
+            </div>
+            <div className="bg-white p-6 rounded-[2rem] border border-secondary-50 shadow-sm">
+              <p className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1">Assessments</p>
+              <h4 className="text-2xl font-black text-secondary-900">{classroom.exams?.length || 0}</h4>
+            </div>
+          </div>
+
           <Card 
             title="Assigned Assessments" 
             subtitle="Tests linked to this classroom"
@@ -243,6 +290,90 @@ const ClassroomDetail = () => {
           </Card>
         </div>
       </div>
+
+      {/* Add Student Modal */}
+      <Modal
+        isOpen={isAddModalOpen}
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setSearchQuery('');
+          setSearchResults([]);
+        }}
+        title="Enroll New Student"
+      >
+        <div className="space-y-6">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary-400" />
+            <input
+              type="text"
+              placeholder="Search by Name, Email, ID, or School..."
+              className="w-full pl-12 pr-4 py-4 bg-secondary-50 border-none rounded-2xl focus:ring-4 focus:ring-primary-500/10 outline-none transition-all font-bold text-secondary-900"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              autoFocus
+            />
+            {searching && (
+              <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                <div className="h-5 w-5 border-2 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            )}
+          </div>
+
+          <div className="max-h-80 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+            {searchResults.length === 0 ? (
+              <div className="py-12 text-center space-y-3">
+                <Users className="h-10 w-10 text-secondary-100 mx-auto" />
+                <p className="text-sm font-bold text-secondary-400">
+                  {searchQuery.length < 2 ? 'Enter at least 2 characters to search' : 'No students found matching your query'}
+                </p>
+              </div>
+            ) : (
+              searchResults.map((student) => {
+                const isAlreadyIn = classroom.students.some(s => s.studentId === student.id);
+                return (
+                  <div key={student.id} className="flex items-center justify-between p-4 rounded-2xl bg-white border border-secondary-50 hover:border-primary-200 hover:shadow-lg hover:shadow-primary-500/5 transition-all group">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-xl bg-secondary-100 flex items-center justify-center overflow-hidden">
+                        {student.avatarUrl ? (
+                          <img src={student.avatarUrl} alt={student.fullName} className="h-full w-full object-cover" />
+                        ) : (
+                          <Users className="h-6 w-6 text-secondary-400" />
+                        )}
+                      </div>
+                      <div>
+                        <h5 className="font-black text-secondary-900 leading-tight">{student.fullName}</h5>
+                        <p className="text-[10px] text-secondary-400 font-bold uppercase tracking-widest mt-0.5">{student.email}</p>
+                        <p className="text-[10px] text-primary-600 font-bold uppercase tracking-[0.1em] mt-1">{student.schoolName || 'Global Institution'}</p>
+                      </div>
+                    </div>
+                    {isAlreadyIn ? (
+                      <div className="h-10 px-4 rounded-xl bg-emerald-50 text-emerald-600 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest border border-emerald-100">
+                        <Check size={14} />
+                        Enrolled
+                      </div>
+                    ) : (
+                      <Button 
+                        size="sm" 
+                        variant="primary" 
+                        loading={addingStudentId === student.id}
+                        onClick={() => handleEnrollStudent(student.id)}
+                        className="px-6 rounded-xl shadow-lg shadow-primary-500/20"
+                      >
+                        Enroll
+                      </Button>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+          
+          <div className="pt-4 border-t border-secondary-50 flex justify-between items-center">
+             <p className="text-[10px] text-secondary-400 font-bold uppercase tracking-widest">Showing up to 10 results</p>
+             <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>Close</Button>
+          </div>
+        </div>
+      </Modal>
 
       <ConfirmDialog
         isOpen={removeConfirm.isOpen}

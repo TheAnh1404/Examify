@@ -4,7 +4,7 @@ import Button from './Button';
 const EmptyState = ({
   title = 'No records found',
   description = 'There are no active items in this category at the moment.',
-  icon,
+  icon: Icon,
   actionText,
   onAction,
   className = ''
@@ -12,7 +12,7 @@ const EmptyState = ({
   return (
     <div className={`saas-card p-12 text-center flex flex-col items-center justify-center space-y-4 max-w-xl mx-auto border-dashed border-2 border-secondary-305 bg-white ${className}`}>
       <div className="h-16 w-16 rounded-full bg-secondary-50 border border-secondary-200 flex items-center justify-center text-secondary-400 shadow-sm shrink-0 mb-2">
-        {icon || <HelpCircle className="h-8 w-8" />}
+        {Icon ? <Icon className="h-8 w-8" /> : <HelpCircle className="h-8 w-8" />}
       </div>
       
       <div className="space-y-1">

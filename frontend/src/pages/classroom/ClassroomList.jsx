@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { classroomService } from '../../services/classroomService';
 import { subjectService } from '../../services/subjectService';
 import { authService } from '../../services/authService';
@@ -16,6 +16,7 @@ import { GraduationCap, Users, BookOpen, Plus, Search, School, ArrowRight, User 
 
 const ClassroomList = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const user = authService.getCurrentUser();
   const isTeacher = user?.role === 'TEACHER';
   const isStudent = user?.role === 'STUDENT';
@@ -33,6 +34,7 @@ const ClassroomList = () => {
     code: '',
     subjectId: '',
     schoolName: user?.schoolName || '',
+    bannerUrl: '',
     description: ''
   });
 
@@ -67,9 +69,14 @@ const ClassroomList = () => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await classroomService.create(formData);
+      const payload = { ...formData };
+      if (!payload.code.trim()) delete payload.code;
+      if (!payload.bannerUrl.trim()) delete payload.bannerUrl;
+
+      await classroomService.create(payload);
+      setIsAddModalOpen(false); // Sửa thành setIsModalOpen nếu cần, nhưng thực tế modal ở đây là isModalOpen
       setIsModalOpen(false);
-      setFormData({ name: '', code: '', subjectId: '', schoolName: user?.schoolName || '', description: '' });
+      setFormData({ name: '', code: '', subjectId: '', schoolName: user?.schoolName || '', bannerUrl: '', description: '' });
       fetchClassrooms();
     } catch (err) {
       alert(err.message);
@@ -125,6 +132,14 @@ const ClassroomList = () => {
               className="group hover:shadow-2xl hover:shadow-primary-500/10 transition-all duration-500 border-none bg-white p-0 overflow-hidden cursor-pointer"
               onClick={() => navigate(`${location.pathname}/${cls.id}`)}
             >
+              {cls.bannerUrl ? (
+                <div className="h-32 w-full overflow-hidden">
+                  <img src={cls.bannerUrl} alt={cls.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                </div>
+              ) : (
+                <div className="h-3 bg-primary-600 w-full" />
+              )}
+              
               <div className="p-8 space-y-6">
                 <div className="flex items-start justify-between">
                   <div className="h-14 w-14 rounded-2xl bg-primary-50 text-primary-600 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-500">
@@ -174,19 +189,25 @@ const ClassroomList = () => {
               required
             />
             <Input
-              label="Class Code"
-              placeholder="e.g. MATH101"
+              label="Class Code (Optional)"
+              placeholder="Auto-generated if empty"
               value={formData.code}
               onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-              required
             />
           </div>
           <Select
             label="Subject"
             options={subjects}
             value={formData.subjectId}
-            onChange={(val) => setFormData({ ...formData, subjectId: val })}
+            onChange={(e) => setFormData({ ...formData, subjectId: e.target.value })}
+            placeholder="Select a subject"
             required
+          />
+          <Input
+            label="Banner Image URL (Optional)"
+            value={formData.bannerUrl}
+            onChange={(e) => setFormData({ ...formData, bannerUrl: e.target.value })}
+            placeholder="https://images.unsplash.com/..."
           />
           <Input
             label="School / Institution"

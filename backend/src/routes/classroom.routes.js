@@ -8,6 +8,7 @@ const router = express.Router();
 router.use(authMiddleware);
 
 router.get('/', classroomController.getClassrooms);
+router.get('/search-students', roleMiddleware('TEACHER', 'ADMIN'), classroomController.searchStudents);
 router.get('/:id', classroomController.getClassroomById);
 
 // Teacher & Admin actions

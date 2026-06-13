@@ -44,8 +44,12 @@ export const classroomService = {
     return handle(() => API.delete(`/classrooms/${id}`), 'Failed to delete classroom');
   },
 
-  addStudent: async (classId, studentEmail) => {
-    return handle(() => API.post(`/classrooms/${classId}/students`, { studentEmail }), 'Failed to add student');
+  addStudent: async (classId, { studentEmail, studentId }) => {
+    return handle(() => API.post(`/classrooms/${classId}/students`, { studentEmail, studentId }), 'Failed to add student');
+  },
+
+  searchStudents: async (query) => {
+    return handle(() => API.get('/classrooms/search-students', { params: { query } }), 'Failed to search students');
   },
 
   removeStudent: async (classId, studentId) => {
