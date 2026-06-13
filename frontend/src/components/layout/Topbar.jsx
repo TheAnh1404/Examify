@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { authService } from '../../services/authService';
-import { Menu, Bell, User, LogOut, ChevronDown, Search, HelpCircle, Settings } from 'lucide-react';
+import { Menu, User, LogOut, ChevronDown, Settings, Activity } from 'lucide-react';
 
 const Topbar = ({ onMenuClick }) => {
   const navigate = useNavigate();
@@ -39,6 +39,7 @@ const Topbar = ({ onMenuClick }) => {
       <div className="flex items-center gap-6">
         <button 
           onClick={onMenuClick}
+          aria-label="Open navigation menu"
           className="p-2.5 rounded-xl text-secondary-500 hover:bg-secondary-50 md:hidden focus:outline-none transition-colors border border-transparent hover:border-secondary-100"
         >
           <Menu className="h-6 w-6" />
@@ -49,41 +50,29 @@ const Topbar = ({ onMenuClick }) => {
         </h1>
       </div>
 
-      {/* Center Section: Search Bar (Desktop only) */}
-      <div className="hidden lg:flex flex-1 max-w-lg mx-12">
-        <div className="relative w-full group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-secondary-300 group-focus-within:text-primary-500 transition-colors" />
-          <input 
-            type="text" 
-            placeholder="Quick search analytics, exams or users..." 
-            className="w-full bg-secondary-50 border border-transparent focus:border-primary-100 rounded-2xl py-3 pl-11 pr-4 text-sm text-secondary-900 placeholder-secondary-300 focus:ring-4 focus:ring-primary-500/5 transition-all outline-none"
-          />
+      <div className="hidden lg:flex flex-1 justify-center mx-12">
+        <div className="inline-flex items-center gap-2 rounded-xl bg-accent-50 border border-accent-100 px-4 py-2 text-[10px] font-extrabold uppercase tracking-widest text-accent-700">
+          <Activity className="h-4 w-4" />
+          Secure session active
         </div>
       </div>
 
       {/* Right Section: Actions & User */}
       <div className="flex items-center gap-3 sm:gap-6">
-        {/* Help (Desktop) */}
-        <button className="p-2.5 rounded-xl text-secondary-300 hover:text-secondary-900 hover:bg-secondary-50 transition-all hidden sm:flex border border-transparent hover:border-secondary-100">
-          <HelpCircle className="h-5 w-5" />
-        </button>
-
-        {/* Notifications */}
-        <button className="relative p-2.5 rounded-xl text-secondary-300 hover:text-secondary-900 hover:bg-secondary-50 transition-all border border-transparent hover:border-secondary-100">
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-3 right-3 h-2 w-2 rounded-full bg-danger-500 ring-4 ring-white"></span>
-        </button>
-
-        <div className="h-8 w-px bg-secondary-100 mx-2 hidden sm:block"></div>
-
         {/* User Dropdown */}
         <div className="relative">
           <button 
             onClick={() => setDropdownOpen(!dropdownOpen)}
+            aria-label="Open account menu"
+            aria-expanded={dropdownOpen}
             className="flex items-center gap-3.5 p-1.5 rounded-2xl hover:bg-secondary-50 transition-all focus:outline-none border border-transparent hover:border-secondary-100"
           >
-            <div className="h-10 w-10 rounded-xl bg-primary-500 text-white font-extrabold flex items-center justify-center text-sm shadow-lg shadow-primary-500/20 ring-4 ring-primary-500/5">
-              {getInitials(user.name)}
+            <div className="h-10 w-10 rounded-xl bg-primary-500 text-white font-extrabold flex items-center justify-center text-sm shadow-lg shadow-primary-500/20 ring-4 ring-primary-500/5 overflow-hidden">
+              {user.avatarUrl ? (
+                <img src={user.avatarUrl} alt={user.name} className="h-full w-full object-cover" />
+              ) : (
+                getInitials(user.name)
+              )}
             </div>
             
             <div className="hidden xl:block text-left">
@@ -106,25 +95,27 @@ const Topbar = ({ onMenuClick }) => {
                 
                 <div className="py-2 px-2">
                   <Link
-                    to={`/${user.role.toLowerCase()}/profile`}
+                    to={user.role === 'ADMIN' ? '/admin/profile' : user.role === 'TEACHER' ? '/teacher/profile' : '/student/profile'}
                     onClick={() => setDropdownOpen(false)}
                     className="flex items-center gap-3.5 px-4 py-3 text-sm font-bold text-secondary-500 hover:text-primary-600 hover:bg-primary-50 rounded-2xl transition-all"
                   >
-                    <div className="p-2 rounded-xl bg-secondary-50 text-secondary-400 group-hover:bg-primary-100 transition-colors">
+                    <div className="p-2 rounded-xl bg-secondary-50 text-secondary-400">
                       <User className="h-4.5 w-4.5" />
                     </div>
                     My Profile
                   </Link>
-                  <Link
-                    to={`/${user.role.toLowerCase()}/settings`}
-                    onClick={() => setDropdownOpen(false)}
-                    className="flex items-center gap-3.5 px-4 py-3 text-sm font-bold text-secondary-500 hover:text-primary-600 hover:bg-primary-50 rounded-2xl transition-all"
-                  >
-                    <div className="p-2 rounded-xl bg-secondary-50 text-secondary-400 group-hover:bg-primary-100 transition-colors">
-                      <Settings className="h-4.5 w-4.5" />
-                    </div>
-                    Settings
-                  </Link>
+                  {user.role === 'ADMIN' && (
+                    <Link
+                      to="/admin/settings"
+                      onClick={() => setDropdownOpen(false)}
+                      className="flex items-center gap-3.5 px-4 py-3 text-sm font-bold text-secondary-500 hover:text-primary-600 hover:bg-primary-50 rounded-2xl transition-all"
+                    >
+                      <div className="p-2 rounded-xl bg-secondary-50 text-secondary-400">
+                        <Settings className="h-4.5 w-4.5" />
+                      </div>
+                      System Settings
+                    </Link>
+                  )}
                 </div>
                 
                 <div className="px-3 pt-2 mt-2 border-t border-secondary-50">

@@ -1,6 +1,5 @@
-import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Globe, Mail, Shield, Zap } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import Button from '../common/Button';
 import Logo from '../common/Logo';
 

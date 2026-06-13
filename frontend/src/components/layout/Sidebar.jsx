@@ -1,5 +1,4 @@
-import React from 'react';
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Users, 
@@ -14,7 +13,7 @@ import {
 } from 'lucide-react';
 import Logo from '../common/Logo';
 
-const Sidebar = ({ onClose }) => {
+const Sidebar = ({ onClose, mobile = false }) => {
   const role = localStorage.getItem('examify_role') || 'STUDENT';
   const roleUpper = role.toUpperCase();
 
@@ -31,6 +30,7 @@ const Sidebar = ({ onClose }) => {
       case 'TEACHER':
         return [
           { name: 'Dashboard', path: '/teacher/dashboard', icon: LayoutDashboard },
+          { name: 'Classrooms', path: '/teacher/classrooms', icon: GraduationCap },
           { name: 'Question Bank', path: '/teacher/questions', icon: FolderLock },
           { name: 'Exam Management', path: '/teacher/exams', icon: BookOpen },
           { name: 'Student Results', path: '/teacher/results', icon: ClipboardList },
@@ -40,6 +40,7 @@ const Sidebar = ({ onClose }) => {
       default:
         return [
           { name: 'Dashboard', path: '/student/dashboard', icon: LayoutDashboard },
+          { name: 'My Classrooms', path: '/student/classrooms', icon: GraduationCap },
           { name: 'Available Exams', path: '/student/exams', icon: BookOpen },
           { name: 'My Attempts', path: '/student/attempts', icon: ClipboardList },
           { name: 'My Profile', path: '/student/profile', icon: Users },
@@ -50,7 +51,7 @@ const Sidebar = ({ onClose }) => {
   const navLinks = getNavLinks();
 
   return (
-    <aside className="w-72 h-screen sticky top-0 bg-[#0F172A] text-slate-400 shrink-0 hidden md:flex md:flex-col border-r border-slate-800/50">
+    <aside className={`${mobile ? 'flex flex-col w-full h-full' : 'w-72 h-screen sticky top-0 hidden md:flex md:flex-col'} bg-[#0F172A] text-slate-400 shrink-0 border-r border-slate-800/50`}>
       {/* Brand Logo header */}
       <div className="h-24 flex items-center gap-4 px-8 border-b border-slate-800/50">
         <Logo className="h-10 w-10" />
@@ -71,6 +72,7 @@ const Sidebar = ({ onClose }) => {
               key={link.path}
               to={link.path}
               onClick={onClose}
+              aria-label={link.name}
               className={({ isActive }) => `
                 flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-sm font-bold transition-all duration-200 group
                 ${isActive 

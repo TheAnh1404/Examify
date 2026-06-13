@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 import { X } from 'lucide-react';
 
 const Modal = ({
@@ -10,16 +10,23 @@ const Modal = ({
   closeOnBackdrop = true,
   footer
 }) => {
+  const titleId = useId();
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
     }
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape' && closeOnBackdrop) onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.body.style.overflow = 'unset';
+      document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen]);
+  }, [isOpen, closeOnBackdrop, onClose]);
 
   if (!isOpen) return null;
 
@@ -39,15 +46,21 @@ const Modal = ({
       />
       
       {/* Modal Content Pane */}
-      <div className={`w-full bg-white border border-secondary-100 rounded-[2rem] shadow-2xl z-10 animate-fade-in relative flex flex-col max-h-[90vh] ${sizes[size]}`}>
+      <div
+        className={`w-full bg-white border border-secondary-100 rounded-[2rem] shadow-2xl z-10 animate-fade-in relative flex flex-col max-h-[90vh] ${sizes[size]}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+      >
         {/* Modal Header */}
         <div className="px-10 py-8 border-b border-secondary-50 flex items-center justify-between shrink-0">
-          <h3 className="font-extrabold text-2xl text-secondary-900 tracking-tight">
+          <h3 id={titleId} className="font-extrabold text-2xl text-secondary-900 tracking-tight">
             {title}
           </h3>
           
           <button 
             onClick={onClose}
+            aria-label="Close dialog"
             className="p-2.5 rounded-2xl text-secondary-300 hover:text-secondary-600 hover:bg-secondary-50 transition-all border border-transparent hover:border-secondary-100"
           >
             <X className="h-6 w-6" />

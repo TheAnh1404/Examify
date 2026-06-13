@@ -1,142 +1,128 @@
-import { db } from '../data/mockData';
+import API from './api';
+import { getApiErrorMessage } from './serviceUtils';
+
+const handle = async (request, fallback) => {
+  try {
+    const response = await request();
+    return response.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, fallback), { cause: error });
+  }
+};
+
+const toResolvedQuestion = (examQuestion) => {
+  const question = examQuestion.question;
+  return {
+    id: String(question.id),
+    subjectId: String(question.subjectId || ''),
+    text: question.content,
+    options: [question.optionA, question.optionB, question.optionC, question.optionD],
+    correctOption: question.correctAnswer ? question.correctAnswer.charCodeAt(0) - 65 : undefined,
+    marks: Number(examQuestion.point),
+    difficulty: question.difficulty
+      ? question.difficulty.charAt(0) + question.difficulty.slice(1).toLowerCase()
+      : 'Easy'
+  };
+};
+
+const toExamView = (exam) => {
+  const resolvedQuestions = (exam.examQuestions || [])
+    .filter(examQuestion => examQuestion.question)
+    .map(toResolvedQuestion);
+  const questionCount = exam.totalQuestions ?? resolvedQuestions.length;
+  const totalMarks = (exam.examQuestions || []).reduce((sum, examQuestion) => sum + Number(examQuestion.point), 0);
+  return {
+    ...exam,
+    id: String(exam.id),
+    subjectId: String(exam.subjectId),
+    subjectName: exam.subject?.name || 'Unknown Subject',
+    subjectCode: exam.subject?.code || '',
+    duration: exam.durationMinutes,
+    passPercentage: exam.passPercentage ?? 50,
+    questionCount,
+    questions: resolvedQuestions.map((question) => question.id),
+    resolvedQuestions,
+    totalMarks: totalMarks || questionCount
+  };
+};
+
+const toExamPayload = (exam) => ({
+  subjectId: exam.subjectId,
+  title: exam.title,
+  description: exam.description,
+  durationMinutes: Number(exam.duration ?? exam.durationMinutes),
+  passPercentage: Number(exam.passPercentage ?? 50),
+  visibility: exam.visibility || 'PRIVATE',
+  accessPassword: exam.accessPassword || undefined,
+  startTime: exam.startTime || undefined,
+  endTime: exam.endTime || undefined
+});
 
 export const examService = {
   getAll: async () => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // Enrich with subject details
-    const enriched = db.exams.map(e => {
-      const subject = db.subjects.find(s => s.id === e.subjectId);
-      return {
-        ...e,
-        subjectName: subject ? subject.name : 'Unknown Subject',
-        subjectCode: subject ? subject.code : '',
-        questionCount: e.questions.length
-      };
-    });
-
-    return { data: enriched };
+    const result = await handle(() => API.get('/exams'), 'Failed to fetch exams');
+    return { ...result, data: result.data.map(toExamView) };
   },
 
   getById: async (id) => {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    const exam = db.exams.find(e => e.id === id);
-    if (!exam) return Promise.reject(new Error('Exam not found'));
-
-    const subject = db.subjects.find(s => s.id === exam.subjectId);
-    
-    // Fully resolve the question objects
-    const resolvedQuestions = exam.questions.map(qId => {
-      const q = db.questions.find(quest => quest.id === qId);
-      return q ? { ...q } : null;
-    }).filter(Boolean);
-
-    // Anti-cheat answer scrubbing for students
-    const role = localStorage.getItem('examify_role');
-    const questionsPayload = role === 'STUDENT'
-      ? resolvedQuestions.map(q => {
-          const { correctOption, ...safeQ } = q;
-          return safeQ;
-        })
-      : resolvedQuestions;
-
-    return {
-      data: {
-        ...exam,
-        subjectName: subject ? subject.name : 'Unknown Subject',
-        subjectCode: subject ? subject.code : '',
-        resolvedQuestions: questionsPayload
-      }
-    };
+    const result = await handle(() => API.get(`/exams/${id}`), 'Failed to fetch exam');
+    return { ...result, data: toExamView(result.data) };
   },
 
-  create: async (examData) => {
-    await new Promise(resolve => setTimeout(resolve, 300));
+  create: async (exam) => {
+    const result = await handle(() => API.post('/exams', toExamPayload(exam)), 'Failed to create exam');
+    const examId = result.data.id;
 
-    const newExam = {
-      id: `ex-${Date.now()}`,
-      title: examData.title,
-      subjectId: examData.subjectId,
-      duration: Number(examData.duration) || 15,
-      passPercentage: Number(examData.passPercentage) || 50,
-      totalMarks: Number(examData.totalMarks) || 0,
-      description: examData.description || '',
-      questions: examData.questions || [], // Array of question IDs
-      createdAt: new Date().toISOString(),
-      status: examData.status || 'Draft'
-    };
+    for (const [index, questionId] of (exam.questions || []).entries()) {
+      await handle(() => API.post(`/exams/${examId}/questions`, {
+        questionId,
+        questionOrder: index + 1,
+        point: 1
+      }), 'Failed to add question to exam');
+    }
 
-    db.exams.push(newExam);
-    db.save('exams');
-    return { data: newExam };
+    if (String(exam.status).toUpperCase() === 'PUBLISHED') {
+      await handle(() => API.patch(`/exams/${examId}/publish`), 'Failed to publish exam');
+    }
+
+    return examService.getById(examId);
   },
 
-  update: async (id, examData) => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    const idx = db.exams.findIndex(e => e.id === id);
-    if (idx === -1) return Promise.reject(new Error('Exam not found'));
+  createBulk: async (exam) => {
+    const result = await handle(() => API.post('/exams/bulk', {
+      ...toExamPayload(exam),
+      publish: Boolean(exam.publish),
+      existingQuestions: exam.existingQuestions || [],
+      newQuestions: (exam.newQuestions || []).map((question) => ({
+        subjectId: exam.subjectId,
+        content: question.text,
+        optionA: question.options[0],
+        optionB: question.options[1],
+        optionC: question.options[2],
+        optionD: question.options[3],
+        correctAnswer: String.fromCharCode(65 + Number(question.correctOption)),
+        difficulty: String(question.difficulty || 'EASY').toUpperCase(),
+        defaultPoint: Number(question.marks ?? 1),
+        point: Number(question.marks ?? 1)
+      }))
+    }), 'Failed to create exam');
+    return examService.getById(result.data.id);
+  },
 
-    db.exams[idx] = {
-      ...db.exams[idx],
-      title: examData.title || db.exams[idx].title,
-      subjectId: examData.subjectId || db.exams[idx].subjectId,
-      duration: examData.duration !== undefined ? Number(examData.duration) : db.exams[idx].duration,
-      passPercentage: examData.passPercentage !== undefined ? Number(examData.passPercentage) : db.exams[idx].passPercentage,
-      totalMarks: examData.totalMarks !== undefined ? Number(examData.totalMarks) : db.exams[idx].totalMarks,
-      description: examData.description !== undefined ? examData.description : db.exams[idx].description,
-      questions: examData.questions ? [...examData.questions] : db.exams[idx].questions,
-      status: examData.status || db.exams[idx].status
-    };
-
-    db.save('exams');
-    return { data: db.exams[idx] };
+  update: async (id, exam) => {
+    const result = await handle(() => API.put(`/exams/${id}`, toExamPayload(exam)), 'Failed to update exam');
+    return { ...result, data: toExamView(result.data) };
   },
 
   delete: async (id) => {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    const idx = db.exams.findIndex(e => e.id === id);
-    if (idx === -1) return Promise.reject(new Error('Exam not found'));
-
-    db.exams.splice(idx, 1);
-    db.save('exams');
-
-    // Clean up attempts
-    db.attempts = db.attempts.filter(a => a.examId !== id);
-    db.save('attempts');
-
-    return { data: { message: 'Exam deleted' } };
+    return handle(() => API.delete(`/exams/${id}`), 'Failed to delete exam');
   },
 
-  addQuestionToExam: async (examId, questionId) => {
-    const exam = db.exams.find(e => e.id === examId);
-    if (!exam) return Promise.reject(new Error('Exam not found'));
-    
-    if (!exam.questions.includes(questionId)) {
-      exam.questions.push(questionId);
-      // Update marks
-      const question = db.questions.find(q => q.id === questionId);
-      if (question) {
-        exam.totalMarks = (exam.totalMarks || 0) + question.marks;
-      }
-      db.save('exams');
-    }
-    return { data: exam };
+  addQuestionToExam: async (examId, questionId, point = 1) => {
+    return handle(() => API.post(`/exams/${examId}/questions`, { questionId, point }), 'Failed to add question');
   },
 
   removeQuestionFromExam: async (examId, questionId) => {
-    const exam = db.exams.find(e => e.id === examId);
-    if (!exam) return Promise.reject(new Error('Exam not found'));
-    
-    const idx = exam.questions.indexOf(questionId);
-    if (idx !== -1) {
-      exam.questions.splice(idx, 1);
-      // Deduct marks
-      const question = db.questions.find(q => q.id === questionId);
-      if (question) {
-        exam.totalMarks = Math.max(0, (exam.totalMarks || 0) - question.marks);
-      }
-      db.save('exams');
-    }
-    return { data: exam };
+    return handle(() => API.delete(`/exams/${examId}/questions/${questionId}`), 'Failed to remove question');
   }
 };

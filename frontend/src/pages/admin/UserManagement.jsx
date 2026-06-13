@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { userService } from '../../services/userService';
 import SearchBox from '../../components/common/SearchBox';
 import FilterBar from '../../components/common/FilterBar';
@@ -8,7 +8,7 @@ import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Loading from '../../components/common/Loading';
-import { Plus, Edit, Trash2, ShieldAlert, CheckCircle2, UserCircle, Mail, Calendar } from 'lucide-react';
+import { Plus, Edit, Trash2, ShieldAlert, CheckCircle2, UserCircle, Mail, Calendar, Lock, Unlock } from 'lucide-react';
 import { authService } from '../../services/authService';
 
 const UserManagement = () => {
@@ -22,26 +22,29 @@ const UserManagement = () => {
 
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [statusLoadingId, setStatusLoadingId] = useState(null);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      const res = await userService.getAll();
-      setUsers(res.data);
-    } catch (err) {
-      console.error(err);
-      setError('Failed to fetch users catalog.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchUsers();
+    let active = true;
+    userService.getAll()
+      .then((res) => {
+        if (active) setUsers(res.data);
+      })
+      .catch((err) => {
+        console.error(err);
+        if (active) setError('Failed to fetch users catalog.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleDeleteClick = (user) => {
@@ -71,12 +74,31 @@ const UserManagement = () => {
     }
   };
 
+  const handleStatusToggle = async (user) => {
+    const nextStatus = user.status === 'LOCKED' ? 'ACTIVE' : 'LOCKED';
+    try {
+      setError('');
+      setSuccess('');
+      setStatusLoadingId(user.id);
+      await userService.updateStatus(user.id, nextStatus);
+      setUsers((current) => current.map((item) => (
+        item.id === user.id ? { ...item, status: nextStatus } : item
+      )));
+      setSuccess(`${user.name} is now ${nextStatus.toLowerCase()}.`);
+    } catch (err) {
+      setError(err.message || 'Failed to update account status.');
+    } finally {
+      setStatusLoadingId(null);
+    }
+  };
+
   const filteredUsers = users.filter((u) => {
     const matchesSearch = 
       u.name.toLowerCase().includes(search.toLowerCase()) || 
       u.email.toLowerCase().includes(search.toLowerCase());
     const matchesRole = roleFilter === 'ALL' || u.role.toUpperCase() === roleFilter.toUpperCase();
-    return matchesSearch && matchesRole;
+    const matchesStatus = statusFilter === 'ALL' || u.status === statusFilter;
+    return matchesSearch && matchesRole && matchesStatus;
   });
 
   const getRoleBadgeVariant = (role) => {
@@ -110,6 +132,21 @@ const UserManagement = () => {
       key: 'role', 
       render: (row) => <Badge variant={getRoleBadgeVariant(row.role)} dot>{row.role}</Badge> 
     },
+    {
+      header: 'Teaching Subjects',
+      key: 'teachingSubjects',
+      render: (row) => row.role === 'TEACHER' ? (
+        <div className="max-w-56 space-y-1">
+          {(row.teachingSubjects || []).map((assignment) => (
+            <div key={assignment.subjectId} className="text-xs">
+              <span className="font-bold text-secondary-700">{assignment.subject?.code}</span>
+              <span className="text-secondary-400"> {assignment.note || 'No note'}</span>
+            </div>
+          ))}
+          {(row.teachingSubjects || []).length === 0 && <span className="text-xs text-warning-600">Not assigned</span>}
+        </div>
+      ) : <span className="text-xs text-secondary-300">Not applicable</span>
+    },
     { 
       header: 'Registration', 
       key: 'createdAt', 
@@ -127,15 +164,34 @@ const UserManagement = () => {
       ) 
     },
     {
+      header: 'Status',
+      key: 'status',
+      render: (row) => (
+        <Badge variant={row.status === 'ACTIVE' ? 'success' : 'danger'} dot>
+          {row.status}
+        </Badge>
+      )
+    },
+    {
       header: '',
       key: 'actions',
       render: (row) => (
-        <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex gap-2 justify-end">
           <Button
             variant="secondary"
             size="sm"
             onClick={() => navigate(`/admin/users/${row.id}/edit`)}
             icon={<Edit className="h-4 w-4" />}
+            aria-label={`Edit ${row.name}`}
+          />
+          <Button
+            variant={row.status === 'LOCKED' ? 'success' : 'secondary'}
+            size="sm"
+            onClick={() => handleStatusToggle(row)}
+            disabled={row.id === currentUser.id}
+            loading={statusLoadingId === row.id}
+            icon={row.status === 'LOCKED' ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+            aria-label={`${row.status === 'LOCKED' ? 'Unlock' : 'Lock'} ${row.name}`}
           />
           <Button
             variant="danger"
@@ -143,6 +199,7 @@ const UserManagement = () => {
             onClick={() => handleDeleteClick(row)}
             disabled={row.id === currentUser.id}
             icon={<Trash2 className="h-4 w-4" />}
+            aria-label={`Delete ${row.name}`}
           />
         </div>
       )
@@ -186,24 +243,36 @@ const UserManagement = () => {
       )}
 
       {/* Table Filters */}
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
+      <div className="flex flex-col xl:flex-row items-center justify-between gap-4">
         <SearchBox 
           value={search} 
           onChange={(e) => setSearch(e.target.value)} 
           placeholder="Search by name or email..." 
         />
         
-        <FilterBar 
-          value={roleFilter} 
-          onChange={(e) => setRoleFilter(e.target.value)}
-          label="Role:"
-          options={[
-            { value: 'ALL', label: 'All System Roles' },
-            { value: 'ADMIN', label: 'Administrators' },
-            { value: 'TEACHER', label: 'Teachers' },
-            { value: 'STUDENT', label: 'Students' }
-          ]} 
-        />
+        <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto">
+          <FilterBar
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            label="Role:"
+            options={[
+              { value: 'ALL', label: 'All System Roles' },
+              { value: 'ADMIN', label: 'Administrators' },
+              { value: 'TEACHER', label: 'Teachers' },
+              { value: 'STUDENT', label: 'Students' }
+            ]}
+          />
+          <FilterBar
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            label="Status:"
+            options={[
+              { value: 'ALL', label: 'All Statuses' },
+              { value: 'ACTIVE', label: 'Active' },
+              { value: 'LOCKED', label: 'Locked' }
+            ]}
+          />
+        </div>
       </div>
 
       {/* User Listing */}
@@ -219,7 +288,7 @@ const UserManagement = () => {
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleConfirmDelete}
         title="Delete User Account"
-        message={`Warning: You are about to permanently delete the account for "${userToDelete?.name}". This action cannot be undone.`}
+        message={`Permanently delete "${userToDelete?.name}"? Accounts with related questions, exams, or attempts must be locked instead.`}
         confirmText="Confirm Deletion"
         loading={deleteLoading}
       />

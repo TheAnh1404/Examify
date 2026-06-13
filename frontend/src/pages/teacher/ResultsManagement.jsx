@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { attemptService } from '../../services/attemptService';
+import { settingsService } from '../../services/settingsService';
 import PageHeader from '../../components/layout/PageHeader';
 import SearchBox from '../../components/common/SearchBox';
 import FilterBar from '../../components/common/FilterBar';
@@ -19,13 +20,18 @@ const ResultsManagement = () => {
   // Filters
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [warningThreshold, setWarningThreshold] = useState(3);
 
   useEffect(() => {
     const fetchAttempts = async () => {
       try {
         setLoading(true);
-        const res = await attemptService.getAll(); // pulls mock attempts
-        setAttempts(res.data);
+        const [attemptResponse, settingsResponse] = await Promise.all([
+          attemptService.getAll(),
+          settingsService.getPublic()
+        ]);
+        setAttempts(attemptResponse.data);
+        setWarningThreshold(settingsResponse.data.tabFocusWarnings);
       } catch (err) {
         console.error(err);
         setError('Failed to fetch student attempts.');
@@ -62,21 +68,29 @@ const ResultsManagement = () => {
       key: 'score', 
       render: (row) => (
         <span className="font-mono font-bold text-secondary-800">
-          {row.score} / {row.examTotalMarks} pts
+          {row.score.toFixed(2)} / {row.examTotalMarks} pts
         </span>
       ) 
     },
     { 
       header: 'Status', 
       key: 'status', 
-      render: (row) => <Badge variant={row.status.toUpperCase() === 'PASS' ? 'success' : 'danger'}>{row.status}</Badge> 
+      render: (row) => (
+        <Badge variant={row.status === 'Pass' ? 'success' : row.status === 'Fail' ? 'danger' : 'warning'}>
+          {row.status}
+        </Badge>
+      )
     },
     { 
       header: 'Focus Warnings', 
       key: 'tabFocusLosses', 
       render: (row) => (
         row.tabFocusLosses > 0 ? (
-          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-semibold rounded bg-amber-50 border border-amber-100 text-amber-600">
+          <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-semibold rounded border ${
+            row.tabFocusLosses >= warningThreshold
+              ? 'bg-danger-50 border-danger-100 text-danger-600'
+              : 'bg-warning-50 border-warning-100 text-warning-600'
+          }`}>
             <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
             {row.tabFocusLosses} Switches
           </span>
@@ -90,11 +104,11 @@ const ResultsManagement = () => {
       key: 'submittedAt', 
       render: (row) => (
         <span className="text-secondary-450 text-xs">
-          {new Date(row.submittedAt).toLocaleDateString(undefined, {
+          {row.submittedAt ? new Date(row.submittedAt).toLocaleDateString(undefined, {
             year: 'numeric',
             month: 'short',
             day: 'numeric'
-          })}
+          }) : 'Not submitted'}
         </span>
       ) 
     },
@@ -143,7 +157,8 @@ const ResultsManagement = () => {
           options={[
             { value: 'ALL', label: 'All Attempt Statuses' },
             { value: 'PASS', label: 'Passing Scores' },
-            { value: 'FAIL', label: 'Failing Scores' }
+            { value: 'FAIL', label: 'Failing Scores' },
+            { value: 'IN PROGRESS', label: 'In Progress' }
           ]} 
         />
       </div>

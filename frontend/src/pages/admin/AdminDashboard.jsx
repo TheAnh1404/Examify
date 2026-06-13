@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { dashboardService } from '../../services/dashboardService';
 import StatCard from '../../components/common/StatCard';
 import Card from '../../components/common/Card';
 import Loading from '../../components/common/Loading';
-import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
 import { Users, GraduationCap, BookOpen, FileSpreadsheet, ArrowRight, ShieldAlert, Award, TrendingUp, Settings, Activity } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -46,7 +45,7 @@ const AdminDashboard = () => {
     );
   }
 
-  const { stats, leaderboard } = statsData;
+  const { stats, leaderboard, systemStatus } = statsData;
 
   return (
     <div className="space-y-10 animate-fade-in">
@@ -72,36 +71,31 @@ const AdminDashboard = () => {
           title="Total Students" 
           value={stats.totalStudents} 
           icon={GraduationCap} 
-          trendValue="+12%" 
-          trendType="up"
+          description="Registered student accounts"
         />
         <StatCard 
           title="Instructors" 
           value={stats.totalTeachers} 
           icon={Users} 
-          trendValue="+4%" 
-          trendType="up"
+          description="Active instructor accounts"
         />
         <StatCard 
           title="Active Exams" 
           value={stats.totalExams} 
           icon={BookOpen} 
-          trendValue="+2"
-          trendType="up"
+          description="Published examinations"
         />
         <StatCard 
           title="Total Attempts" 
           value={stats.totalSubmissions} 
           icon={FileSpreadsheet} 
-          trendValue="+25%" 
-          trendType="up"
+          description={`${stats.flaggedAttempts} proctoring flags`}
         />
         <StatCard 
           title="Global Pass Rate" 
           value={`${stats.passRate}%`} 
           icon={Award} 
-          trendValue="+5%"
-          trendType="up"
+          description="Across submitted attempts"
         />
       </div>
 
@@ -123,8 +117,8 @@ const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-secondary-50">
-                {leaderboard.map((student, idx) => (
-                  <tr key={idx} className="hover:bg-primary-50/30 transition-all group">
+                {leaderboard.map((student) => (
+                  <tr key={student.studentEmail} className="hover:bg-primary-50/30 transition-all group">
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-4">
                         <div className="h-12 w-12 rounded-2xl bg-primary-500/10 text-primary-600 flex items-center justify-center font-extrabold text-lg">
@@ -147,6 +141,13 @@ const AdminDashboard = () => {
                     </td>
                   </tr>
                 ))}
+                {leaderboard.length === 0 && (
+                  <tr>
+                    <td colSpan="3" className="px-8 py-12 text-center text-secondary-400 font-semibold">
+                      No submitted attempts are available yet.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -191,10 +192,12 @@ const AdminDashboard = () => {
                 <Activity className="h-6 w-6 text-primary-400" />
               </div>
               <h4 className="text-xl font-extrabold mb-3 tracking-tight">System Health</h4>
-              <p className="text-secondary-400 text-xs font-bold leading-relaxed mb-8 uppercase tracking-wide">Enterprise SQL Engine is connected and synchronized.</p>
+              <p className="text-secondary-400 text-xs font-bold leading-relaxed mb-8 uppercase tracking-wide">
+                Database health verified at {new Date(systemStatus.generatedAt).toLocaleTimeString()}.
+              </p>
               <div className="flex items-center gap-3 text-[10px] font-extrabold uppercase tracking-[0.2em] text-accent-400">
                 <div className="h-2.5 w-2.5 rounded-full bg-accent-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
-                Operational
+                {systemStatus.database === 'UP' ? 'Operational' : 'Unavailable'}
               </div>
             </div>
           </Card>

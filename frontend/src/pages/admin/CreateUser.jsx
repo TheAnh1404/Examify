@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { userService } from '../../services/userService';
+import { subjectService } from '../../services/subjectService';
 import PageHeader from '../../components/layout/PageHeader';
 import Card from '../../components/common/Card';
 import Input from '../../components/common/Input';
 import Select from '../../components/common/Select';
 import Button from '../../components/common/Button';
-import { ArrowLeft, User, Mail, Lock, ShieldAlert, CheckCircle } from 'lucide-react';
+import { ArrowLeft, User, Mail, Lock, ShieldAlert, CheckCircle, BookOpen } from 'lucide-react';
 
 const CreateUser = () => {
   const navigate = useNavigate();
@@ -21,6 +22,14 @@ const CreateUser = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [subjects, setSubjects] = useState([]);
+  const [teachingAssignments, setTeachingAssignments] = useState({});
+
+  useEffect(() => {
+    subjectService.getAll()
+      .then(response => setSubjects(response.data))
+      .catch(err => setError(err.message || 'Failed to load subjects.'));
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -33,12 +42,21 @@ const CreateUser = () => {
       setError('Please fill in all required inputs.');
       return;
     }
+    if (formData.password.length < 8) {
+      setError('Password must contain at least 8 characters.');
+      return;
+    }
 
     try {
       setError('');
       setSuccess('');
       setLoading(true);
-      const res = await userService.create(formData);
+      const res = await userService.create({
+        ...formData,
+        teachingAssignments: formData.role === 'TEACHER'
+          ? Object.entries(teachingAssignments).map(([subjectId, note]) => ({ subjectId: Number(subjectId), note }))
+          : []
+      });
       setSuccess(`User account for "${res.data.name}" provisioned successfully.`);
       
       setTimeout(() => {
@@ -49,6 +67,15 @@ const CreateUser = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleTeachingSubject = (subjectId) => {
+    setTeachingAssignments((current) => {
+      const next = { ...current };
+      if (Object.hasOwn(next, subjectId)) delete next[subjectId];
+      else next[subjectId] = '';
+      return next;
+    });
   };
 
   return (
@@ -110,7 +137,8 @@ const CreateUser = () => {
             type="password"
             value={formData.password}
             onChange={handleInputChange}
-            placeholder="Minimum 6 characters"
+            placeholder="Minimum 8 characters"
+            minLength={8}
             required
             icon={<Lock className="h-4.5 w-4.5" />}
           />
@@ -127,6 +155,45 @@ const CreateUser = () => {
             ]}
             required
           />
+
+          {formData.role === 'TEACHER' && (
+            <div className="space-y-3 pt-4 border-t border-secondary-200">
+              <div className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4 text-primary-600" />
+                <div>
+                  <h4 className="text-sm font-bold text-secondary-800">Teaching Subjects</h4>
+                  <p className="text-xs text-secondary-500">Register the subjects this teacher is allowed to teach.</p>
+                </div>
+              </div>
+              {subjects.map((subject) => {
+                const selected = Object.hasOwn(teachingAssignments, subject.id);
+                return (
+                  <div key={subject.id} className="rounded-xl border border-secondary-200 p-3 space-y-2">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selected}
+                        onChange={() => toggleTeachingSubject(subject.id)}
+                        className="h-4 w-4 rounded border-secondary-300 text-primary-600"
+                      />
+                      <span className="text-sm font-semibold text-secondary-800">{subject.code} - {subject.name}</span>
+                    </label>
+                    {selected && (
+                      <input
+                        value={teachingAssignments[subject.id]}
+                        onChange={(event) => setTeachingAssignments((current) => ({
+                          ...current,
+                          [subject.id]: event.target.value
+                        }))}
+                        placeholder="Assignment note, class, or responsibility..."
+                        className="saas-input text-sm"
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           <div className="flex gap-3 pt-4 border-t border-secondary-200">
             <Button

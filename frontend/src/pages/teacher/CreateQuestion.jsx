@@ -1,239 +1,260 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { questionService } from '../../services/questionService';
 import { subjectService } from '../../services/subjectService';
-import PageHeader from '../../components/layout/PageHeader';
 import Card from '../../components/common/Card';
 import Input from '../../components/common/Input';
 import Select from '../../components/common/Select';
 import Button from '../../components/common/Button';
 import Loading from '../../components/common/Loading';
-import { ArrowLeft, Save, ShieldAlert, CheckCircle } from 'lucide-react';
+import { ArrowLeft, BookOpen, CheckCircle, Plus, Save, ShieldAlert, Trash2 } from 'lucide-react';
+
+const emptyQuestion = () => ({
+  text: '',
+  options: ['', '', '', ''],
+  correctOption: '0',
+  marks: '1',
+  difficulty: 'Medium'
+});
 
 const CreateQuestion = () => {
   const navigate = useNavigate();
-
   const [subjects, setSubjects] = useState([]);
+  const [subjectId, setSubjectId] = useState('');
+  const [questions, setQuestions] = useState([emptyQuestion()]);
   const [loading, setLoading] = useState(true);
-  
-  const [formData, setFormData] = useState({
-    subjectId: '',
-    text: '',
-    options: ['', '', '', ''],
-    correctOption: '0',
-    marks: '5',
-    difficulty: 'Medium'
-  });
-
+  const [saveLoading, setSaveLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [saveLoading, setSaveLoading] = useState(false);
 
   useEffect(() => {
-    const fetchSubjects = async () => {
-      try {
-        const res = await subjectService.getAll();
-        setSubjects(res.data);
-        if (res.data.length > 0) {
-          setFormData(prev => ({ ...prev, subjectId: res.data[0].id }));
-        }
-      } catch (err) {
-        console.error(err);
-        setError('Failed to fetch subjects categories.');
-      } finally {
-        setLoading(false);
-      }
+    let active = true;
+    subjectService.getAll()
+      .then((response) => {
+        if (!active) return;
+        setSubjects(response.data);
+        setSubjectId(response.data[0]?.id || '');
+      })
+      .catch((requestError) => {
+        if (active) setError(requestError.message || 'Failed to load assigned teaching subjects.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
     };
-
-    fetchSubjects();
   }, []);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const updateQuestion = (index, field, value) => {
+    setQuestions((current) => current.map((question, questionIndex) => (
+      questionIndex === index ? { ...question, [field]: value } : question
+    )));
   };
 
-  const handleOptionChange = (idx, value) => {
-    const updated = [...formData.options];
-    updated[idx] = value;
-    setFormData(prev => ({ ...prev, options: updated }));
+  const updateOption = (questionIndex, optionIndex, value) => {
+    setQuestions((current) => current.map((question, index) => {
+      if (index !== questionIndex) return question;
+      const options = [...question.options];
+      options[optionIndex] = value;
+      return { ...question, options };
+    }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
+  const removeQuestion = (index) => {
+    if (questions.length === 1) return;
+    setQuestions((current) => current.filter((_, questionIndex) => questionIndex !== index));
+  };
 
-    // Valids
-    if (!formData.subjectId) {
-      setError('Please categorize this question under a subject.');
-      return;
+  const validate = () => {
+    if (!subjectId) return 'You have not been assigned to teach any subject.';
+    for (const [index, question] of questions.entries()) {
+      if (!question.text.trim()) return `Question ${index + 1} requires a prompt.`;
+      if (question.options.some(option => !option.trim())) return `Question ${index + 1} requires all four options.`;
+      if (Number(question.marks) <= 0) return `Question ${index + 1} point must be greater than 0.`;
     }
-    if (!formData.text.trim()) {
-      setError('Please input the question prompt text.');
+    return '';
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const validationError = validate();
+    if (validationError) {
+      setError(validationError);
       return;
-    }
-    for (let i = 0; i < 4; i++) {
-      if (!formData.options[i].trim()) {
-        setError(`Please fill in Option ${String.fromCharCode(65 + i)} text.`);
-        return;
-      }
     }
 
     try {
+      setError('');
+      setSuccess('');
       setSaveLoading(true);
-      const res = await questionService.create({
-        ...formData,
-        correctOption: Number(formData.correctOption),
-        marks: Number(formData.marks)
-      });
-      setSuccess('Question prompt saved to Question Bank catalog.');
-      
-      setTimeout(() => {
-        navigate('/teacher/questions');
-      }, 1200);
-    } catch (err) {
-      setError(err.message || 'Failed to save question.');
+      await questionService.createBulk(questions.map((question) => ({
+        ...question,
+        subjectId,
+        correctOption: Number(question.correctOption),
+        marks: Number(question.marks)
+      })));
+      setSuccess(`${questions.length} question${questions.length === 1 ? '' : 's'} created successfully.`);
+      setTimeout(() => navigate('/teacher/questions'), 900);
+    } catch (requestError) {
+      setError(requestError.message || 'Failed to create questions.');
     } finally {
       setSaveLoading(false);
     }
   };
 
-  if (loading) return <Loading message="Loading subjects data..." />;
+  if (loading) return <Loading message="Loading assigned teaching subjects..." />;
 
   return (
-    <div className="space-y-6 max-w-xl mx-auto">
-      <div className="flex items-center gap-3 shrink-0">
-        <Link 
-          to="/teacher/questions" 
-          className="p-2 rounded-lg bg-white border border-secondary-300 hover:bg-secondary-50 text-secondary-500 hover:text-secondary-800 transition-colors shadow-sm"
-        >
-          <ArrowLeft className="h-4.5 w-4.5" />
-        </Link>
-        <div>
-          <PageHeader 
-            title="Create Question Prompt" 
-            subtitle="Build a multiple-choice question and options key inside the shared bank."
-          />
+    <div className="space-y-8 max-w-4xl mx-auto animate-fade-in">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+        <div className="flex items-center gap-4">
+          <Link
+            to="/teacher/questions"
+            className="h-10 w-10 flex items-center justify-center rounded-xl bg-white border border-secondary-200 text-secondary-500 hover:text-secondary-900"
+            aria-label="Back to question bank"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <div>
+            <h1 className="h1 mb-1">Bulk Question Creator</h1>
+            <p className="p">Create multiple questions for one assigned subject in a single transaction.</p>
+          </div>
         </div>
+        <Button
+          variant="secondary"
+          onClick={() => setQuestions((current) => [...current, emptyQuestion()])}
+          icon={<Plus className="h-4 w-4" />}
+          disabled={!subjectId}
+        >
+          Add Question
+        </Button>
       </div>
 
       {error && (
-        <div className="flex items-center gap-2.5 p-4 rounded-xl bg-red-50 border border-red-100 text-red-700 text-sm animate-slide-up">
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-danger-50 border border-danger-100 text-danger-700 text-sm font-semibold">
           <ShieldAlert className="h-5 w-5 shrink-0" />
           <span>{error}</span>
         </div>
       )}
       {success && (
-        <div className="flex items-center gap-2.5 p-4 rounded-xl bg-accent-50 border border-accent-100 text-accent-700 text-sm animate-slide-up">
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-accent-50 border border-accent-100 text-accent-700 text-sm font-semibold">
           <CheckCircle className="h-5 w-5 shrink-0" />
           <span>{success}</span>
         </div>
       )}
 
-      <Card title="Question Parameters" subtitle="Fill in questionnaire fields to publish">
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <Select 
-            label="Subject Category"
-            name="subjectId"
-            value={formData.subjectId}
-            onChange={handleInputChange}
-            options={subjects.map(s => ({ value: s.id, label: `${s.code} - ${s.name}` }))}
-            required
-          />
+      {subjects.length === 0 ? (
+        <Card>
+          <div className="py-10 text-center space-y-3">
+            <BookOpen className="h-10 w-10 text-secondary-300 mx-auto" />
+            <h3 className="font-bold text-secondary-900">No teaching subject assigned</h3>
+            <p className="text-sm text-secondary-500">An administrator must assign at least one subject before you can create questions.</p>
+          </div>
+        </Card>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <Card title="Question Set" subtitle={`${questions.length} question${questions.length === 1 ? '' : 's'} prepared`}>
+            <Select
+              label="Assigned Subject"
+              value={subjectId}
+              onChange={(event) => setSubjectId(event.target.value)}
+              options={subjects.map(subject => ({
+                value: subject.id,
+                label: `${subject.code} - ${subject.name}${subject.assignmentNote ? ` (${subject.assignmentNote})` : ''}`
+              }))}
+              required
+            />
+          </Card>
 
-          <Input 
-            label="Question Prompt"
-            name="text"
-            value={formData.text}
-            onChange={handleInputChange}
-            placeholder="e.g. Which React Hook caches calculated values?"
-            required
-          />
+          {questions.map((question, questionIndex) => (
+            <Card
+              key={questionIndex}
+              title={`Question ${questionIndex + 1}`}
+              subtitle={`${question.marks || 0} default point${Number(question.marks) === 1 ? '' : 's'}`}
+            >
+              <div className="space-y-5">
+                <div className="flex justify-end">
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => removeQuestion(questionIndex)}
+                    disabled={questions.length === 1}
+                    icon={<Trash2 className="h-4 w-4" />}
+                  >
+                    Remove
+                  </Button>
+                </div>
 
-          {/* Options grid */}
-          <div className="space-y-3">
-            <label className="saas-label mb-1">Option Choices</label>
-            {formData.options.map((opt, idx) => {
-              const label = String.fromCharCode(65 + idx); // A, B, C, D
-              return (
-                <div key={idx} className="flex items-center gap-3">
-                  <span className="h-7 w-7 rounded bg-secondary-100 text-xs font-bold text-secondary-505 flex items-center justify-center shrink-0 border border-secondary-200 select-none">
-                    {label}
-                  </span>
-                  <input
-                    type="text"
-                    value={opt}
-                    onChange={(e) => handleOptionChange(idx, e.target.value)}
-                    placeholder={`Choice Option ${label}`}
-                    className="saas-input"
+                <Input
+                  label="Question Prompt"
+                  value={question.text}
+                  onChange={(event) => updateQuestion(questionIndex, 'text', event.target.value)}
+                  placeholder="Enter the question prompt"
+                  required
+                />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {question.options.map((option, optionIndex) => (
+                    <Input
+                      key={optionIndex}
+                      label={`Option ${String.fromCharCode(65 + optionIndex)}`}
+                      value={option}
+                      onChange={(event) => updateOption(questionIndex, optionIndex, event.target.value)}
+                      required
+                    />
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Select
+                    label="Correct Choice"
+                    value={question.correctOption}
+                    onChange={(event) => updateQuestion(questionIndex, 'correctOption', event.target.value)}
+                    options={[0, 1, 2, 3].map(index => ({
+                      value: String(index),
+                      label: `Option ${String.fromCharCode(65 + index)}`
+                    }))}
+                  />
+                  <Input
+                    label="Default Points"
+                    type="number"
+                    min={0.1}
+                    step={0.1}
+                    value={question.marks}
+                    onChange={(event) => updateQuestion(questionIndex, 'marks', event.target.value)}
                     required
                   />
+                  <Select
+                    label="Difficulty"
+                    value={question.difficulty}
+                    onChange={(event) => updateQuestion(questionIndex, 'difficulty', event.target.value)}
+                    options={['Easy', 'Medium', 'Hard'].map(value => ({ value, label: value }))}
+                  />
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            </Card>
+          ))}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Select 
-              label="Correct Choice"
-              name="correctOption"
-              value={formData.correctOption}
-              onChange={handleInputChange}
-              options={[
-                { value: '0', label: 'Option A' },
-                { value: '1', label: 'Option B' },
-                { value: '2', label: 'Option C' },
-                { value: '3', label: 'Option D' }
-              ]}
-              required
-            />
-            
-            <Input 
-              label="Weight (Points)"
-              name="marks"
-              type="number"
-              value={formData.marks}
-              onChange={handleInputChange}
-              min={1}
-              required
-            />
-
-            <Select 
-              label="Difficulty"
-              name="difficulty"
-              value={formData.difficulty}
-              onChange={handleInputChange}
-              options={[
-                { value: 'Easy', label: 'Easy' },
-                { value: 'Medium', label: 'Medium' },
-                { value: 'Hard', label: 'Hard' }
-              ]}
-              required
-            />
-          </div>
-
-          <div className="flex gap-3 pt-4 border-t border-secondary-200">
+          <div className="flex flex-col sm:flex-row gap-3 justify-between">
             <Button
               variant="secondary"
-              onClick={() => navigate('/teacher/questions')}
-              className="flex-1"
-              disabled={saveLoading}
+              onClick={() => setQuestions((current) => [...current, emptyQuestion()])}
+              icon={<Plus className="h-4 w-4" />}
             >
-              Cancel
+              Add Another Question
             </Button>
             <Button
               type="submit"
-              variant="primary"
               loading={saveLoading}
-              className="flex-1"
-              icon={<Save className="h-4.5 w-4.5" />}
+              icon={<Save className="h-4 w-4" />}
+              className="sm:min-w-52"
             >
-              Save Question
+              Save All Questions
             </Button>
           </div>
         </form>
-      </Card>
+      )}
     </div>
   );
 };

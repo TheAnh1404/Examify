@@ -22,6 +22,8 @@ export const gradeAttempt = async (attemptId) => {
 
   let correctCount = 0;
   const totalQuestions = examQuestions.length;
+  const totalPoints = examQuestions.reduce((sum, item) => sum + Number(item.point), 0);
+  let earnedPoints = 0;
 
   // Grade each answer
   const gradingPromises = studentAnswers.map(async (answer) => {
@@ -29,7 +31,10 @@ export const gradeAttempt = async (attemptId) => {
     if (!questionLink) return;
 
     const isCorrect = answer.selectedAnswer === questionLink.question.correctAnswer;
-    if (isCorrect) correctCount++;
+    if (isCorrect) {
+      correctCount++;
+      earnedPoints += Number(questionLink.point);
+    }
 
     return prisma.studentAnswer.update({
       where: { id: answer.id },
@@ -39,7 +44,7 @@ export const gradeAttempt = async (attemptId) => {
 
   await Promise.all(gradingPromises);
 
-  const score = totalQuestions > 0 ? (correctCount / totalQuestions) * 10 : 0;
+  const score = totalPoints > 0 ? (earnedPoints / totalPoints) * 10 : 0;
 
   return prisma.examAttempt.update({
     where: { id: attemptId },

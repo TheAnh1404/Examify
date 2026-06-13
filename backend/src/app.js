@@ -12,6 +12,8 @@ import questionRoutes from './routes/question.routes.js';
 import examRoutes from './routes/exam.routes.js';
 import attemptRoutes from './routes/attempt.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
+import settingsRoutes from './routes/settings.routes.js';
+import classroomRoutes from './routes/classroom.routes.js';
 
 const app = express();
 
@@ -40,6 +42,8 @@ app.use('/api/questions', questionRoutes);
 app.use('/api/exams', examRoutes);
 app.use('/api/exam-attempts', attemptRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/classrooms', classroomRoutes);
 
 // Not Found Middleware
 app.use(notFoundMiddleware);

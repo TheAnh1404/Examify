@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import PageHeader from '../../components/layout/PageHeader';
 import Card from '../../components/common/Card';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
-import { Save, CheckCircle, Shield, Eye, Settings } from 'lucide-react';
+import Loading from '../../components/common/Loading';
+import { settingsService } from '../../services/settingsService';
+import { Save, CheckCircle, Shield, Settings, ShieldAlert } from 'lucide-react';
 
 const SystemSettings = () => {
   const [formData, setFormData] = useState({
@@ -15,6 +17,23 @@ const SystemSettings = () => {
   });
 
   const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const response = await settingsService.get();
+        setFormData(response.data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadSettings();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -24,13 +43,23 @@ const SystemSettings = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSuccess('');
-    setTimeout(() => {
+    setError('');
+    setSaving(true);
+    try {
+      const response = await settingsService.update(formData);
+      setFormData(response.data);
       setSuccess('System configuration parameters updated successfully.');
-    }, 300);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) return <Loading message="Loading system configuration..." />;
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
@@ -43,6 +72,12 @@ const SystemSettings = () => {
         <div className="flex items-center gap-2.5 p-4 rounded-xl bg-accent-50 border border-accent-100 text-accent-700 text-sm animate-slide-up">
           <CheckCircle className="h-5 w-5 shrink-0" />
           <span>{success}</span>
+        </div>
+      )}
+      {error && (
+        <div className="flex items-center gap-2.5 p-4 rounded-xl bg-danger-50 border border-danger-100 text-danger-700 text-sm">
+          <ShieldAlert className="h-5 w-5 shrink-0" />
+          <span>{error}</span>
         </div>
       )}
 
@@ -82,7 +117,7 @@ const SystemSettings = () => {
                 onChange={handleInputChange}
                 className="h-4.5 w-4.5 rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
               />
-              <span>Enable Self-Registration routes for new Student/Teacher accounts</span>
+              <span>Enable self-registration for new student accounts</span>
             </label>
           </div>
 
@@ -121,6 +156,7 @@ const SystemSettings = () => {
             <Button
               type="submit"
               variant="primary"
+              loading={saving}
               className="w-full flex items-center justify-center gap-2"
               icon={<Save className="h-4.5 w-4.5" />}
             >

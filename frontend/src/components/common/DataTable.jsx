@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Loading from './Loading';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -12,7 +12,8 @@ const DataTable = ({
   const [currentPage, setCurrentPage] = useState(1);
 
   const totalPages = Math.ceil(data.length / pageSize) || 1;
-  const startIndex = (currentPage - 1) * pageSize;
+  const effectivePage = Math.min(currentPage, totalPages);
+  const startIndex = (effectivePage - 1) * pageSize;
   const paginatedData = data.slice(startIndex, startIndex + pageSize);
 
   const handlePageChange = (page) => {
@@ -79,8 +80,9 @@ const DataTable = ({
           
           <div className="flex items-center gap-2">
             <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
+              onClick={() => handlePageChange(effectivePage - 1)}
+              disabled={effectivePage === 1}
+              aria-label="Previous page"
               className="p-2 rounded-xl border border-secondary-100 bg-white text-secondary-500 hover:bg-secondary-50 hover:text-secondary-900 disabled:opacity-40 disabled:pointer-events-none transition-all shadow-sm"
             >
               <ChevronLeft className="h-5 w-5" />
@@ -90,17 +92,19 @@ const DataTable = ({
               {[...Array(totalPages)].map((_, i) => {
                 const pageNum = i + 1;
                 // Only show a limited range of pages if totalPages is large
-                if (totalPages > 5 && Math.abs(pageNum - currentPage) > 2) return null;
+                if (totalPages > 5 && Math.abs(pageNum - effectivePage) > 2) return null;
                 
                 return (
                   <button
                     key={pageNum}
                     onClick={() => handlePageChange(pageNum)}
                     className={`h-9 w-9 rounded-xl text-sm font-extrabold transition-all ${
-                      currentPage === pageNum
+                      effectivePage === pageNum
                         ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20'
                         : 'text-secondary-400 hover:bg-secondary-50 hover:text-secondary-900'
                     }`}
+                    aria-label={`Page ${pageNum}`}
+                    aria-current={effectivePage === pageNum ? 'page' : undefined}
                   >
                     {pageNum}
                   </button>
@@ -109,8 +113,9 @@ const DataTable = ({
             </div>
 
             <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
+              onClick={() => handlePageChange(effectivePage + 1)}
+              disabled={effectivePage === totalPages}
+              aria-label="Next page"
               className="p-2 rounded-xl border border-secondary-100 bg-white text-secondary-500 hover:bg-secondary-50 hover:text-secondary-900 disabled:opacity-40 disabled:pointer-events-none transition-all shadow-sm"
             >
               <ChevronRight className="h-5 w-5" />

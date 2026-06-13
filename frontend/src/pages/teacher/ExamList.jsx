@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { examService } from '../../services/examService';
-import { subjectService } from '../../services/subjectService';
 import PageHeader from '../../components/layout/PageHeader';
 import DataTable from '../../components/common/DataTable';
 import Badge from '../../components/common/Badge';
@@ -22,21 +21,22 @@ const ExamList = () => {
   const [examToDelete, setExamToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const fetchExams = async () => {
-    try {
-      setLoading(true);
-      const res = await examService.getAll();
-      setExams(res.data);
-    } catch (err) {
-      console.error(err);
-      setError('Failed to fetch examinations list.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchExams();
+    let active = true;
+    examService.getAll()
+      .then((response) => {
+        if (active) setExams(response.data);
+      })
+      .catch((err) => {
+        console.error(err);
+        if (active) setError('Failed to fetch examinations list.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleDeleteClick = (exam) => {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 import { X } from 'lucide-react';
@@ -30,13 +30,14 @@ const DashboardLayout = ({ children }) => {
           <div className="flex justify-end p-6 border-b border-slate-800/50">
             <button 
               onClick={() => setIsSidebarOpen(false)}
+              aria-label="Close navigation menu"
               className="p-2.5 rounded-xl text-slate-400 hover:bg-white/5 transition-colors border border-white/5"
             >
               <X className="h-6 w-6" />
             </button>
           </div>
           <div className="flex-1 overflow-y-auto">
-            <Sidebar onClose={() => setIsSidebarOpen(false)} />
+            <Sidebar mobile onClose={() => setIsSidebarOpen(false)} />
           </div>
         </div>
       </div>
@@ -57,8 +58,8 @@ const DashboardLayout = ({ children }) => {
               © 2026 Examify Enterprise. All rights reserved.
             </p>
             <div className="flex items-center gap-6">
-              <span className="text-[10px] font-bold text-primary-500 uppercase tracking-widest cursor-pointer hover:underline">Privacy Policy</span>
-              <span className="text-[10px] font-bold text-primary-500 uppercase tracking-widest cursor-pointer hover:underline">Terms of Service</span>
+              <span className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest">Privacy Policy</span>
+              <span className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest">Terms of Service</span>
             </div>
           </div>
         </footer>

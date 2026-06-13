@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 
@@ -39,6 +38,8 @@ import ManageExamQuestions from './pages/teacher/ManageExamQuestions';
 import ResultsManagement from './pages/teacher/ResultsManagement';
 import AttemptDetail from './pages/teacher/AttemptDetail';
 import Analytics from './pages/teacher/Analytics';
+import ClassroomList from './pages/classroom/ClassroomList';
+import ClassroomDetail from './pages/classroom/ClassroomDetail';
 
 // Student Pages
 import StudentDashboard from './pages/student/StudentDashboard';
@@ -109,10 +110,24 @@ function App() {
               </RoleBasedRoute>
             </ProtectedRoute>
           } />
+          <Route path="/admin/results/:id" element={
+            <ProtectedRoute>
+              <RoleBasedRoute allowedRoles={['ADMIN']}>
+                <DashboardLayout><AttemptDetail /></DashboardLayout>
+              </RoleBasedRoute>
+            </ProtectedRoute>
+          } />
           <Route path="/admin/settings" element={
             <ProtectedRoute>
               <RoleBasedRoute allowedRoles={['ADMIN']}>
                 <DashboardLayout><SystemSettings /></DashboardLayout>
+              </RoleBasedRoute>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/profile" element={
+            <ProtectedRoute>
+              <RoleBasedRoute allowedRoles={['ADMIN']}>
+                <DashboardLayout><Profile /></DashboardLayout>
               </RoleBasedRoute>
             </ProtectedRoute>
           } />
@@ -123,6 +138,20 @@ function App() {
             <ProtectedRoute>
               <RoleBasedRoute allowedRoles={['TEACHER']}>
                 <DashboardLayout><TeacherDashboard /></DashboardLayout>
+              </RoleBasedRoute>
+            </ProtectedRoute>
+          } />
+          <Route path="/teacher/classrooms" element={
+            <ProtectedRoute>
+              <RoleBasedRoute allowedRoles={['TEACHER']}>
+                <DashboardLayout><ClassroomList /></DashboardLayout>
+              </RoleBasedRoute>
+            </ProtectedRoute>
+          } />
+          <Route path="/teacher/classrooms/:id" element={
+            <ProtectedRoute>
+              <RoleBasedRoute allowedRoles={['TEACHER']}>
+                <DashboardLayout><ClassroomDetail /></DashboardLayout>
               </RoleBasedRoute>
             </ProtectedRoute>
           } />
@@ -203,6 +232,13 @@ function App() {
               </RoleBasedRoute>
             </ProtectedRoute>
           } />
+          <Route path="/teacher/profile" element={
+            <ProtectedRoute>
+              <RoleBasedRoute allowedRoles={['TEACHER']}>
+                <DashboardLayout><Profile /></DashboardLayout>
+              </RoleBasedRoute>
+            </ProtectedRoute>
+          } />
 
           {/* STUDENT PORTAL */}
           <Route path="/student" element={<Navigate to="/student/dashboard" replace />} />
@@ -210,6 +246,20 @@ function App() {
             <ProtectedRoute>
               <RoleBasedRoute allowedRoles={['STUDENT']}>
                 <DashboardLayout><StudentDashboard /></DashboardLayout>
+              </RoleBasedRoute>
+            </ProtectedRoute>
+          } />
+          <Route path="/student/classrooms" element={
+            <ProtectedRoute>
+              <RoleBasedRoute allowedRoles={['STUDENT']}>
+                <DashboardLayout><ClassroomList /></DashboardLayout>
+              </RoleBasedRoute>
+            </ProtectedRoute>
+          } />
+          <Route path="/student/classrooms/:id" element={
+            <ProtectedRoute>
+              <RoleBasedRoute allowedRoles={['STUDENT']}>
+                <DashboardLayout><ClassroomDetail /></DashboardLayout>
               </RoleBasedRoute>
             </ProtectedRoute>
           } />

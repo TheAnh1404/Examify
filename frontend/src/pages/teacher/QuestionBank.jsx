@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { questionService } from '../../services/questionService';
 import { subjectService } from '../../services/subjectService';
@@ -9,7 +9,7 @@ import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Loading from '../../components/common/Loading';
-import { Plus, Eye, Edit, Trash2, ShieldAlert, CheckCircle2, BookMarked, HelpCircle } from 'lucide-react';
+import { Plus, Eye, Edit, Trash2, ShieldAlert, CheckCircle2, BookMarked } from 'lucide-react';
 
 const QuestionBank = () => {
   const navigate = useNavigate();
@@ -27,25 +27,27 @@ const QuestionBank = () => {
   const [questionToDelete, setQuestionToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const [questionsRes, subjectsRes] = await Promise.all([
+  useEffect(() => {
+    let active = true;
+    Promise.all([
         questionService.getAll(),
         subjectService.getAll()
-      ]);
-      setQuestions(questionsRes.data);
-      setSubjects(subjectsRes.data);
-    } catch (err) {
-      console.error(err);
-      setError('Failed to fetch questionnaires from database.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
+      ])
+      .then(([questionsRes, subjectsRes]) => {
+        if (!active) return;
+        setQuestions(questionsRes.data);
+        setSubjects(subjectsRes.data);
+      })
+      .catch((err) => {
+        console.error(err);
+        if (active) setError('Failed to fetch questionnaires from database.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleDeleteClick = (question) => {
@@ -128,7 +130,7 @@ const QuestionBank = () => {
       header: '',
       key: 'actions',
       render: (row) => (
-        <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex gap-2 justify-end">
           <Button
             variant="secondary"
             size="sm"
@@ -172,7 +174,7 @@ const QuestionBank = () => {
           icon={<Plus className="h-5 w-5" />}
           className="shadow-lg shadow-primary-500/20"
         >
-          Add Question
+          Add Questions
         </Button>
       </div>
 

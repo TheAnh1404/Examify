@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { examService } from '../../services/examService';
 import { attemptService } from '../../services/attemptService';
+import { settingsService } from '../../services/settingsService';
 import Loading from '../../components/common/Loading';
 import Button from '../../components/common/Button';
-import Badge from '../../components/common/Badge';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
-import { Clock, ShieldAlert, AlertTriangle, ChevronLeft, ChevronRight, Send, GraduationCap, CheckCircle2 } from 'lucide-react';
+import { Clock, ShieldAlert, AlertTriangle, ChevronLeft, ChevronRight, Send, GraduationCap } from 'lucide-react';
 
 const ExamTaking = () => {
   const { id: examId } = useParams();
@@ -16,82 +16,149 @@ const ExamTaking = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const [attemptId, setAttemptId] = useState(null);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState([]); // { questionId, selectedOption }
+  const [flaggedQuestions, setFlaggedQuestions] = useState([]); // array of questionIds
   const [timeLeft, setTimeLeft] = useState(0);
-  const [startedAt] = useState(new Date().toISOString());
+  const [startedAt, setStartedAt] = useState(new Date().toISOString());
+
+  const toggleFlag = (questionId) => {
+    setFlaggedQuestions(prev => 
+      prev.includes(questionId) 
+        ? prev.filter(id => id !== questionId) 
+        : [...prev, questionId]
+    );
+  };
   
   const [tabFocusLosses, setTabFocusLosses] = useState(0);
   const [showWarning, setShowWarning] = useState(false);
+  const [proctoringEnforced, setProctoringEnforced] = useState(true);
   
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
-    const fetchExamTemplate = async () => {
-      try {
-        const res = await examService.getById(examId);
-        setExam(res.data);
-        setTimeLeft(res.data.duration * 60);
-        setAnswers(res.data.resolvedQuestions.map(q => ({
-          questionId: q.id,
-          selectedOption: null
-        })));
-      } catch (err) {
-        console.error(err);
-        setError(err.message || 'Failed to load exam template.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchExamTemplate();
-  }, [examId]);
-
-  useEffect(() => {
-    const handleBeforeUnload = (e) => {
-      e.preventDefault();
-      e.returnValue = 'Warning: Exiting or refreshing will submit the exam in its current state.';
-      return e.returnValue;
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    const handleContextMenu = (e) => e.preventDefault();
+    const handleCopyPaste = (e) => e.preventDefault();
+    
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('copy', handleCopyPaste);
+    document.addEventListener('cut', handleCopyPaste);
+    document.addEventListener('paste', handleCopyPaste);
+    
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('copy', handleCopyPaste);
+      document.removeEventListener('cut', handleCopyPaste);
+      document.removeEventListener('paste', handleCopyPaste);
     };
   }, []);
 
+  const enterFullscreen = () => {
+    const element = document.documentElement;
+    if (element.requestFullscreen) {
+      element.requestFullscreen();
+    } else if (element.webkitRequestFullscreen) {
+      element.webkitRequestFullscreen();
+    } else if (element.msRequestFullscreen) {
+      element.msRequestFullscreen();
+    }
+  };
+
   useEffect(() => {
-    const handleVisibility = () => {
-      if (document.hidden) {
+    const handleFullscreenChange = () => {
+      const isFull = !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+      setIsFullscreen(isFull);
+      
+      if (!isFull && !loading && !submitting) {
         setTabFocusLosses(prev => prev + 1);
         setShowWarning(true);
         setTimeout(() => setShowWarning(false), 5000);
       }
     };
-    document.addEventListener('visibilitychange', handleVisibility);
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('msfullscreenchange', handleFullscreenChange);
+
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibility);
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('msfullscreenchange', handleFullscreenChange);
     };
-  }, []);
+  }, [loading, submitting]);
 
   useEffect(() => {
-    if (timeLeft <= 0 && exam) {
-      handleAutoSubmit();
-      return;
-    }
+    const initializeExam = async () => {
+      try {
+        setLoading(true);
+        const [examRes, settingsResponse, attemptRes] = await Promise.all([
+          examService.getById(examId),
+          settingsService.getPublic(),
+          attemptService.startAttempt(examId)
+        ]);
 
-    const clockInterval = setInterval(() => {
-      setTimeLeft(prev => prev - 1);
-    }, 1000);
+        const examData = examRes.data;
+        const attemptData = attemptRes.data;
 
-    return () => clearInterval(clockInterval);
-  }, [timeLeft, exam]);
+        setExam(examData);
+        setAttemptId(attemptData.id);
+        setProctoringEnforced(settingsResponse.data.proctoringEnforced);
+        
+        // Restore focus losses from previous attempt if resuming
+        if (attemptData.tabFocusLosses) {
+          setTabFocusLosses(attemptData.tabFocusLosses);
+        }
 
-  const handleSelectOption = (questionId, optionIndex) => {
-    setAnswers(prev => prev.map(ans => 
+        // Calculate time left based on start time
+        const start = new Date(attemptData.startedAt).getTime();
+        const now = new Date().getTime();
+        const elapsedSeconds = Math.floor((now - start) / 1000);
+        const totalDurationSeconds = examData.duration * 60;
+        setTimeLeft(Math.max(0, totalDurationSeconds - elapsedSeconds));
+        setStartedAt(attemptData.startedAt);
+
+        // Map initial answers
+        const initialAnswers = examData.resolvedQuestions.map(q => {
+          const savedAnswer = attemptData.answers?.find(a => a.questionId === q.id);
+          return {
+            questionId: q.id,
+            selectedOption: savedAnswer ? savedAnswer.selectedAnswer.charCodeAt(0) - 65 : null
+          };
+        });
+        setAnswers(initialAnswers);
+
+      } catch (err) {
+        console.error(err);
+        setError(err.message || 'Failed to initialize exam workspace.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    initializeExam();
+  }, [examId]);
+
+  const handleSelectOption = async (questionId, optionIndex) => {
+    // Optimistic UI update
+    const newAnswers = answers.map(ans => 
       ans.questionId === questionId 
         ? { ...ans, selectedOption: optionIndex } 
         : ans
-    ));
+    );
+    setAnswers(newAnswers);
+
+    // Auto-save to server
+    try {
+      await attemptService.saveAnswers(attemptId, [{
+        questionId,
+        selectedOption: optionIndex
+      }]);
+    } catch (err) {
+      console.error('Failed to auto-save answer:', err);
+      // In a real app, we might show a small "Connection lost" indicator
+    }
   };
 
   const handleNext = () => {
@@ -106,41 +173,40 @@ const ExamTaking = () => {
     }
   };
 
-  const performSubmission = async () => {
-    if (submitting) return;
+  const performSubmission = useCallback(async () => {
+    if (submitting || !attemptId) return;
     setSubmitting(true);
     setError('');
 
     try {
       window.onbeforeunload = null;
-      const formattedAnswers = answers.map(a => ({
-        questionId: a.questionId,
-        selectedOption: a.selectedOption !== null ? Number(a.selectedOption) : -1
-      }));
-
-      const res = await attemptService.submitAttempt(
-        examId,
-        formattedAnswers,
-        tabFocusLosses,
-        startedAt
-      );
+      const res = await attemptService.submitAttempt(attemptId, tabFocusLosses);
 
       setConfirmOpen(false);
       navigate(`/student/results/${res.data.id}`);
     } catch (err) {
       console.error(err);
-      setError('An error occurred during submission. Retrying...');
+      setError('An error occurred during submission. Please check your connection.');
       setSubmitting(false);
     }
-  };
+  }, [attemptId, navigate, submitting, tabFocusLosses]);
 
   const handleManualSubmitClick = () => {
     setConfirmOpen(true);
   };
 
-  const handleAutoSubmit = () => {
-    performSubmission();
-  };
+  useEffect(() => {
+    if (timeLeft <= 0 && exam) {
+      const submitTimeout = setTimeout(performSubmission, 0);
+      return () => clearTimeout(submitTimeout);
+    }
+
+    const clockInterval = setInterval(() => {
+      setTimeLeft(prev => Math.max(prev - 1, 0));
+    }, 1000);
+
+    return () => clearInterval(clockInterval);
+  }, [timeLeft, exam, performSubmission]);
 
   const formatTimer = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -149,6 +215,30 @@ const ExamTaking = () => {
   };
 
   if (loading) return <Loading message="Entering proctored workspace..." fullPage />;
+
+  if (!isFullscreen && !submitting) {
+    return (
+      <div className="min-h-screen bg-bg flex items-center justify-center p-6 select-none">
+        <div className="saas-card max-w-md w-full p-10 text-center space-y-8 shadow-2xl border-none bg-white rounded-3xl">
+          <div className="h-20 w-20 rounded-3xl bg-primary-50 text-primary-600 flex items-center justify-center mx-auto shadow-inner">
+            <ShieldAlert className="h-10 w-10" />
+          </div>
+          <div className="space-y-3">
+            <h3 className="text-2xl font-bold text-secondary-900 tracking-tight">Fullscreen Required</h3>
+            <p className="text-secondary-500 font-medium leading-relaxed">
+              To maintain academic integrity, this assessment must be completed in full-screen mode. Switching or exiting will be recorded.
+            </p>
+          </div>
+          <Button onClick={enterFullscreen} variant="primary" fullWidth size="lg" className="py-4 shadow-xl shadow-primary-500/25">
+            Enter Fullscreen & Begin
+          </Button>
+          <p className="text-[10px] text-secondary-400 font-bold uppercase tracking-widest">
+            By clicking, you agree to the proctoring terms.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (error && !submitting) {
     return (
@@ -188,7 +278,7 @@ const ExamTaking = () => {
               {exam.title}
             </h1>
             <span className="text-[10px] text-primary-600 font-bold uppercase tracking-widest">
-              Live Proctoring Active
+              {proctoringEnforced ? 'Live Proctoring Active' : 'Standard Assessment'}
             </span>
           </div>
         </div>
@@ -234,13 +324,14 @@ const ExamTaking = () => {
             {exam.resolvedQuestions.map((q, idx) => {
               const isAnswered = answers.find(a => a.questionId === q.id)?.selectedOption !== null;
               const isActive = currentIdx === idx;
+              const isFlagged = flaggedQuestions.includes(q.id);
 
               return (
                 <button
                   key={q.id}
                   onClick={() => setCurrentIdx(idx)}
                   className={`
-                    h-11 w-11 rounded-xl font-bold text-sm transition-all duration-200 border-2
+                    h-11 w-11 rounded-xl font-bold text-sm transition-all duration-200 border-2 relative
                     ${isActive 
                       ? 'bg-primary-600 border-primary-600 text-white shadow-lg shadow-primary-500/25' 
                       : isAnswered 
@@ -249,6 +340,11 @@ const ExamTaking = () => {
                   `}
                 >
                   {idx + 1}
+                  {isFlagged && (
+                    <div className="absolute -top-1.5 -right-1.5 h-4.5 w-4.5 bg-warning-500 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                      <AlertTriangle className="h-2.5 w-2.5 text-white fill-current" />
+                    </div>
+                  )}
                 </button>
               );
             })}
@@ -292,9 +388,18 @@ const ExamTaking = () => {
                 <span className="text-xs font-bold text-primary-600 uppercase tracking-widest bg-primary-50 px-3 py-1 rounded-lg">
                   Question {currentIdx + 1}
                 </span>
-                <span className="text-xs font-bold text-secondary-400 uppercase tracking-widest">
-                  {currentQ.marks} Points
-                </span>
+                <div className="flex items-center gap-4">
+                  <button 
+                    onClick={() => toggleFlag(currentQ.id)}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${flaggedQuestions.includes(currentQ.id) ? 'bg-warning-50 text-warning-700 border border-warning-200' : 'bg-secondary-50 text-secondary-400 hover:bg-secondary-100 hover:text-secondary-600 border border-secondary-100'}`}
+                  >
+                    <AlertTriangle className={`h-3.5 w-3.5 ${flaggedQuestions.includes(currentQ.id) ? 'fill-current' : ''}`} />
+                    {flaggedQuestions.includes(currentQ.id) ? 'Flagged' : 'Flag for Review'}
+                  </button>
+                  <span className="text-xs font-bold text-secondary-400 uppercase tracking-widest">
+                    {currentQ.marks} Points
+                  </span>
+                </div>
               </div>
 
               <div className="p-8 sm:p-12">
@@ -358,15 +463,21 @@ const ExamTaking = () => {
 
             {/* Mobile Navigator (Horizontal Scroll) */}
             <div className="lg:hidden p-4 rounded-2xl bg-white border border-secondary-100 flex items-center gap-2 overflow-x-auto no-scrollbar shadow-sm">
-              {exam.resolvedQuestions.map((q, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCurrentIdx(idx)}
-                  className={`h-10 w-10 rounded-lg font-bold text-xs shrink-0 transition-all ${currentIdx === idx ? 'bg-primary-600 text-white' : 'bg-secondary-50 text-secondary-500'}`}
-                >
-                  {idx + 1}
-                </button>
-              ))}
+              {exam.resolvedQuestions.map((q, idx) => {
+                const isFlagged = flaggedQuestions.includes(q.id);
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentIdx(idx)}
+                    className={`h-10 w-10 rounded-lg font-bold text-xs shrink-0 transition-all relative ${currentIdx === idx ? 'bg-primary-600 text-white' : 'bg-secondary-50 text-secondary-500'}`}
+                  >
+                    {idx + 1}
+                    {isFlagged && (
+                      <div className="absolute -top-1 -right-1 h-3 w-3 bg-warning-500 rounded-full border border-white" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

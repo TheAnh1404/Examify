@@ -1,6 +1,11 @@
 import prisma from '../utils/prisma.js';
 
 export const getAdminStats = async () => {
+  const settings = await prisma.systemSetting.upsert({
+    where: { id: 1 },
+    update: {},
+    create: { id: 1 }
+  });
   const [
     totalUsers,
     totalTeachers,
@@ -8,22 +13,27 @@ export const getAdminStats = async () => {
     totalSubjects,
     totalExams,
     totalAttempts,
-    attemptsData
+    attemptsData,
+    flaggedAttempts
   ] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({ where: { role: 'TEACHER' } }),
     prisma.user.count({ where: { role: 'STUDENT' } }),
     prisma.subject.count(),
-    prisma.exam.count(),
+    prisma.exam.count({ where: { status: 'PUBLISHED' } }),
     prisma.examAttempt.count(),
     prisma.examAttempt.findMany({
       where: { status: 'SUBMITTED' },
-      select: { score: true }
+      select: { score: true, exam: { select: { passPercentage: true } } }
+    }),
+    prisma.examAttempt.count({
+      where: { tabFocusLosses: { gte: settings.tabFocusWarnings } }
     })
   ]);
 
   const scores = attemptsData.map(a => Number(a.score));
-  const passRate = scores.length > 0 ? (scores.filter(s => s >= 5).length / scores.length) * 100 : 0;
+  const passedAttempts = attemptsData.filter(a => Number(a.score) * 10 >= a.exam.passPercentage).length;
+  const passRate = scores.length > 0 ? (passedAttempts / scores.length) * 100 : 0;
 
   // Global Leaderboard
   const studentPerformanceRaw = await prisma.examAttempt.groupBy({
@@ -56,9 +66,14 @@ export const getAdminStats = async () => {
       totalSubjects,
       totalExams,
       totalSubmissions: totalAttempts,
-      passRate: Math.round(passRate)
+      passRate: Math.round(passRate),
+      flaggedAttempts
     },
-    leaderboard
+    leaderboard,
+    systemStatus: {
+      database: 'UP',
+      generatedAt: new Date()
+    }
   };
 };
 
@@ -78,14 +93,16 @@ export const getTeacherStats = async (teacherId) => {
     prisma.examAttempt.count({ where: { exam: { createdById: teacherId } } }),
     prisma.examAttempt.findMany({
       where: { exam: { createdById: teacherId }, status: 'SUBMITTED' },
-      select: { score: true }
+      select: { score: true, exam: { select: { passPercentage: true } } }
     }),
     prisma.user.count({ where: { role: 'STUDENT' } })
   ]);
 
   const scores = attemptsData.map(a => Number(a.score));
   const averageScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
-  const passRate = scores.length > 0 ? (scores.filter(s => s >= 5).length / scores.length) * 100 : 0;
+  const passRate = scores.length > 0
+    ? (attemptsData.filter(a => Number(a.score) * 10 >= a.exam.passPercentage).length / scores.length) * 100
+    : 0;
 
   // 2. Score Distribution (0-2, 2-4, 4-6, 6-8, 8-10)
   const distribution = [
@@ -196,7 +213,7 @@ export const getTeacherStats = async (teacherId) => {
 export const getExamStats = async (examId, teacherId, role) => {
   const exam = await prisma.exam.findUnique({
     where: { id: examId },
-    select: { id: true, title: true, createdById: true }
+    select: { id: true, title: true, createdById: true, passPercentage: true }
   });
 
   if (!exam) throw new Error('Exam not found');
@@ -218,7 +235,9 @@ export const getExamStats = async (examId, teacherId, role) => {
   const averageScore = totalAttempts > 0 ? scores.reduce((a, b) => a + b, 0) / totalAttempts : 0;
   const highestScore = totalAttempts > 0 ? Math.max(...scores) : 0;
   const lowestScore = totalAttempts > 0 ? Math.min(...scores) : 0;
-  const passRate = totalAttempts > 0 ? (scores.filter(s => s >= 5).length / totalAttempts) * 100 : 0;
+  const passRate = totalAttempts > 0
+    ? (scores.filter(s => s * 10 >= exam.passPercentage).length / totalAttempts) * 100
+    : 0;
 
   const distribution = [
     { range: '0-2', count: 0 },
@@ -253,7 +272,8 @@ export const getStudentStats = async (studentId) => {
   const [
     availableExams,
     completedExams,
-    bestAttempt
+    bestAttempt,
+    attemptsData
   ] = await Promise.all([
     prisma.exam.count({ where: { status: 'PUBLISHED' } }),
     prisma.examAttempt.count({ where: { studentId, status: 'SUBMITTED' } }),
@@ -261,22 +281,42 @@ export const getStudentStats = async (studentId) => {
       where: { studentId, status: 'SUBMITTED' },
       orderBy: { score: 'desc' },
       select: { score: true }
+    }),
+    prisma.examAttempt.findMany({
+      where: { studentId, status: 'SUBMITTED' },
+      include: { 
+        exam: { 
+          include: { subject: true }
+        }
+      }
     })
   ]);
-
-  const attemptsData = await prisma.examAttempt.findMany({
-    where: { studentId, status: 'SUBMITTED' },
-    select: { score: true }
-  });
 
   const scores = attemptsData.map(a => Number(a.score));
   const averageScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
 
+  // Group by subject
+  const subjectPerformance = {};
+  attemptsData.forEach(attempt => {
+    const subjectName = attempt.exam.subject.name;
+    if (!subjectPerformance[subjectName]) {
+      subjectPerformance[subjectName] = { totalScore: 0, count: 0 };
+    }
+    subjectPerformance[subjectName].totalScore += Number(attempt.score);
+    subjectPerformance[subjectName].count += 1;
+  });
+
+  const performanceBySubject = Object.entries(subjectPerformance).map(([name, data]) => ({
+    subject: name,
+    averageScore: (data.totalScore / data.count).toFixed(1)
+  }));
+
   return {
     availableExams,
     examsTaken: completedExams,
-    averageScore: Math.round(Number(averageScore)),
-    passRate: Math.round((scores.filter(s => s >= 5).length / (scores.length || 1)) * 100),
-    bestScore: bestAttempt ? Number(bestAttempt.score).toFixed(2) : '0.00'
+    averageScore: Math.round(Number(averageScore) * 10), // Convert to 0-100 scale for UI consistency
+    passRate: Math.round((attemptsData.filter(a => Number(a.score) * 10 >= a.exam.passPercentage).length / (scores.length || 1)) * 100),
+    bestScore: bestAttempt ? Number(bestAttempt.score).toFixed(2) : '0.00',
+    performanceBySubject
   };
 };

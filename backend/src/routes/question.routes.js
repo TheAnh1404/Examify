@@ -12,6 +12,7 @@ router.get('/', roleMiddleware('ADMIN', 'TEACHER'), questionController.getQuesti
 router.get('/:id', roleMiddleware('ADMIN', 'TEACHER'), questionController.getQuestionById);
 
 // CUD only for Teacher (or Admin)
+router.post('/bulk', roleMiddleware('TEACHER', 'ADMIN'), questionController.createQuestionsBulk);
 router.post('/', roleMiddleware('TEACHER', 'ADMIN'), questionController.createQuestion);
 router.put('/:id', roleMiddleware('TEACHER', 'ADMIN'), questionController.updateQuestion);
 router.delete('/:id', roleMiddleware('TEACHER', 'ADMIN'), questionController.deleteQuestion);

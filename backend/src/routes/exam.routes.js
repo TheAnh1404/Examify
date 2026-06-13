@@ -11,6 +11,7 @@ router.get('/', examController.getExams);
 router.get('/:id', examController.getExamById);
 
 // Teacher/Admin only for CUD and management
+router.post('/bulk', roleMiddleware('TEACHER', 'ADMIN'), examController.createExamBulk);
 router.post('/', roleMiddleware('TEACHER', 'ADMIN'), examController.createExam);
 router.put('/:id', roleMiddleware('TEACHER', 'ADMIN'), examController.updateExam);
 router.delete('/:id', roleMiddleware('TEACHER', 'ADMIN'), examController.deleteExam);
@@ -23,6 +24,10 @@ router.delete('/:id/questions/:questionId', roleMiddleware('TEACHER', 'ADMIN'), 
 router.post('/:id/students', roleMiddleware('TEACHER', 'ADMIN'), examController.assignStudents);
 router.delete('/:id/students/:studentId', roleMiddleware('TEACHER', 'ADMIN'), examController.removeStudent);
 router.get('/:id/students', roleMiddleware('TEACHER', 'ADMIN'), examController.getAssignedStudents);
+
+// Classroom assignment management
+router.post('/:id/classrooms', roleMiddleware('TEACHER', 'ADMIN'), examController.assignClassrooms);
+router.delete('/:id/classrooms/:classroomId', roleMiddleware('TEACHER', 'ADMIN'), examController.removeClassroom);
 
 // Lifecycle management
 router.patch('/:id/publish', roleMiddleware('TEACHER', 'ADMIN'), examController.publishExam);

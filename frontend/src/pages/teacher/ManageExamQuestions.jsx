@@ -1,18 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import { examService } from '../../services/examService';
 import { questionService } from '../../services/questionService';
 import PageHeader from '../../components/layout/PageHeader';
 import Card from '../../components/common/Card';
 import Loading from '../../components/common/Loading';
 import Button from '../../components/common/Button';
-import Badge from '../../components/common/Badge';
 import { ArrowLeft, Plus, Minus, ShieldAlert, CheckCircle } from 'lucide-react';
 
 const ManageExamQuestions = () => {
   const { id: examId } = useParams();
-  const navigate = useNavigate();
-
   const [exam, setExam] = useState(null);
   const [subjectQuestions, setSubjectQuestions] = useState([]); // Questions in bank for this subject
   const [loading, setLoading] = useState(true);
@@ -21,34 +18,33 @@ const ManageExamQuestions = () => {
   const [success, setSuccess] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
 
-  const fetchExamAndQuestions = async () => {
-    try {
-      setLoading(true);
-      // Fetch exam
-      const examRes = await examService.getById(examId);
-      setExam(examRes.data);
-      
-      // Fetch subject questions
-      const questRes = await questionService.getBySubject(examRes.data.subjectId);
-      setSubjectQuestions(questRes.data);
-    } catch (err) {
-      console.error(err);
-      setError('Failed to load exam questions management view.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchExamAndQuestions();
+    let active = true;
+    examService.getById(examId)
+      .then(async (examResponse) => {
+        const questionResponse = await questionService.getBySubject(examResponse.data.subjectId);
+        if (!active) return;
+        setExam(examResponse.data);
+        setSubjectQuestions(questionResponse.data);
+      })
+      .catch((err) => {
+        console.error(err);
+        if (active) setError('Failed to load exam questions management view.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, [examId]);
 
-  const handleAddQuestion = async (qId) => {
+  const handleAddQuestion = async (question) => {
     try {
       setError('');
       setSuccess('');
       setActionLoading(true);
-      const res = await examService.addQuestionToExam(examId, qId);
+      await examService.addQuestionToExam(examId, question.id, question.marks);
       // Refresh exam details
       const examRes = await examService.getById(examId);
       setExam(examRes.data);
@@ -65,7 +61,7 @@ const ManageExamQuestions = () => {
       setError('');
       setSuccess('');
       setActionLoading(true);
-      const res = await examService.removeQuestionFromExam(examId, qId);
+      await examService.removeQuestionFromExam(examId, qId);
       // Refresh exam details
       const examRes = await examService.getById(examId);
       setExam(examRes.data);
@@ -89,7 +85,7 @@ const ManageExamQuestions = () => {
   }
 
   // Split subject bank questions into inside vs outside exam
-  const insideExam = subjectQuestions.filter(q => exam.questions.includes(q.id));
+  const insideExam = exam.resolvedQuestions;
   const outsideExam = subjectQuestions.filter(q => !exam.questions.includes(q.id));
 
   return (
@@ -180,7 +176,7 @@ const ManageExamQuestions = () => {
                     size="sm"
                     className="p-1"
                     disabled={actionLoading}
-                    onClick={() => handleAddQuestion(q.id)}
+                    onClick={() => handleAddQuestion(q)}
                     icon={<Plus className="h-3.5 w-3.5" />}
                     title="Add Question"
                   />

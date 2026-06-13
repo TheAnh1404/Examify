@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { subjectService } from '../../services/subjectService';
 import PageHeader from '../../components/layout/PageHeader';
 import DataTable from '../../components/common/DataTable';
@@ -7,7 +7,7 @@ import Modal from '../../components/common/Modal';
 import Input from '../../components/common/Input';
 import Textarea from '../../components/common/Textarea';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
-import { Plus, Edit, Trash2, ShieldAlert, CheckCircle, BookMarked } from 'lucide-react';
+import { Plus, Edit, Trash2, ShieldAlert, CheckCircle } from 'lucide-react';
 
 const SubjectManagement = () => {
   const [subjects, setSubjects] = useState([]);
@@ -24,6 +24,7 @@ const SubjectManagement = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [subjectToDelete, setSubjectToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -32,21 +33,22 @@ const SubjectManagement = () => {
     description: ''
   });
 
-  const fetchSubjects = async () => {
-    try {
-      setLoading(true);
-      const res = await subjectService.getAll();
-      setSubjects(res.data);
-    } catch (err) {
-      console.error(err);
-      setError('Failed to fetch subjects list.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchSubjects();
+    let active = true;
+    subjectService.getAll()
+      .then((res) => {
+        if (active) setSubjects(res.data);
+      })
+      .catch((err) => {
+        console.error(err);
+        if (active) setError('Failed to fetch subjects list.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleInputChange = (e) => {
@@ -86,6 +88,7 @@ const SubjectManagement = () => {
     try {
       setError('');
       setSuccess('');
+      setSaveLoading(true);
       if (isEdit) {
         const res = await subjectService.update(selectedSubject.id, formData);
         setSubjects(prev => prev.map(s => s.id === selectedSubject.id ? res.data : s));
@@ -98,6 +101,8 @@ const SubjectManagement = () => {
       setModalOpen(false);
     } catch (err) {
       setError(err.message || 'Failed to save subject details.');
+    } finally {
+      setSaveLoading(false);
     }
   };
 
@@ -140,6 +145,15 @@ const SubjectManagement = () => {
     },
     { header: 'Description', key: 'description' },
     {
+      header: 'Usage',
+      key: 'usage',
+      render: (row) => (
+        <span className="text-xs text-secondary-500 font-bold">
+          {row.questionCount} questions / {row.examCount} exams
+        </span>
+      )
+    },
+    {
       header: 'Actions',
       key: 'actions',
       render: (row) => (
@@ -149,12 +163,14 @@ const SubjectManagement = () => {
             size="sm"
             onClick={() => handleEditOpen(row)}
             icon={<Edit className="h-3.5 w-3.5" />}
+            aria-label={`Edit ${row.name}`}
           />
           <Button
             variant="danger"
             size="sm"
             onClick={() => handleDeleteClick(row)}
             icon={<Trash2 className="h-3.5 w-3.5" />}
+            aria-label={`Delete ${row.name}`}
           />
         </div>
       )
@@ -214,7 +230,6 @@ const SubjectManagement = () => {
             onChange={handleInputChange}
             placeholder="e.g. CS-101"
             required
-            disabled={isEdit} // code is key
           />
 
           <Input 
@@ -245,6 +260,7 @@ const SubjectManagement = () => {
             <Button
               type="submit"
               variant="primary"
+              loading={saveLoading}
               className="flex-1"
             >
               {isEdit ? 'Save Changes' : 'Create Subject'}
@@ -259,7 +275,7 @@ const SubjectManagement = () => {
         onClose={() => setDeleteOpen(false)}
         onConfirm={handleConfirmDelete}
         title="Delete Subject Category"
-        message={`Are you sure you want to permanently delete subject "${subjectToDelete?.name}" (${subjectToDelete?.code})?`}
+        message={`Delete subject "${subjectToDelete?.name}" (${subjectToDelete?.code})? Subjects used by questions or exams cannot be deleted.`}
         confirmText="Delete Subject"
         loading={deleteLoading}
       />

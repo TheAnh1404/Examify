@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { dashboardService } from '../../services/dashboardService';
 import { examService } from '../../services/examService';
+import { subjectService } from '../../services/subjectService';
+import { classroomService } from '../../services/classroomService';
 import StatCard from '../../components/common/StatCard';
 import Card from '../../components/common/Card';
 import Loading from '../../components/common/Loading';
@@ -19,7 +21,8 @@ import {
   ClipboardList,
   ArrowRight,
   TrendingUp,
-  BarChart3
+  BarChart3,
+  GraduationCap
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -28,28 +31,36 @@ const TeacherDashboard = () => {
 
   const [stats, setStats] = useState(null);
   const [exams, setExams] = useState([]);
+  const [teachingSubjects, setTeachingSubjects] = useState([]);
+  const [classrooms, setClassrooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      const [statsRes, examsRes] = await Promise.all([
-        dashboardService.getTeacherStats(),
-        examService.getAll()
-      ]);
-      setStats(statsRes.data);
-      setExams(examsRes.data);
-    } catch (err) {
-      console.error(err);
-      setError('Failed to fetch teacher dashboard details.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchDashboardData();
+    let active = true;
+    Promise.all([
+        dashboardService.getTeacherStats(),
+        examService.getAll(),
+        subjectService.getAll(),
+        classroomService.getAll()
+      ])
+      .then(([statsRes, examsRes, subjectsRes, classroomsRes]) => {
+        if (!active) return;
+        setStats(statsRes.data);
+        setExams(examsRes.data);
+        setTeachingSubjects(subjectsRes.data);
+        setClassrooms(classroomsRes.data);
+      })
+      .catch((err) => {
+        console.error(err);
+        if (active) setError('Failed to fetch teacher dashboard details.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleDeleteExam = async (id, title) => {
@@ -115,24 +126,18 @@ const TeacherDashboard = () => {
           title="Published Exams" 
           value={metrics.totalExams} 
           icon={BookOpen} 
-          trendValue="+2"
-          trendType="up"
           description="Total active assessments"
         />
         <StatCard 
           title="Total Submissions" 
           value={metrics.totalSubmissions} 
           icon={ClipboardList} 
-          trendValue="+18%" 
-          trendType="up"
-          description="Global student attempts"
+          description="Attempts on your exams"
         />
         <StatCard 
           title="Avg. Pass Rate" 
           value={`${metrics.passRate}%`} 
           icon={CheckCircle} 
-          trendValue="+5%"
-          trendType="up"
           description="Student success metric"
         />
         <StatCard 
@@ -192,12 +197,12 @@ const TeacherDashboard = () => {
                       </td>
                       <td className="px-8 py-6 text-center">
                         <div className="inline-flex flex-col items-center">
-                          <span className="text-base font-extrabold text-secondary-900">0</span>
+                          <span className="text-base font-extrabold text-secondary-900">{exam.totalAttempts || 0}</span>
                           <span className="text-[9px] text-secondary-400 font-extrabold uppercase tracking-widest">Attempts</span>
                         </div>
                       </td>
                       <td className="px-8 py-6 text-right">
-                        <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100 transition-all">
+                        <div className="flex gap-2 justify-end">
                           <Button
                             variant="secondary"
                             size="sm"
@@ -231,10 +236,10 @@ const TeacherDashboard = () => {
           <Card title="Quick Actions" subtitle="Perform common operations" className="shadow-xl shadow-secondary-200/20">
             <div className="space-y-4">
               {[
+                { to: '/teacher/classrooms', icon: GraduationCap, color: 'text-indigo-500 bg-indigo-50', label: 'Manage Classrooms' },
                 { to: '/teacher/questions', icon: FolderLock, color: 'text-primary-500 bg-primary-50', label: 'Question Bank' },
                 { to: '/teacher/questions/create', icon: Plus, color: 'text-accent-500 bg-accent-50', label: 'New Question' },
-                { to: '/teacher/results', icon: Award, color: 'text-indigo-500 bg-indigo-50', label: 'Student Results' },
-                { to: '/teacher/analytics', icon: BarChart3, color: 'text-warning-500 bg-warning-50', label: 'Performance Analytics' }
+                { to: '/teacher/results', icon: Award, color: 'text-indigo-500 bg-indigo-50', label: 'Student Results' }
               ].map((link, idx) => (
                 <Link 
                   key={idx}
@@ -253,14 +258,48 @@ const TeacherDashboard = () => {
             </div>
           </Card>
 
-          <Card className="bg-primary-600 border-none relative overflow-hidden group shadow-2xl shadow-primary-600/20">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500" />
-            <div className="relative z-10 text-white p-2">
-              <h4 className="text-xl font-extrabold mb-3 tracking-tight">Need help?</h4>
-              <p className="text-primary-100 text-xs font-bold leading-relaxed mb-8 uppercase tracking-wide">Check out our documentation on how to create effective multi-choice assessments.</p>
-              <Button variant="ghost" className="text-white hover:bg-white/10 p-0 h-auto font-extrabold text-[10px] uppercase tracking-[0.2em] flex items-center gap-2">
-                Read Guide <ArrowRight size={14} className="ml-1" />
-              </Button>
+          <Card title="Recent Classrooms" subtitle="Managed virtual rooms" className="shadow-xl shadow-secondary-200/20" bodyClassName="p-0">
+            {classrooms.length === 0 ? (
+              <div className="p-10 text-center space-y-3">
+                <GraduationCap className="h-8 w-8 text-secondary-200 mx-auto" />
+                <p className="text-[10px] text-secondary-400 font-black uppercase tracking-widest">No classes created</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-secondary-50">
+                {classrooms.slice(0, 3).map((cls) => (
+                  <div key={cls.id} className="p-5 hover:bg-secondary-50 transition-all flex items-center justify-between group cursor-pointer" onClick={() => navigate(`/teacher/classrooms/${cls.id}`)}>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-9 w-9 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center shrink-0">
+                        <GraduationCap className="h-4.5 w-4.5" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-bold text-secondary-900 text-xs truncate group-hover:text-primary-600 transition-colors">{cls.name}</p>
+                        <p className="text-[9px] text-secondary-400 font-bold uppercase tracking-widest mt-0.5">{cls.studentCount} Students • {cls.subject?.name}</p>
+                      </div>
+                    </div>
+                    <ArrowRight className="h-3.5 w-3.5 text-secondary-200 group-hover:text-primary-500 transition-all" />
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+
+          <Card title="My Teaching Subjects" subtitle="Assigned by administration" className="shadow-xl shadow-secondary-200/20">
+            <div className="space-y-3">
+              {teachingSubjects.map((subject) => (
+                <div key={subject.id} className="rounded-xl border border-secondary-100 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="font-bold text-secondary-900">{subject.name}</span>
+                    <Badge variant="indigo">{subject.code}</Badge>
+                  </div>
+                  <p className="text-xs text-secondary-500 mt-2">
+                    {subject.assignmentNote || 'No assignment note provided.'}
+                  </p>
+                </div>
+              ))}
+              {teachingSubjects.length === 0 && (
+                <p className="text-sm text-secondary-500 text-center py-4">No teaching subjects assigned.</p>
+              )}
             </div>
           </Card>
         </div>

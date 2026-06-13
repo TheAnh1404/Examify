@@ -11,13 +11,17 @@ async function main() {
   await prisma.examAttempt.deleteMany();
   await prisma.examQuestion.deleteMany();
   await prisma.examStudent.deleteMany();
+  await prisma.teacherSubject.deleteMany();
   await prisma.exam.deleteMany();
   await prisma.question.deleteMany();
   await prisma.subject.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.systemSetting.deleteMany();
 
   const salt = await bcrypt.genSalt(10);
   const passwordHash = await bcrypt.hash('123456', salt);
+
+  await prisma.systemSetting.create({ data: { id: 1 } });
 
   // 1. Create Users
   const admin = await prisma.user.create({
@@ -40,19 +44,27 @@ async function main() {
   const math = await prisma.subject.create({
     data: { name: 'Mathematics', code: 'MATH101', description: 'Basic Mathematics' },
   });
+  await prisma.teacherSubject.create({
+    data: {
+      teacherId: teacher.id,
+      subjectId: math.id,
+      assignedById: admin.id,
+      note: 'Primary Mathematics instructor'
+    }
+  });
 
   // 3. Create Questions
   const q1 = await prisma.question.create({
     data: {
       subjectId: math.id, createdById: teacher.id, content: 'What is 2 + 2?',
-      optionA: '3', optionB: '4', optionC: '5', optionD: '6', correctAnswer: 'B', difficulty: 'EASY',
+      optionA: '3', optionB: '4', optionC: '5', optionD: '6', correctAnswer: 'B', difficulty: 'EASY', defaultPoint: 10,
     },
   });
 
   const q2 = await prisma.question.create({
     data: {
       subjectId: math.id, createdById: teacher.id, content: 'What is the square root of 16?',
-      optionA: '2', optionB: '4', optionC: '8', optionD: '16', correctAnswer: 'B', difficulty: 'EASY',
+      optionA: '2', optionB: '4', optionC: '8', optionD: '16', correctAnswer: 'B', difficulty: 'EASY', defaultPoint: 10,
     },
   });
 
@@ -62,7 +74,7 @@ async function main() {
   const publicExam = await prisma.exam.create({
     data: {
       subjectId: math.id, createdById: teacher.id, title: 'General Math Quiz',
-      durationMinutes: 30, status: 'PUBLISHED', visibility: 'PUBLIC'
+      durationMinutes: 30, passPercentage: 50, status: 'PUBLISHED', visibility: 'PUBLIC'
     },
   });
   await prisma.examQuestion.create({ data: { examId: publicExam.id, questionId: q1.id, questionOrder: 1, point: 10 } });
@@ -71,7 +83,7 @@ async function main() {
   const privateExam = await prisma.exam.create({
     data: {
       subjectId: math.id, createdById: teacher.id, title: 'Advanced Private Test',
-      durationMinutes: 60, status: 'PUBLISHED', visibility: 'PRIVATE'
+      durationMinutes: 60, passPercentage: 60, status: 'PUBLISHED', visibility: 'PRIVATE'
     },
   });
   await prisma.examQuestion.create({ data: { examId: privateExam.id, questionId: q2.id, questionOrder: 1, point: 10 } });
@@ -82,7 +94,7 @@ async function main() {
   const protectedExam = await prisma.exam.create({
     data: {
       subjectId: math.id, createdById: teacher.id, title: 'Secret Final Exam',
-      durationMinutes: 90, status: 'PUBLISHED', visibility: 'PUBLIC',
+      durationMinutes: 90, passPercentage: 70, status: 'PUBLISHED', visibility: 'PUBLIC',
       accessPasswordHash
     },
   });

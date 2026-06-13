@@ -1,59 +1,80 @@
-import { db } from '../data/mockData';
+import API from './api';
+import { getApiErrorMessage, toUserView } from './serviceUtils';
+
+const handle = async (request, fallback) => {
+  try {
+    const response = await request();
+    return response.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, fallback), { cause: error });
+  }
+};
 
 export const userService = {
-  getAll: async () => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    return { data: [...db.users] };
+  getAll: async (params = {}) => {
+    const result = await handle(() => API.get('/users', { params }), 'Failed to fetch users');
+    return { ...result, data: result.data.map(toUserView) };
   },
 
   getById: async (id) => {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    const user = db.users.find(u => u.id === id);
-    if (!user) return Promise.reject(new Error('User not found'));
-    return { data: { ...user } };
+    const result = await handle(() => API.get(`/users/${id}`), 'Failed to fetch user');
+    return { ...result, data: toUserView(result.data) };
   },
 
   create: async (userData) => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    const exists = db.users.find(u => u.email.toLowerCase() === userData.email.toLowerCase());
-    if (exists) return Promise.reject(new Error('Email already registered'));
-
-    const newUser = {
-      id: `usr-${Date.now()}`,
-      name: userData.name,
+    const result = await handle(() => API.post('/users', {
+      fullName: userData.name,
       email: userData.email,
       password: userData.password,
-      role: userData.role.toUpperCase(),
-      createdAt: new Date().toISOString()
-    };
-    db.users.push(newUser);
-    db.save('users');
-    return { data: newUser };
+      role: userData.role,
+      teachingAssignments: userData.teachingAssignments || []
+    }), 'Failed to create user');
+    return { ...result, data: toUserView(result.data) };
   },
 
   update: async (id, userData) => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    const index = db.users.findIndex(u => u.id === id);
-    if (index === -1) return Promise.reject(new Error('User not found'));
+    const result = await handle(() => API.put(`/users/${id}`, {
+      fullName: userData.name,
+      email: userData.email,
+      password: userData.password || undefined,
+      role: userData.role,
+      status: userData.status
+    }), 'Failed to update user');
+    return { ...result, data: toUserView(result.data) };
+  },
 
-    db.users[index] = {
-      ...db.users[index],
-      name: userData.name || db.users[index].name,
-      email: userData.email || db.users[index].email,
-      role: userData.role ? userData.role.toUpperCase() : db.users[index].role,
-      password: userData.password || db.users[index].password
+  updateStatus: async (id, status) => {
+    const result = await handle(() => API.patch(`/users/${id}/status`, { status }), 'Failed to update user status');
+    return result;
+  },
+
+  getTeachingSubjects: async (id) => {
+    const result = await handle(() => API.get(`/users/${id}/teaching-subjects`), 'Failed to fetch teaching subjects');
+    return {
+      ...result,
+      data: result.data.map((assignment) => ({
+        ...assignment,
+        subjectId: String(assignment.subjectId),
+        subject: { ...assignment.subject, id: String(assignment.subject.id) }
+      }))
     };
-    db.save('users');
-    return { data: db.users[index] };
+  },
+
+  updateTeachingSubjects: async (id, assignments) => {
+    return handle(() => API.put(`/users/${id}/teaching-subjects`, { assignments }), 'Failed to update teaching subjects');
+  },
+
+  updateProfile: async (profileData) => {
+    const result = await handle(() => API.put('/users/profile', {
+      fullName: profileData.fullName,
+      avatarUrl: profileData.avatarUrl,
+      schoolName: profileData.schoolName,
+      password: profileData.password || undefined
+    }), 'Failed to update profile');
+    return { ...result, data: toUserView(result.data) };
   },
 
   delete: async (id) => {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    const index = db.users.findIndex(u => u.id === id);
-    if (index === -1) return Promise.reject(new Error('User not found'));
-
-    db.users.splice(index, 1);
-    db.save('users');
-    return { data: { message: 'User deleted' } };
+    return handle(() => API.delete(`/users/${id}`), 'Failed to delete user');
   }
 };

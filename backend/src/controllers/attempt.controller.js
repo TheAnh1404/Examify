@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import prisma from '../utils/prisma.js';
 import { successResponse, errorResponse } from '../utils/response.js';
 import * as gradingService from '../services/grading.service.js';
+import * as settingsService from '../services/settings.service.js';
 
 export const startAttempt = async (req, res, next) => {
   try {
@@ -43,7 +44,8 @@ export const startAttempt = async (req, res, next) => {
 
     // Check if student already has an in-progress attempt for this exam
     const existingAttempt = await prisma.examAttempt.findFirst({
-      where: { examId: parseInt(examId), studentId, status: 'IN_PROGRESS' }
+      where: { examId: parseInt(examId), studentId, status: 'IN_PROGRESS' },
+      include: { answers: true }
     });
 
     if (existingAttempt) {
@@ -73,6 +75,9 @@ export const saveAnswers = async (req, res, next) => {
     const attempt = await prisma.examAttempt.findUnique({ where: { id: attemptId } });
     if (!attempt || attempt.status !== 'IN_PROGRESS') {
       return errorResponse(res, 'Attempt not found or already submitted', 400);
+    }
+    if (attempt.studentId !== req.user.id) {
+      return errorResponse(res, 'Access denied', 403);
     }
 
     const upsertPromises = answers.map(ans => {
@@ -104,6 +109,19 @@ export const submitAttempt = async (req, res, next) => {
     if (!attempt || attempt.status !== 'IN_PROGRESS') {
       return errorResponse(res, 'Attempt not found or already submitted', 400);
     }
+    if (attempt.studentId !== req.user.id) {
+      return errorResponse(res, 'Access denied', 403);
+    }
+
+    const settings = await settingsService.getSettings();
+    const tabFocusLosses = settings.proctoringEnforced
+      ? Math.max(0, parseInt(req.body.tabFocusLosses || 0))
+      : 0;
+
+    await prisma.examAttempt.update({
+      where: { id: attemptId },
+      data: { tabFocusLosses }
+    });
 
     const result = await gradingService.gradeAttempt(attemptId);
     return successResponse(res, result, 'Exam submitted and graded successfully');
@@ -139,6 +157,9 @@ export const getAttemptResult = async (req, res, next) => {
     if (req.user.role === 'STUDENT' && attempt.studentId !== req.user.id) {
       return errorResponse(res, 'Access denied', 403);
     }
+    if (req.user.role === 'TEACHER' && attempt.exam.createdById !== req.user.id) {
+      return errorResponse(res, 'Access denied', 403);
+    }
 
     return successResponse(res, attempt, 'Attempt result retrieved');
   } catch (error) {
@@ -167,7 +188,11 @@ export const getStudentHistory = async (req, res, next) => {
 
 export const getAllAttempts = async (req, res, next) => {
   try {
+    const where = req.user.role === 'TEACHER'
+      ? { exam: { createdById: req.user.id } }
+      : {};
     const attempts = await prisma.examAttempt.findMany({
+      where,
       include: {
         student: { select: { fullName: true, email: true } },
         exam: {

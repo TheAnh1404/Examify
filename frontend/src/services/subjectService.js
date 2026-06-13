@@ -1,64 +1,37 @@
-import { db } from '../data/mockData';
+import API from './api';
+import { getApiErrorMessage, toSubjectView } from './serviceUtils';
+
+const handle = async (request, fallback) => {
+  try {
+    const response = await request();
+    return response.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, fallback), { cause: error });
+  }
+};
 
 export const subjectService = {
   getAll: async () => {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    return { data: [...db.subjects] };
+    const result = await handle(() => API.get('/subjects'), 'Failed to fetch subjects');
+    return { ...result, data: result.data.map(toSubjectView) };
   },
 
   getById: async (id) => {
-    await new Promise(resolve => setTimeout(resolve, 100));
-    const subject = db.subjects.find(s => s.id === id);
-    if (!subject) return Promise.reject(new Error('Subject not found'));
-    return { data: { ...subject } };
+    const result = await handle(() => API.get(`/subjects/${id}`), 'Failed to fetch subject');
+    return { ...result, data: toSubjectView(result.data) };
   },
 
   create: async (subjectData) => {
-    await new Promise(resolve => setTimeout(resolve, 250));
-    const codeExists = db.subjects.some(s => s.code.toUpperCase() === subjectData.code.toUpperCase());
-    if (codeExists) return Promise.reject(new Error('Subject code already exists'));
-
-    const newSubject = {
-      id: `sbj-${Date.now()}`,
-      code: subjectData.code.toUpperCase(),
-      name: subjectData.name,
-      description: subjectData.description || ''
-    };
-
-    db.subjects.push(newSubject);
-    db.save('subjects');
-    return { data: newSubject };
+    const result = await handle(() => API.post('/subjects', subjectData), 'Failed to create subject');
+    return { ...result, data: toSubjectView(result.data) };
   },
 
   update: async (id, subjectData) => {
-    await new Promise(resolve => setTimeout(resolve, 250));
-    const idx = db.subjects.findIndex(s => s.id === id);
-    if (idx === -1) return Promise.reject(new Error('Subject not found'));
-
-    db.subjects[idx] = {
-      ...db.subjects[idx],
-      code: subjectData.code ? subjectData.code.toUpperCase() : db.subjects[idx].code,
-      name: subjectData.name || db.subjects[idx].name,
-      description: subjectData.description !== undefined ? subjectData.description : db.subjects[idx].description
-    };
-
-    db.save('subjects');
-    return { data: db.subjects[idx] };
+    const result = await handle(() => API.put(`/subjects/${id}`, subjectData), 'Failed to update subject');
+    return { ...result, data: toSubjectView(result.data) };
   },
 
   delete: async (id) => {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    const idx = db.subjects.findIndex(s => s.id === id);
-    if (idx === -1) return Promise.reject(new Error('Subject not found'));
-
-    // Check if questions are linked to this subject
-    const hasQuestions = db.questions.some(q => q.subjectId === id);
-    if (hasQuestions) {
-      return Promise.reject(new Error('Cannot delete subject. It has questions linked in the Question Bank.'));
-    }
-
-    db.subjects.splice(idx, 1);
-    db.save('subjects');
-    return { data: { message: 'Subject deleted' } };
+    return handle(() => API.delete(`/subjects/${id}`), 'Failed to delete subject');
   }
 };

@@ -1,9 +1,26 @@
 import * as authService from '../services/auth.service.js';
+import * as settingsService from '../services/settings.service.js';
 import { successResponse, errorResponse } from '../utils/response.js';
 
 export const register = async (req, res, next) => {
   try {
-    const data = await authService.register(req.body);
+    const settings = await settingsService.getSettings();
+    if (!settings.registrationOpen) {
+      return errorResponse(res, 'Self-registration is currently disabled', 403);
+    }
+
+    const { fullName, email, password } = req.body;
+    if (!fullName?.trim() || !email?.trim() || !password) {
+      return errorResponse(res, 'Full name, email, and password are required', 400);
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      return errorResponse(res, 'Email address is invalid', 400);
+    }
+    if (password.length < 8) {
+      return errorResponse(res, 'Password must be at least 8 characters', 400);
+    }
+
+    const data = await authService.register({ fullName, email, password, role: 'STUDENT' });
     return successResponse(res, data, 'User registered successfully', 201);
   } catch (error) {
     next(error);

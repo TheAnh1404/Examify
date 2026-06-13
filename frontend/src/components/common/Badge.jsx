@@ -1,5 +1,3 @@
-import React from 'react';
-
 const Badge = ({ 
   children, 
   variant = 'slate', // 'primary' | 'success' | 'danger' | 'warning' | 'slate' | 'indigo' | 'purple'

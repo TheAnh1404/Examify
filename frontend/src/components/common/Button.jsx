@@ -1,5 +1,3 @@
-import React from 'react';
-
 const Button = ({ 
   children, 
   onClick, 
@@ -11,7 +9,8 @@ const Button = ({
   className = '',
   icon,
   iconRight = false,
-  fullWidth = false
+  fullWidth = false,
+  ...props
 }) => {
   const baseStyle = 'inline-flex items-center justify-center gap-2 font-bold transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98] focus:outline-none';
   
@@ -38,6 +37,7 @@ const Button = ({
       onClick={onClick}
       disabled={disabled || loading}
       className={`${baseStyle} ${variants[variant]} ${sizes[size]} ${widthStyle} ${className}`}
+      {...props}
     >
       {loading ? (
         <div className="h-4 w-4 rounded-full border-2 border-current border-t-transparent animate-spin"></div>

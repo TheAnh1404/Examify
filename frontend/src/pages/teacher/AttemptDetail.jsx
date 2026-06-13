@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { attemptService } from '../../services/attemptService';
 import PageHeader from '../../components/layout/PageHeader';
 import Card from '../../components/common/Card';
 import Loading from '../../components/common/Loading';
 import Badge from '../../components/common/Badge';
-import Button from '../../components/common/Button';
-import { ArrowLeft, AlertTriangle, CheckCircle, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, ShieldAlert } from 'lucide-react';
 
 const AttemptDetail = () => {
   const { id } = useParams();
@@ -112,7 +111,7 @@ const AttemptDetail = () => {
           return (
             <Card 
               key={q.id}
-              title={`Question {idx + 1}`}
+              title={`Question ${idx + 1}`}
               actions={
                 <span className={`text-xs font-bold ${isCorrect ? 'text-accent-600' : 'text-red-600'}`}>
                   {isCorrect ? `+${q.marks} pts` : `0 / ${q.marks} pts`}

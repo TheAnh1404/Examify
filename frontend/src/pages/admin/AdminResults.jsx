@@ -1,28 +1,35 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { attemptService } from '../../services/attemptService';
+import { settingsService } from '../../services/settingsService';
 import Button from '../../components/common/Button';
-import PageHeader from '../../components/layout/PageHeader';
 import DataTable from '../../components/common/DataTable';
 import Badge from '../../components/common/Badge';
 import Loading from '../../components/common/Loading';
 import SearchBox from '../../components/common/SearchBox';
 import FilterBar from '../../components/common/FilterBar';
-import { AlertTriangle, ShieldAlert, FileSpreadsheet, User, BookOpen } from 'lucide-react';
+import { AlertTriangle, ShieldAlert, FileSpreadsheet, User, BookOpen, Eye } from 'lucide-react';
 
 const AdminResults = () => {
+  const navigate = useNavigate();
   const [attempts, setAttempts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [warningThreshold, setWarningThreshold] = useState(3);
 
   useEffect(() => {
     const fetchAttempts = async () => {
       try {
         setLoading(true);
-        const res = await attemptService.getAll();
-        setAttempts(res.data);
+        const [attemptResponse, settingsResponse] = await Promise.all([
+          attemptService.getAll(),
+          settingsService.get()
+        ]);
+        setAttempts(attemptResponse.data);
+        setWarningThreshold(settingsResponse.data.tabFocusWarnings);
       } catch (err) {
         console.error(err);
         setError('Failed to fetch system attempts gradebook.');
@@ -75,10 +82,10 @@ const AdminResults = () => {
       render: (row) => (
         <div className="flex flex-col">
           <span className="font-bold text-secondary-900">
-            {row.score} / {row.examTotalMarks} pts
+            {row.score.toFixed(2)} / {row.examTotalMarks} pts
           </span>
           <span className="text-[10px] text-secondary-400 font-bold uppercase tracking-widest">
-            {((row.score / row.examTotalMarks) * 100).toFixed(0)}% Accuracy
+            {row.scorePercentage}% Accuracy
           </span>
         </div>
       ) 
@@ -87,7 +94,7 @@ const AdminResults = () => {
       header: 'Status', 
       key: 'status', 
       render: (row) => (
-        <Badge variant={row.status.toUpperCase() === 'PASS' ? 'success' : 'danger'} dot>
+        <Badge variant={row.status === 'Pass' ? 'success' : row.status === 'Fail' ? 'danger' : 'warning'} dot>
           {row.status}
         </Badge>
       ) 
@@ -96,11 +103,13 @@ const AdminResults = () => {
       header: 'Security Logs', 
       key: 'tabFocusLosses', 
       render: (row) => (
-        row.tabFocusLosses > 0 ? (
-          <Badge variant="warning" className="lowercase">
+        row.tabFocusLosses >= warningThreshold ? (
+          <Badge variant="danger" className="lowercase">
             <AlertTriangle className="h-3 w-3 mr-1" />
-            {row.tabFocusLosses} violations
+            {row.tabFocusLosses} flagged
           </Badge>
+        ) : row.tabFocusLosses > 0 ? (
+          <Badge variant="warning">{row.tabFocusLosses} warnings</Badge>
         ) : (
           <Badge variant="slate">Secure</Badge>
         )
@@ -111,15 +120,52 @@ const AdminResults = () => {
       key: 'submittedAt', 
       render: (row) => (
         <span className="text-secondary-500 font-bold text-xs">
-          {new Date(row.submittedAt).toLocaleDateString(undefined, {
+          {row.submittedAt ? new Date(row.submittedAt).toLocaleDateString(undefined, {
             month: 'short',
             day: 'numeric',
             year: 'numeric'
-          })}
+          }) : 'Not submitted'}
         </span>
       ) 
+    },
+    {
+      header: '',
+      key: 'actions',
+      render: (row) => (
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => navigate(`/admin/results/${row.id}`)}
+          icon={<Eye className="h-4 w-4" />}
+          aria-label={`View ${row.studentName}'s attempt`}
+        />
+      )
     }
   ];
+
+  const exportCsv = () => {
+    const header = ['Student', 'Email', 'Exam', 'Score', 'Score Percentage', 'Status', 'Focus Losses', 'Submitted At'];
+    const rows = filteredAttempts.map((attempt) => [
+      attempt.studentName,
+      attempt.studentEmail,
+      attempt.examTitle,
+      attempt.score,
+      `${attempt.scorePercentage}%`,
+      attempt.status,
+      attempt.tabFocusLosses,
+      attempt.submittedAt || ''
+    ]);
+    const escape = (value) => `"${String(value).replaceAll('"', '""')}"`;
+    const blob = new Blob([[header, ...rows].map((row) => row.map(escape).join(',')).join('\n')], {
+      type: 'text/csv;charset=utf-8'
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `examify-results-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   if (loading) return (
     <div className="min-h-[60vh] flex items-center justify-center">
@@ -134,8 +180,8 @@ const AdminResults = () => {
           <h1 className="h1 mb-1">Submissions Log</h1>
           <p className="p">Review student scorecard entries and proctoring security logs globally.</p>
         </div>
-        <Button variant="outline" icon={<FileSpreadsheet className="h-4 w-4" />} onClick={() => window.print()}>
-          Export Data
+        <Button variant="outline" icon={<FileSpreadsheet className="h-4 w-4" />} onClick={exportCsv}>
+          Export CSV
         </Button>
       </div>
 
@@ -161,7 +207,8 @@ const AdminResults = () => {
           options={[
             { value: 'ALL', label: 'All Results' },
             { value: 'PASS', label: 'Passing Only' },
-            { value: 'FAIL', label: 'Failing Only' }
+            { value: 'FAIL', label: 'Failing Only' },
+            { value: 'IN PROGRESS', label: 'In Progress' }
           ]} 
         />
       </div>

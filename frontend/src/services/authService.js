@@ -18,7 +18,7 @@ export const authService = {
       return { user, token };
     } catch (error) {
       const message = error.response?.data?.message || 'Login failed. Please verify your credentials.';
-      throw new Error(message);
+      throw new Error(message, { cause: error });
     }
   },
 
@@ -39,7 +39,7 @@ export const authService = {
       return { user, token };
     } catch (error) {
       const message = error.response?.data?.message || 'Registration failed. Try a different email address.';
-      throw new Error(message);
+      throw new Error(message, { cause: error });
     }
   },
 
@@ -61,7 +61,7 @@ export const authService = {
       return response.data;
     } catch (error) {
       const message = error.response?.data?.message || 'Failed to request password reset.';
-      throw new Error(message);
+      throw new Error(message, { cause: error });
     }
   },
 
@@ -71,7 +71,7 @@ export const authService = {
       return response.data;
     } catch (error) {
       const message = error.response?.data?.message || 'Failed to reset password.';
-      throw new Error(message);
+      throw new Error(message, { cause: error });
     }
   }
 };

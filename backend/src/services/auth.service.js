@@ -5,8 +5,9 @@ import generateToken from '../utils/generateToken.js';
 
 export const register = async (userData) => {
   const { fullName, email, password, role } = userData;
+  const normalizedEmail = email.trim().toLowerCase();
 
-  const userExists = await prisma.user.findUnique({ where: { email } });
+  const userExists = await prisma.user.findUnique({ where: { email: normalizedEmail } });
   if (userExists) {
     throw new Error('User already exists');
   }
@@ -16,8 +17,8 @@ export const register = async (userData) => {
 
   const user = await prisma.user.create({
     data: {
-      fullName,
-      email,
+      fullName: fullName.trim(),
+      email: normalizedEmail,
       passwordHash,
       role: role || 'STUDENT'
     }
@@ -31,7 +32,7 @@ export const register = async (userData) => {
 };
 
 export const login = async (email, password) => {
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prisma.user.findUnique({ where: { email: email?.trim().toLowerCase() } });
 
   if (user && (await bcrypt.compare(password, user.passwordHash))) {
     if (user.status === 'LOCKED') {

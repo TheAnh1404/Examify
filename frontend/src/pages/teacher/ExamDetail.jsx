@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { examService } from '../../services/examService';
 import Card from '../../components/common/Card';
 import Loading from '../../components/common/Loading';
-import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
 import { ArrowLeft, FolderLock, ShieldAlert, Clock, Award, BookOpen, ListChecks } from 'lucide-react';
 

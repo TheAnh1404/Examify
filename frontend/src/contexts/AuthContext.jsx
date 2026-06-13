@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import API from '../services/api';
 import { authService } from '../services/authService';
 
@@ -14,13 +14,6 @@ export const AuthProvider = ({ children }) => {
     const initAuth = async () => {
       if (token) {
         try {
-          // In mock stage, check local user first, then try API
-          const localUser = authService.getCurrentUser();
-          if (localUser) {
-            setUser(localUser);
-          }
-          
-          // Try to ping backend, if it fails, keep local user
           const res = await API.get('/auth/profile');
           if (res.data && res.data.data) {
             setUser({
@@ -37,16 +30,12 @@ export const AuthProvider = ({ children }) => {
             }));
           }
         } catch (error) {
-          console.log('Backend auth check failed, using local mock session', error.message || error);
-          // If we have a local mock user, keep it. Otherwise, clean up.
-          const localUser = authService.getCurrentUser();
-          if (!localUser) {
-            localStorage.removeItem('examify_token');
-            localStorage.removeItem('examify_role');
-            localStorage.removeItem('examify_user');
-            setToken(null);
-            setUser(null);
-          }
+          console.log('Backend auth check failed', error.message || error);
+          localStorage.removeItem('examify_token');
+          localStorage.removeItem('examify_role');
+          localStorage.removeItem('examify_user');
+          setToken(null);
+          setUser(null);
         }
       }
       setLoading(false);
@@ -96,6 +85,7 @@ export const AuthProvider = ({ children }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -103,4 +93,3 @@ export const useAuth = () => {
   }
   return context;
 };
-

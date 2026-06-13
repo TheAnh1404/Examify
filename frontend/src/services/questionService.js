@@ -1,93 +1,76 @@
-import { db } from '../data/mockData';
+import API from './api';
+import { getApiErrorMessage } from './serviceUtils';
+
+const handle = async (request, fallback) => {
+  try {
+    const response = await request();
+    return response.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, fallback), { cause: error });
+  }
+};
+
+const toQuestionView = (question) => ({
+  ...question,
+  id: String(question.id),
+  subjectId: String(question.subjectId),
+  text: question.content,
+  options: [question.optionA, question.optionB, question.optionC, question.optionD],
+  correctOption: question.correctAnswer ? question.correctAnswer.charCodeAt(0) - 65 : undefined,
+  marks: Number(question.defaultPoint ?? question.marks ?? 1),
+  difficulty: question.difficulty
+    ? question.difficulty.charAt(0) + question.difficulty.slice(1).toLowerCase()
+    : 'Easy',
+  subjectName: question.subject?.name || 'Unknown Subject',
+  subjectCode: question.subject?.code || ''
+});
+
+const toQuestionPayload = (question) => ({
+  subjectId: question.subjectId,
+  content: question.text,
+  optionA: question.options[0],
+  optionB: question.options[1],
+  optionC: question.options[2],
+  optionD: question.options[3],
+  correctAnswer: String.fromCharCode(65 + Number(question.correctOption)),
+  difficulty: String(question.difficulty || 'EASY').toUpperCase(),
+  defaultPoint: Number(question.marks ?? question.defaultPoint ?? 1)
+});
 
 export const questionService = {
   getAll: async () => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // Enrich with subject details (simulated JOIN)
-    const enriched = db.questions.map(q => {
-      const subject = db.subjects.find(s => s.id === q.subjectId);
-      return {
-        ...q,
-        subjectName: subject ? subject.name : 'Unknown Subject',
-        subjectCode: subject ? subject.code : ''
-      };
-    });
-
-    return { data: enriched };
+    const result = await handle(() => API.get('/questions'), 'Failed to fetch questions');
+    return { ...result, data: result.data.map(toQuestionView) };
   },
 
   getById: async (id) => {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    const question = db.questions.find(q => q.id === id);
-    if (!question) return Promise.reject(new Error('Question not found'));
-    
-    const subject = db.subjects.find(s => s.id === question.subjectId);
-    return {
-      data: {
-        ...question,
-        subjectName: subject ? subject.name : 'Unknown Subject',
-        subjectCode: subject ? subject.code : ''
-      }
-    };
+    const result = await handle(() => API.get(`/questions/${id}`), 'Failed to fetch question');
+    return { ...result, data: toQuestionView(result.data) };
   },
 
   getBySubject: async (subjectId) => {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    const list = db.questions.filter(q => q.subjectId === subjectId);
-    return { data: list };
+    const result = await handle(() => API.get('/questions', { params: { subjectId } }), 'Failed to fetch questions');
+    return { ...result, data: result.data.map(toQuestionView) };
   },
 
-  create: async (qData) => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-
-    const newQuestion = {
-      id: `q-${Date.now()}`,
-      subjectId: qData.subjectId,
-      text: qData.text,
-      options: [...qData.options],
-      correctOption: Number(qData.correctOption),
-      marks: Number(qData.marks) || 5,
-      difficulty: qData.difficulty || 'Medium'
-    };
-
-    db.questions.push(newQuestion);
-    db.save('questions');
-    return { data: newQuestion };
+  create: async (question) => {
+    const result = await handle(() => API.post('/questions', toQuestionPayload(question)), 'Failed to create question');
+    return { ...result, data: toQuestionView(result.data) };
   },
 
-  update: async (id, qData) => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    const idx = db.questions.findIndex(q => q.id === id);
-    if (idx === -1) return Promise.reject(new Error('Question not found'));
+  createBulk: async (questions) => {
+    const result = await handle(() => API.post('/questions/bulk', {
+      questions: questions.map(toQuestionPayload)
+    }), 'Failed to create questions');
+    return { ...result, data: result.data.map(toQuestionView) };
+  },
 
-    db.questions[idx] = {
-      ...db.questions[idx],
-      subjectId: qData.subjectId || db.questions[idx].subjectId,
-      text: qData.text || db.questions[idx].text,
-      options: qData.options ? [...qData.options] : db.questions[idx].options,
-      correctOption: qData.correctOption !== undefined ? Number(qData.correctOption) : db.questions[idx].correctOption,
-      marks: qData.marks !== undefined ? Number(qData.marks) : db.questions[idx].marks,
-      difficulty: qData.difficulty || db.questions[idx].difficulty
-    };
-
-    db.save('questions');
-    return { data: db.questions[idx] };
+  update: async (id, question) => {
+    const result = await handle(() => API.put(`/questions/${id}`, toQuestionPayload(question)), 'Failed to update question');
+    return { ...result, data: toQuestionView(result.data) };
   },
 
   delete: async (id) => {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    const idx = db.questions.findIndex(q => q.id === id);
-    if (idx === -1) return Promise.reject(new Error('Question not found'));
-
-    // Verify if question is used in any published exam
-    const isUsed = db.exams.some(e => e.questions.includes(id));
-    if (isUsed) {
-      return Promise.reject(new Error('Cannot delete question. It is currently linked in active exam questionnaires.'));
-    }
-
-    db.questions.splice(idx, 1);
-    db.save('questions');
-    return { data: { message: 'Question deleted' } };
+    return handle(() => API.delete(`/questions/${id}`), 'Failed to delete question');
   }
 };

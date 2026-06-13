@@ -1,137 +1,120 @@
 import API from './api';
+import { getApiErrorMessage } from './serviceUtils';
+
+const handle = async (request, fallback) => {
+  try {
+    const response = await request();
+    return response.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, fallback), { cause: error });
+  }
+};
+
+const getAttemptStatus = (attempt, passPercentage) => {
+  if (attempt.status !== 'SUBMITTED') return 'In Progress';
+  return Number(attempt.score) * 10 >= passPercentage ? 'Pass' : 'Fail';
+};
+
+const toAttemptView = (attempt) => {
+  const passPercentage = attempt.exam?.passPercentage ?? 50;
+  const score = Number(attempt.score);
+  return {
+    id: attempt.id,
+    studentId: attempt.studentId,
+    studentName: attempt.student?.fullName || 'Unknown Student',
+    studentEmail: attempt.student?.email || '',
+    examId: String(attempt.examId),
+    examTitle: attempt.exam?.title || 'Deleted Exam',
+    examTotalMarks: 10,
+    passPercentage,
+    score,
+    scorePercentage: Math.round(score * 10),
+    totalCorrect: attempt.correctCount,
+    totalIncorrect: attempt.totalQuestions - attempt.correctCount,
+    status: getAttemptStatus(attempt, passPercentage),
+    tabFocusLosses: attempt.tabFocusLosses || 0,
+    startedAt: attempt.startedAt,
+    submittedAt: attempt.submittedAt
+  };
+};
 
 export const attemptService = {
   getAll: async () => {
-    const response = await API.get('/exam-attempts');
-    // Format to match what the frontend pages expect
-    const enriched = response.data.data.map(att => {
-      const examTotalMarks = att.exam?.examQuestions?.reduce((sum, eq) => sum + Number(eq.point), 0) || 10;
-      const passPct = 50;
-      const finalPct = examTotalMarks > 0 ? (Number(att.score) / examTotalMarks) * 100 : 0;
-      const status = finalPct >= passPct ? 'Pass' : 'Fail';
-
-      return {
-        id: att.id,
-        studentId: att.studentId,
-        studentName: att.student?.fullName || 'Unknown Student',
-        studentEmail: att.student?.email || '',
-        examId: att.examId,
-        examTitle: att.exam?.title || 'Deleted Exam',
-        examTotalMarks: examTotalMarks,
-        score: Number(att.score),
-        totalCorrect: att.correctCount,
-        totalIncorrect: att.totalQuestions - att.correctCount,
-        status: att.status === 'SUBMITTED' ? status : 'In Progress',
-        tabFocusLosses: 0,
-        startedAt: att.startedAt,
-        submittedAt: att.submittedAt
-      };
-    });
-    return { data: enriched };
+    const result = await handle(() => API.get('/exam-attempts'), 'Failed to fetch attempts');
+    return { ...result, data: result.data.map(toAttemptView) };
   },
 
-  getByStudent: async (studentId) => {
-    // Note: backend handles filtering by student on session, so we call /student/history
-    const response = await API.get('/exam-attempts/student/history');
-    const enriched = response.data.data.map(att => {
-      return {
-        id: att.id,
-        studentId: att.studentId,
-        examId: att.examId,
-        examTitle: att.exam?.title || 'Deleted Exam',
-        examTotalMarks: 10, // Default or mock fallback
-        score: Number(att.score),
-        totalCorrect: att.correctCount,
-        totalIncorrect: att.totalQuestions - att.correctCount,
-        status: Number(att.score) >= 5 ? 'Pass' : 'Fail',
-        tabFocusLosses: 0,
-        startedAt: att.startedAt,
-        submittedAt: att.submittedAt
-      };
-    });
-    return { data: enriched };
+  getByStudent: async () => {
+    const result = await handle(() => API.get('/exam-attempts/student/history'), 'Failed to fetch attempt history');
+    return { ...result, data: result.data.map(toAttemptView) };
   },
 
   getById: async (id) => {
-    const response = await API.get(`/exam-attempts/${id}/result`);
-    const att = response.data.data;
-    
-    // Calculate total marks and structure correctly for results page
-    const examQuestions = att.exam?.examQuestions || [];
-    const examTotalMarks = examQuestions.reduce((sum, eq) => sum + Number(eq.point), 0) || 10;
-    const finalPct = examTotalMarks > 0 ? (Number(att.score) / examTotalMarks) * 100 : 0;
-    const passPercentage = 50;
-    const status = finalPct >= passPercentage ? 'Pass' : 'Fail';
+    const result = await handle(() => API.get(`/exam-attempts/${id}/result`), 'Failed to fetch attempt result');
+    const attempt = result.data;
+    const examQuestions = attempt.exam?.examQuestions || [];
+    const passPercentage = attempt.exam?.passPercentage ?? 50;
 
-    const formattedQuestions = examQuestions.map(eq => {
-      const q = eq.question;
-      if (!q) return null;
+    const questions = examQuestions.map((examQuestion) => {
+      const question = examQuestion.question;
+      if (!question) return null;
       return {
-        id: q.id,
-        text: q.content,
-        options: [q.optionA, q.optionB, q.optionC, q.optionD],
-        correctOption: q.correctAnswer.charCodeAt(0) - 65, // Convert A->0, B->1, etc.
-        marks: Number(eq.point)
+        id: question.id,
+        text: question.content,
+        options: [question.optionA, question.optionB, question.optionC, question.optionD],
+        correctOption: question.correctAnswer.charCodeAt(0) - 65,
+        marks: Number(examQuestion.point)
       };
     }).filter(Boolean);
-
-    // Backend answers structure: { questionId, selectedAnswer, isCorrect }
-    const formattedAnswers = att.answers.map(ans => ({
-      questionId: ans.questionId,
-      selectedOption: ans.selectedAnswer ? (ans.selectedAnswer.charCodeAt(0) - 65) : null,
-      isCorrect: ans.isCorrect
-    }));
 
     return {
       data: {
         attempt: {
-          id: att.id,
-          studentId: att.studentId,
-          examId: att.examId,
-          answers: formattedAnswers,
-          score: Number(att.score),
-          totalCorrect: att.correctCount,
-          totalIncorrect: att.totalQuestions - att.correctCount,
-          status: att.status === 'SUBMITTED' ? status : 'In Progress',
-          tabFocusLosses: 0,
-          startedAt: att.startedAt,
-          submittedAt: att.submittedAt
+          ...toAttemptView(attempt),
+          answers: attempt.answers.map((answer) => ({
+            questionId: String(answer.questionId),
+            selectedOption: answer.selectedAnswer ? answer.selectedAnswer.charCodeAt(0) - 65 : null,
+            isCorrect: answer.isCorrect
+          }))
         },
-        student: att.student ? { name: att.student.fullName, email: att.student.email } : null,
-        exam: att.exam ? {
-          title: att.exam.title,
-          totalMarks: examTotalMarks,
+        student: attempt.student ? { name: attempt.student.fullName, email: attempt.student.email } : null,
+        exam: attempt.exam ? {
+          title: attempt.exam.title,
+          totalMarks: 10,
           passPercentage,
-          questions: formattedQuestions
+          questions
         } : null
       }
     };
   },
 
-  submitAttempt: async (examId, answersPayload, tabFocusLosses, startedAt) => {
-    // 1. Start the attempt on backend
-    const startRes = await API.post('/exam-attempts/start', { examId });
-    const attempt = startRes.data.data;
-    
-    // 2. Save answers
-    await API.post(`/exam-attempts/${attempt.id}/answers`, {
-      answers: answersPayload.map(ans => ({
-        questionId: ans.questionId,
-        selectedAnswer: ans.selectedOption !== null && ans.selectedOption !== -1
-          ? String.fromCharCode(65 + Number(ans.selectedOption))
-          : null
-      }))
-    });
+  startAttempt: async (examId, accessPassword) => {
+    const result = await handle(
+      () => API.post('/exam-attempts/start', { examId, accessPassword }),
+      'Failed to start attempt'
+    );
+    return result;
+  },
 
-    // 3. Submit attempt
-    const submitRes = await API.post(`/exam-attempts/${attempt.id}/submit`);
-    const finalAttempt = submitRes.data.data;
+  saveAnswers: async (attemptId, answersPayload) => {
+    return handle(
+      () => API.post(`/exam-attempts/${attemptId}/answers`, {
+        answers: answersPayload.map((answer) => ({
+          questionId: answer.questionId,
+          selectedAnswer: answer.selectedOption !== null && answer.selectedOption !== -1
+            ? String.fromCharCode(65 + Number(answer.selectedOption))
+            : null
+        }))
+      }),
+      'Failed to auto-save answers'
+    );
+  },
 
-    return {
-      data: {
-        id: finalAttempt.id,
-        ...finalAttempt
-      }
-    };
+  submitAttempt: async (attemptId, tabFocusLosses) => {
+    const result = await handle(
+      () => API.post(`/exam-attempts/${attemptId}/submit`, { tabFocusLosses }),
+      'Failed to submit attempt'
+    );
+    return result;
   }
 };
