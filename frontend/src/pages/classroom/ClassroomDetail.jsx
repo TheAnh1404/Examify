@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { classroomService } from '../../services/classroomService';
 import { authService } from '../../services/authService';
-import PageHeader from '../../components/layout/PageHeader';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
@@ -10,7 +9,7 @@ import Loading from '../../components/common/Loading';
 import DataTable from '../../components/common/DataTable';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Modal from '../../components/common/Modal';
-import { GraduationCap, Users, BookOpen, UserPlus, Trash2, ArrowLeft, School, Search, Check, ChevronRight, Clock, CheckCircle, XCircle, MessageSquare, UserCheck, Inbox } from 'lucide-react';
+import { GraduationCap, Users, BookOpen, UserPlus, Trash2, ArrowLeft, School, Search, Check, ChevronRight, Clock, CheckCircle, XCircle, MessageSquare, UserCheck, Inbox, Copy, FileText, CalendarDays } from 'lucide-react';
 
 const ClassroomDetail = () => {
   const { id: classroomId } = useParams();
@@ -39,6 +38,9 @@ const ClassroomDetail = () => {
   const [enrollmentRequests, setEnrollmentRequests] = useState([]);
   const [enrollmentLoading, setEnrollmentLoading] = useState(false);
   const [processingRequestId, setProcessingRequestId] = useState(null);
+
+  // Copy Code
+  const [codeCopied, setCodeCopied] = useState(false);
 
   const fetchClassroom = async () => {
     try {
@@ -75,7 +77,7 @@ const ClassroomDetail = () => {
     }
   }, [activeTab, isTeacher, classroomId]);
 
-  // Also fetch enrollment count on initial load for badge
+  // Fetch enrollment count on initial load for badge
   useEffect(() => {
     if (isTeacher) {
       fetchEnrollmentRequests();
@@ -129,12 +131,29 @@ const ClassroomDetail = () => {
     setProcessingRequestId(requestId);
     try {
       await classroomService.updateEnrollmentStatus(requestId, { status });
-      // Refresh both enrollment requests and classroom data
       await Promise.all([fetchEnrollmentRequests(), fetchClassroom()]);
     } catch (err) {
       alert(err.message);
     } finally {
       setProcessingRequestId(null);
+    }
+  };
+
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(classroom.code);
+      setCodeCopied(true);
+      setTimeout(() => setCodeCopied(false), 2000);
+    } catch {
+      // fallback
+      const textarea = document.createElement('textarea');
+      textarea.value = classroom.code;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      setCodeCopied(true);
+      setTimeout(() => setCodeCopied(false), 2000);
     }
   };
 
@@ -148,62 +167,91 @@ const ClassroomDetail = () => {
 
   const pendingEnrollmentCount = enrollmentRequests.length;
 
+  // DataTable columns — render receives (row, rowIdx) per DataTable API
   const studentColumns = [
     {
       header: 'Student',
-      accessor: 'student',
-      render: (val) => (
+      key: 'student',
+      render: (row) => (
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-secondary-100 flex items-center justify-center overflow-hidden">
-            {val.avatarUrl ? (
-              <img src={val.avatarUrl} alt={val.fullName} className="h-full w-full object-cover" />
+          <div className="h-10 w-10 rounded-xl bg-secondary-100 flex items-center justify-center overflow-hidden">
+            {row.student?.avatarUrl ? (
+              <img src={row.student.avatarUrl} alt={row.student.fullName} className="h-full w-full object-cover" />
             ) : (
-              <Users className="h-4.5 w-4.5 text-secondary-400" />
+              <Users className="h-5 w-5 text-secondary-400" />
             )}
           </div>
           <div>
-            <p className="font-bold text-secondary-900 text-sm">{val.fullName}</p>
-            <p className="text-[10px] text-secondary-400 font-bold uppercase tracking-widest">{val.email}</p>
+            <p className="font-bold text-secondary-900 text-sm">{row.student?.fullName}</p>
+            <p className="text-[10px] text-secondary-400 font-bold uppercase tracking-widest">{row.student?.email}</p>
           </div>
         </div>
       )
     },
     {
       header: 'Institution',
-      accessor: 'student.schoolName',
-      render: (val) => <span className="text-xs font-bold text-secondary-500">{val || 'Global'}</span>
+      key: 'schoolName',
+      render: (row) => <span className="text-xs font-bold text-secondary-500">{row.student?.schoolName || 'Global'}</span>
     },
     {
       header: 'Joined Date',
-      accessor: 'joinedAt',
-      render: (val) => <span className="text-xs font-bold text-secondary-500">{new Date(val).toLocaleDateString()}</span>
-    },
-    {
-      header: 'Actions',
-      render: (_, row) => isTeacher && (
-        <button
-          onClick={() => setRemoveConfirm({ isOpen: true, studentId: row.studentId, studentName: row.student.fullName })}
-          className="p-2 text-secondary-400 hover:text-danger-600 transition-colors"
-        >
-          <Trash2 className="h-4.5 w-4.5" />
-        </button>
+      key: 'joinedAt',
+      render: (row) => (
+        <div className="flex items-center gap-2 text-secondary-500">
+          <CalendarDays className="h-3.5 w-3.5" />
+          <span className="text-xs font-bold">{new Date(row.joinedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+        </div>
       )
-    }
+    },
+    ...(isTeacher ? [{
+      header: '',
+      key: 'actions',
+      render: (row) => (
+        <div className="flex justify-end">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setRemoveConfirm({ isOpen: true, studentId: row.studentId, studentName: row.student?.fullName });
+            }}
+            className="p-2.5 rounded-xl text-secondary-300 hover:text-red-500 hover:bg-red-50 transition-all"
+            title={`Remove ${row.student?.fullName}`}
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      )
+    }] : [])
   ];
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {classroom.bannerUrl && (
+      {/* Hero Banner */}
+      {classroom.bannerUrl ? (
         <div className="h-48 md:h-64 w-full rounded-[2.5rem] overflow-hidden shadow-2xl relative group">
           <img src={classroom.bannerUrl} alt={classroom.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-[2s]" />
-          <div className="absolute inset-0 bg-gradient-to-t from-secondary-900/80 via-transparent to-transparent"></div>
-          <div className="absolute bottom-10 left-10">
-            <Badge variant="primary" className="mb-3 px-4 py-1.5 text-xs tracking-widest uppercase bg-primary-600/90 backdrop-blur-md border-none">{classroom.subject?.name}</Badge>
-            <h1 className="text-4xl font-black text-white tracking-tight drop-shadow-lg">{classroom.name}</h1>
+          <div className="absolute inset-0 bg-gradient-to-t from-secondary-900/80 via-secondary-900/20 to-transparent"></div>
+          <div className="absolute bottom-8 left-8 right-8">
+            <div className="flex items-end justify-between">
+              <div>
+                <Badge variant="primary" className="mb-3 px-4 py-1.5 text-xs tracking-widest uppercase bg-primary-600/90 backdrop-blur-md border-none">{classroom.subject?.name}</Badge>
+                <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight drop-shadow-lg">{classroom.name}</h1>
+              </div>
+              <button
+                onClick={handleCopyCode}
+                className="hidden md:flex items-center gap-2.5 px-5 py-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all"
+                title="Copy class code"
+              >
+                <span className="font-mono font-bold text-sm tracking-widest">{classroom.code}</span>
+                {codeCopied ? <Check className="h-4 w-4 text-emerald-300" /> : <Copy className="h-4 w-4 text-white/70" />}
+              </button>
+            </div>
           </div>
         </div>
+      ) : (
+        <div className="h-3 bg-gradient-to-r from-primary-500 via-primary-600 to-indigo-600 w-full rounded-full" />
       )}
 
+      {/* Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <button
@@ -212,40 +260,49 @@ const ClassroomDetail = () => {
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          {!classroom.bannerUrl && (
-            <div>
-              <div className="flex items-center gap-3 mb-1">
-                <h1 className="text-3xl font-black text-secondary-900 tracking-tight">{classroom.name}</h1>
-                <Badge variant="slate" className="font-mono">{classroom.code}</Badge>
-              </div>
-              <p className="text-secondary-500 font-medium">{classroom.subject?.name} • {classroom.schoolName || 'Global'}</p>
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              {!classroom.bannerUrl && (
+                <h1 className="text-2xl md:text-3xl font-black text-secondary-900 tracking-tight">{classroom.name}</h1>
+              )}
+              <button
+                onClick={handleCopyCode}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-secondary-50 hover:bg-primary-50 border border-secondary-100 hover:border-primary-200 transition-all group"
+                title="Copy class code"
+              >
+                <span className="font-mono font-bold text-xs text-secondary-600 group-hover:text-primary-600 tracking-widest">{classroom.code}</span>
+                {codeCopied ? (
+                  <Check className="h-3.5 w-3.5 text-emerald-500" />
+                ) : (
+                  <Copy className="h-3.5 w-3.5 text-secondary-400 group-hover:text-primary-500" />
+                )}
+              </button>
             </div>
-          )}
-          {classroom.bannerUrl && (
-             <div>
-                <p className="text-secondary-500 font-medium">Code: <span className="font-mono font-bold text-secondary-900">{classroom.code}</span> • {classroom.schoolName || 'Global Institution'}</p>
-             </div>
-          )}
+            <p className="text-secondary-500 font-medium text-sm">
+              {classroom.subject?.name} • {classroom.schoolName || 'Global Institution'}
+              {classroom.description && <span className="text-secondary-400"> — {classroom.description}</span>}
+            </p>
+          </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-        {/* Left: Info & Students */}
+        {/* Left: Main Content */}
         <div className="lg:col-span-2 space-y-8">
 
           {/* Instructor Card (For Student) */}
           {!isTeacher && (
-            <Card title="Instructor Information" className="bg-primary-600 text-white border-none shadow-xl shadow-primary-500/20">
+            <Card className="bg-gradient-to-br from-primary-600 to-indigo-700 text-white border-none shadow-xl shadow-primary-500/20">
               <div className="flex items-center gap-6">
-                <div className="h-20 w-20 rounded-3xl bg-white/10 flex items-center justify-center overflow-hidden border border-white/20">
+                <div className="h-20 w-20 rounded-3xl bg-white/10 flex items-center justify-center overflow-hidden border border-white/20 shrink-0">
                   {classroom.teacher?.avatarUrl ? (
                     <img src={classroom.teacher.avatarUrl} alt={classroom.teacher.fullName} className="h-full w-full object-cover" />
                   ) : (
-                    <GraduationCap className="h-10 w-10 text-white" />
+                    <GraduationCap className="h-10 w-10 text-white/80" />
                   )}
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   <p className="text-primary-200 text-[10px] font-black uppercase tracking-[0.2em]">Primary Instructor</p>
                   <h3 className="text-2xl font-black tracking-tight">{classroom.teacher?.fullName}</h3>
                   <p className="text-primary-100 text-sm font-medium opacity-80">{classroom.teacher?.email}</p>
@@ -259,22 +316,27 @@ const ClassroomDetail = () => {
             <div className="flex gap-2 p-1.5 bg-secondary-50 rounded-2xl w-fit">
               <button
                 onClick={() => setActiveTab('roster')}
-                className={`px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300 ${
+                className={`px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300 flex items-center gap-2 ${
                   activeTab === 'roster'
                     ? 'bg-white text-secondary-900 shadow-lg shadow-secondary-200/50'
                     : 'text-secondary-500 hover:text-secondary-700'
                 }`}
               >
+                <Users className="h-4 w-4" />
                 Class Roster
+                <span className="text-[10px] font-black text-secondary-400 bg-secondary-100 px-2 py-0.5 rounded-lg">
+                  {classroom.students.length}
+                </span>
               </button>
               <button
                 onClick={() => setActiveTab('enrollments')}
-                className={`px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300 flex items-center gap-2.5 ${
+                className={`px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300 flex items-center gap-2 ${
                   activeTab === 'enrollments'
                     ? 'bg-white text-secondary-900 shadow-lg shadow-secondary-200/50'
                     : 'text-secondary-500 hover:text-secondary-700'
                 }`}
               >
+                <UserCheck className="h-4 w-4" />
                 Enrollment Requests
                 {pendingEnrollmentCount > 0 && (
                   <span className="h-5 min-w-[20px] px-1.5 rounded-full bg-amber-500 text-white text-[10px] font-black flex items-center justify-center animate-pulse">
@@ -300,6 +362,8 @@ const ClassroomDetail = () => {
                 columns={studentColumns}
                 data={classroom.students}
                 loading={loading}
+                emptyMessage="No students enrolled yet."
+                pageSize={8}
               />
             </Card>
           )}
@@ -398,24 +462,31 @@ const ClassroomDetail = () => {
           )}
         </div>
 
-        {/* Right: Exams & Content */}
-        <div className="space-y-8">
-          {/* Stats Card */}
+        {/* Right: Sidebar */}
+        <div className="space-y-6">
+          {/* Stats Cards */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white p-6 rounded-[2rem] border border-secondary-50 shadow-sm">
+            <div className="bg-white p-6 rounded-[2rem] border border-secondary-50 shadow-sm hover:shadow-md transition-shadow">
+              <div className="h-10 w-10 rounded-xl bg-primary-50 text-primary-500 flex items-center justify-center mb-4">
+                <Users className="h-5 w-5" />
+              </div>
               <p className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1">Students</p>
-              <h4 className="text-2xl font-black text-secondary-900">{classroom.students.length}</h4>
+              <h4 className="text-3xl font-black text-secondary-900">{classroom.students.length}</h4>
             </div>
-            <div className="bg-white p-6 rounded-[2rem] border border-secondary-50 shadow-sm">
+            <div className="bg-white p-6 rounded-[2rem] border border-secondary-50 shadow-sm hover:shadow-md transition-shadow">
+              <div className="h-10 w-10 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center mb-4">
+                <FileText className="h-5 w-5" />
+              </div>
               <p className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1">Assessments</p>
-              <h4 className="text-2xl font-black text-secondary-900">{classroom.exams?.length || 0}</h4>
+              <h4 className="text-3xl font-black text-secondary-900">{classroom.exams?.length || 0}</h4>
             </div>
           </div>
 
+          {/* Pending Enrollment Notification */}
           {isTeacher && pendingEnrollmentCount > 0 && activeTab !== 'enrollments' && (
             <div
               onClick={() => setActiveTab('enrollments')}
-              className="bg-amber-50 border border-amber-200 rounded-[2rem] p-6 cursor-pointer hover:bg-amber-100 transition-all group"
+              className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-[2rem] p-6 cursor-pointer hover:shadow-lg hover:shadow-amber-500/10 transition-all group"
             >
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -429,6 +500,29 @@ const ClassroomDetail = () => {
             </div>
           )}
 
+          {/* Class Code Card (Teacher) */}
+          {isTeacher && (
+            <div className="bg-white p-6 rounded-[2rem] border border-secondary-50 shadow-sm">
+              <p className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-3">Share Class Code</p>
+              <div className="flex items-center justify-between bg-secondary-50 rounded-2xl px-5 py-4">
+                <span className="font-mono font-black text-xl tracking-[0.2em] text-secondary-900">{classroom.code}</span>
+                <button
+                  onClick={handleCopyCode}
+                  className={`h-10 w-10 rounded-xl flex items-center justify-center transition-all ${
+                    codeCopied
+                      ? 'bg-emerald-100 text-emerald-600'
+                      : 'bg-white text-secondary-500 hover:bg-primary-50 hover:text-primary-600 shadow-sm'
+                  }`}
+                  title="Copy code"
+                >
+                  {codeCopied ? <Check className="h-4.5 w-4.5" /> : <Copy className="h-4.5 w-4.5" />}
+                </button>
+              </div>
+              <p className="text-[10px] text-secondary-400 font-medium mt-2.5">Share this code with students so they can request to join.</p>
+            </div>
+          )}
+
+          {/* Assigned Assessments */}
           <Card
             title="Assigned Assessments"
             subtitle="Tests linked to this classroom"
@@ -442,42 +536,59 @@ const ClassroomDetail = () => {
             ) : (
               <div className="divide-y divide-secondary-50">
                 {classroom.exams.map(({ exam }) => (
-                  <div key={exam.id} className="p-6 hover:bg-secondary-50 transition-all flex items-center justify-between group">
+                  <div key={exam.id} className="px-6 py-5 hover:bg-secondary-50/50 transition-all flex items-center justify-between group cursor-pointer" onClick={() => navigate(isTeacher ? `/teacher/exams/${exam.id}` : `/student/exams/${exam.id}/instruction`)}>
                     <div className="min-w-0 flex-1">
                       <h4 className="font-extrabold text-secondary-900 text-sm truncate group-hover:text-primary-600 transition-colors">{exam.title}</h4>
                       <div className="flex items-center gap-3 mt-1.5">
-                        <Badge variant={exam.status === 'PUBLISHED' ? 'success' : 'slate'} size="sm" className="text-[8px]">{exam.status}</Badge>
-                        <span className="text-[9px] font-bold text-secondary-400 uppercase tracking-widest">{exam.durationMinutes}m</span>
+                        <Badge variant={exam.status === 'PUBLISHED' ? 'success' : exam.status === 'CLOSED' ? 'danger' : 'slate'} size="sm" className="text-[8px]">{exam.status}</Badge>
+                        <span className="text-[9px] font-bold text-secondary-400 uppercase tracking-widest flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {exam.durationMinutes}m
+                        </span>
                       </div>
                     </div>
-                    <button
-                      onClick={() => navigate(isTeacher ? `/teacher/exams/${exam.id}` : `/student/exams/${exam.id}/instruction`)}
-                      className="h-8 w-8 rounded-lg bg-secondary-100 flex items-center justify-center text-secondary-500 hover:bg-primary-600 hover:text-white transition-all shadow-sm"
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </button>
+                    <ChevronRight className="h-4 w-4 text-secondary-300 group-hover:text-primary-500 group-hover:translate-x-1 transition-all" />
                   </div>
                 ))}
               </div>
             )}
           </Card>
 
-          <Card title="Classroom Logs" className="bg-secondary-900 text-white border-none shadow-2xl">
+          {/* Classroom Info */}
+          <Card title="Classroom Info" className="bg-secondary-900 text-white border-none shadow-2xl">
             <div className="space-y-5">
               <div className="flex items-start gap-4">
-                <div className="h-1 w-1 rounded-full bg-primary-400 mt-2 shadow-[0_0_8px_rgba(99,102,241,0.8)]"></div>
+                <div className="h-1.5 w-1.5 rounded-full bg-primary-400 mt-2 shadow-[0_0_8px_rgba(99,102,241,0.8)]"></div>
                 <div>
-                  <p className="text-xs font-bold text-secondary-100">Class Created</p>
-                  <p className="text-[10px] text-secondary-400 font-bold uppercase tracking-widest mt-0.5">{new Date(classroom.createdAt).toLocaleDateString()}</p>
+                  <p className="text-xs font-bold text-secondary-100">Created</p>
+                  <p className="text-[10px] text-secondary-400 font-bold uppercase tracking-widest mt-0.5">{new Date(classroom.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
-                <div className="h-1 w-1 rounded-full bg-emerald-400 mt-2 shadow-[0_0_8px_rgba(52,211,153,0.8)]"></div>
+                <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 mt-2 shadow-[0_0_8px_rgba(52,211,153,0.8)]"></div>
                 <div>
-                  <p className="text-xs font-bold text-secondary-100">Live Session Active</p>
-                  <p className="text-[10px] text-secondary-400 font-bold uppercase tracking-widest mt-0.5">Monitoring Enabled</p>
+                  <p className="text-xs font-bold text-secondary-100">Status</p>
+                  <p className="text-[10px] text-secondary-400 font-bold uppercase tracking-widest mt-0.5">{classroom.status || 'Active'}</p>
                 </div>
               </div>
+              {classroom.teacher && (
+                <div className="flex items-start gap-4">
+                  <div className="h-1.5 w-1.5 rounded-full bg-amber-400 mt-2 shadow-[0_0_8px_rgba(245,158,11,0.8)]"></div>
+                  <div>
+                    <p className="text-xs font-bold text-secondary-100">Instructor</p>
+                    <p className="text-[10px] text-secondary-400 font-bold uppercase tracking-widest mt-0.5">{classroom.teacher.fullName}</p>
+                  </div>
+                </div>
+              )}
+              {classroom.description && (
+                <div className="flex items-start gap-4">
+                  <div className="h-1.5 w-1.5 rounded-full bg-cyan-400 mt-2 shadow-[0_0_8px_rgba(34,211,238,0.8)]"></div>
+                  <div>
+                    <p className="text-xs font-bold text-secondary-100">Description</p>
+                    <p className="text-[10px] text-secondary-400 font-medium mt-0.5 leading-relaxed">{classroom.description}</p>
+                  </div>
+                </div>
+              )}
             </div>
           </Card>
         </div>

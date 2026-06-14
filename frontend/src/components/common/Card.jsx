@@ -3,6 +3,7 @@ const Card = ({
   title, 
   subtitle,
   footer,
+  actions,
   className = '', 
   bodyClassName = '',
   headerClassName = '',
@@ -11,7 +12,7 @@ const Card = ({
 }) => {
   return (
     <div className={`saas-card ${hover ? 'saas-card-hover' : ''} ${className}`}>
-      {(title || Icon) && (
+      {(title || Icon || actions) && (
         <div className={`px-8 py-6 border-b border-secondary-50 flex items-center justify-between ${headerClassName}`}>
           <div className="flex items-center gap-4">
             {Icon && (
@@ -24,6 +25,11 @@ const Card = ({
               {subtitle && <p className="text-xs font-semibold text-secondary-400 mt-0.5 tracking-wide uppercase">{subtitle}</p>}
             </div>
           </div>
+          {actions && (
+            <div className="flex items-center gap-2 shrink-0">
+              {actions}
+            </div>
+          )}
         </div>
       )}
       
@@ -41,3 +47,4 @@ const Card = ({
 };
 
 export default Card;
+
