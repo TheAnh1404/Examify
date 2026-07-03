@@ -21,9 +21,9 @@ const Unauthorized = () => {
           <ShieldAlert className="h-10 w-10" />
         </div>
         
-        <h1 className="font-display font-extrabold text-2xl text-secondary-800 tracking-tight">403 Forbidden</h1>
+        <h1 className="font-display font-extrabold text-2xl text-secondary-800 tracking-tight">403 Không có quyền truy cập</h1>
         <p className="text-secondary-500 text-sm mt-2 mb-8 leading-relaxed font-medium">
-          Access Denied. You do not possess the necessary role clearances to inspect this directory route.
+          Bạn không có quyền truy cập khu vực này.
         </p>
 
         <Button
@@ -32,7 +32,7 @@ const Unauthorized = () => {
           className="w-full"
           icon={<ArrowLeft className="h-4.5 w-4.5" />}
         >
-          Back to Dashboard
+          Quay về bảng điều khiển
         </Button>
       </div>
     </div>

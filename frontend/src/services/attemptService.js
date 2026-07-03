@@ -21,10 +21,10 @@ const toAttemptView = (attempt) => {
   return {
     id: attempt.id,
     studentId: attempt.studentId,
-    studentName: attempt.student?.fullName || 'Unknown Student',
+    studentName: attempt.student?.fullName || 'Học sinh không xác định',
     studentEmail: attempt.student?.email || '',
     examId: String(attempt.examId),
-    examTitle: attempt.exam?.title || 'Deleted Exam',
+    examTitle: attempt.exam?.title || 'Bài thi đã xóa',
     examTotalMarks: 10,
     passPercentage,
     score,
@@ -40,17 +40,17 @@ const toAttemptView = (attempt) => {
 
 export const attemptService = {
   getAll: async () => {
-    const result = await handle(() => API.get('/exam-attempts'), 'Failed to fetch attempts');
+    const result = await handle(() => API.get('/exam-attempts'), 'Không thể tải lượt làm bài');
     return { ...result, data: result.data.map(toAttemptView) };
   },
 
   getByStudent: async () => {
-    const result = await handle(() => API.get('/exam-attempts/student/history'), 'Failed to fetch attempt history');
+    const result = await handle(() => API.get('/exam-attempts/student/history'), 'Không thể tải lịch sử làm bài');
     return { ...result, data: result.data.map(toAttemptView) };
   },
 
   getById: async (id) => {
-    const result = await handle(() => API.get(`/exam-attempts/${id}/result`), 'Failed to fetch attempt result');
+    const result = await handle(() => API.get(`/exam-attempts/${id}/result`), 'Không thể tải kết quả làm bài');
     const attempt = result.data;
     const examQuestions = attempt.exam?.examQuestions || [];
     const passPercentage = attempt.exam?.passPercentage ?? 50;
@@ -91,7 +91,7 @@ export const attemptService = {
   startAttempt: async (examId, accessPassword) => {
     const result = await handle(
       () => API.post('/exam-attempts/start', { examId, accessPassword }),
-      'Failed to start attempt'
+      'Không thể bắt đầu lượt làm bài'
     );
     return result;
   },
@@ -106,14 +106,14 @@ export const attemptService = {
             : null
         }))
       }),
-      'Failed to auto-save answers'
+      'Không thể tự động lưu câu trả lời'
     );
   },
 
   submitAttempt: async (attemptId, tabFocusLosses) => {
     const result = await handle(
       () => API.post(`/exam-attempts/${attemptId}/submit`, { tabFocusLosses }),
-      'Failed to submit attempt'
+      'Không thể nộp bài'
     );
     return result;
   }

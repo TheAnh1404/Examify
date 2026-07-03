@@ -9,7 +9,7 @@ export const getPublicSettings = async (req, res, next) => {
       registrationOpen: settings.registrationOpen,
       proctoringEnforced: settings.proctoringEnforced,
       tabFocusWarnings: settings.tabFocusWarnings
-    }, 'Public settings retrieved');
+    }, 'Lấy cài đặt công khai thành công');
   } catch (error) {
     next(error);
   }
@@ -18,7 +18,7 @@ export const getPublicSettings = async (req, res, next) => {
 export const getSettings = async (req, res, next) => {
   try {
     const settings = await settingsService.getSettings();
-    return successResponse(res, settings, 'System settings retrieved');
+    return successResponse(res, settings, 'Lấy cài đặt hệ thống thành công');
   } catch (error) {
     next(error);
   }
@@ -34,18 +34,18 @@ export const updateSettings = async (req, res, next) => {
       tabFocusWarnings
     } = req.body;
 
-    if (!siteName?.trim()) return errorResponse(res, 'Site name is required', 400);
-    if (!contactEmail?.trim()) return errorResponse(res, 'Contact email is required', 400);
+    if (!siteName?.trim()) return errorResponse(res, 'Vui lòng nhập tên nền tảng', 400);
+    if (!contactEmail?.trim()) return errorResponse(res, 'Vui lòng nhập email liên hệ', 400);
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail.trim())) {
-      return errorResponse(res, 'Contact email is invalid', 400);
+      return errorResponse(res, 'Email liên hệ không hợp lệ', 400);
     }
     if (typeof registrationOpen !== 'boolean' || typeof proctoringEnforced !== 'boolean') {
-      return errorResponse(res, 'Registration and proctoring settings must be boolean values', 400);
+      return errorResponse(res, 'Cài đặt đăng ký và giám sát phải là giá trị boolean', 400);
     }
 
     const warningThreshold = Number(tabFocusWarnings);
     if (!Number.isInteger(warningThreshold) || warningThreshold < 1 || warningThreshold > 10) {
-      return errorResponse(res, 'Tab focus warning threshold must be between 1 and 10', 400);
+      return errorResponse(res, 'Ngưỡng cảnh báo chuyển tab phải nằm trong khoảng 1 đến 10', 400);
     }
 
     const settings = await settingsService.updateSettings({
@@ -56,7 +56,7 @@ export const updateSettings = async (req, res, next) => {
       tabFocusWarnings: warningThreshold
     });
 
-    return successResponse(res, settings, 'System settings updated');
+    return successResponse(res, settings, 'Cập nhật cài đặt hệ thống thành công');
   } catch (error) {
     next(error);
   }

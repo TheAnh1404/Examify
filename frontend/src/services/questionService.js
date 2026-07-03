@@ -21,7 +21,7 @@ const toQuestionView = (question) => ({
   difficulty: question.difficulty
     ? question.difficulty.charAt(0) + question.difficulty.slice(1).toLowerCase()
     : 'Easy',
-  subjectName: question.subject?.name || 'Unknown Subject',
+    subjectName: question.subject?.name || 'Môn học không xác định',
   subjectCode: question.subject?.code || ''
 });
 
@@ -39,38 +39,38 @@ const toQuestionPayload = (question) => ({
 
 export const questionService = {
   getAll: async () => {
-    const result = await handle(() => API.get('/questions'), 'Failed to fetch questions');
+    const result = await handle(() => API.get('/questions'), 'Không thể tải danh sách câu hỏi');
     return { ...result, data: result.data.map(toQuestionView) };
   },
 
   getById: async (id) => {
-    const result = await handle(() => API.get(`/questions/${id}`), 'Failed to fetch question');
+    const result = await handle(() => API.get(`/questions/${id}`), 'Không thể tải câu hỏi');
     return { ...result, data: toQuestionView(result.data) };
   },
 
   getBySubject: async (subjectId) => {
-    const result = await handle(() => API.get('/questions', { params: { subjectId } }), 'Failed to fetch questions');
+    const result = await handle(() => API.get('/questions', { params: { subjectId } }), 'Không thể tải danh sách câu hỏi');
     return { ...result, data: result.data.map(toQuestionView) };
   },
 
   create: async (question) => {
-    const result = await handle(() => API.post('/questions', toQuestionPayload(question)), 'Failed to create question');
+    const result = await handle(() => API.post('/questions', toQuestionPayload(question)), 'Không thể tạo câu hỏi');
     return { ...result, data: toQuestionView(result.data) };
   },
 
   createBulk: async (questions) => {
     const result = await handle(() => API.post('/questions/bulk', {
       questions: questions.map(toQuestionPayload)
-    }), 'Failed to create questions');
+    }), 'Không thể tạo câu hỏi');
     return { ...result, data: result.data.map(toQuestionView) };
   },
 
   update: async (id, question) => {
-    const result = await handle(() => API.put(`/questions/${id}`, toQuestionPayload(question)), 'Failed to update question');
+    const result = await handle(() => API.put(`/questions/${id}`, toQuestionPayload(question)), 'Không thể cập nhật câu hỏi');
     return { ...result, data: toQuestionView(result.data) };
   },
 
   delete: async (id) => {
-    return handle(() => API.delete(`/questions/${id}`), 'Failed to delete question');
+    return handle(() => API.delete(`/questions/${id}`), 'Không thể xóa câu hỏi');
   }
 };

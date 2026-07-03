@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { 
+import {
   LayoutDashboard, 
   Users, 
   BookOpen, 
@@ -12,6 +12,7 @@ import {
   GraduationCap
 } from 'lucide-react';
 import Logo from '../common/Logo';
+import { formatRole } from '../../utils/i18n';
 
 const Sidebar = ({ onClose, mobile = false }) => {
   const role = localStorage.getItem('examify_role') || 'STUDENT';
@@ -21,29 +22,29 @@ const Sidebar = ({ onClose, mobile = false }) => {
     switch (roleUpper) {
       case 'ADMIN':
         return [
-          { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
-          { name: 'User Management', path: '/admin/users', icon: Users },
-          { name: 'Subject Categories', path: '/admin/subjects', icon: BookMarked },
-          { name: 'System Results', path: '/admin/results', icon: FileSpreadsheet },
-          { name: 'Global Settings', path: '/admin/settings', icon: Settings },
+          { name: 'Bảng điều khiển', path: '/admin/dashboard', icon: LayoutDashboard },
+          { name: 'Quản lý người dùng', path: '/admin/users', icon: Users },
+          { name: 'Môn học', path: '/admin/subjects', icon: BookMarked },
+          { name: 'Kết quả hệ thống', path: '/admin/results', icon: FileSpreadsheet },
+          { name: 'Cài đặt hệ thống', path: '/admin/settings', icon: Settings },
         ];
       case 'TEACHER':
         return [
-          { name: 'Dashboard', path: '/teacher/dashboard', icon: LayoutDashboard },
-          { name: 'Classrooms', path: '/teacher/classrooms', icon: GraduationCap },
-          { name: 'Question Bank', path: '/teacher/questions', icon: FolderLock },
-          { name: 'Exam Management', path: '/teacher/exams', icon: BookOpen },
-          { name: 'Student Results', path: '/teacher/results', icon: ClipboardList },
-          { name: 'Analytics Hub', path: '/teacher/analytics', icon: LineChart },
+          { name: 'Bảng điều khiển', path: '/teacher/dashboard', icon: LayoutDashboard },
+          { name: 'Lớp học', path: '/teacher/classrooms', icon: GraduationCap },
+          { name: 'Ngân hàng câu hỏi', path: '/teacher/questions', icon: FolderLock },
+          { name: 'Quản lý bài thi', path: '/teacher/exams', icon: BookOpen },
+          { name: 'Kết quả học sinh', path: '/teacher/results', icon: ClipboardList },
+          { name: 'Thống kê', path: '/teacher/analytics', icon: LineChart },
         ];
       case 'STUDENT':
       default:
         return [
-          { name: 'Dashboard', path: '/student/dashboard', icon: LayoutDashboard },
-          { name: 'My Classrooms', path: '/student/classrooms', icon: GraduationCap },
-          { name: 'Available Exams', path: '/student/exams', icon: BookOpen },
-          { name: 'My Attempts', path: '/student/attempts', icon: ClipboardList },
-          { name: 'My Profile', path: '/student/profile', icon: Users },
+          { name: 'Bảng điều khiển', path: '/student/dashboard', icon: LayoutDashboard },
+          { name: 'Lớp học của tôi', path: '/student/classrooms', icon: GraduationCap },
+          { name: 'Bài thi có thể làm', path: '/student/exams', icon: BookOpen },
+          { name: 'Lịch sử làm bài', path: '/student/attempts', icon: ClipboardList },
+          { name: 'Hồ sơ cá nhân', path: '/student/profile', icon: Users },
         ];
     }
   };
@@ -58,7 +59,7 @@ const Sidebar = ({ onClose, mobile = false }) => {
         <div>
           <span className="font-extrabold text-white tracking-tight text-xl block">Examify</span>
           <span className="text-[10px] text-primary-400 block -mt-0.5 font-bold uppercase tracking-widest">
-            {roleUpper} PORTAL
+            Cổng {formatRole(roleUpper)}
           </span>
         </div>
       </div>
@@ -99,8 +100,8 @@ const Sidebar = ({ onClose, mobile = false }) => {
             <span className="text-xs font-bold">v2</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-[11px] font-bold text-white uppercase tracking-tight">Version 2.0.4</span>
-            <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Enterprise Ready</span>
+            <span className="text-[11px] font-bold text-white uppercase tracking-tight">Phiên bản 2.0.4</span>
+            <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Sẵn sàng triển khai</span>
           </div>
         </div>
       </div>

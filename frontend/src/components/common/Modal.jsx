@@ -60,7 +60,7 @@ const Modal = ({
           
           <button 
             onClick={onClose}
-            aria-label="Close dialog"
+            aria-label="Đóng hộp thoại"
             className="p-2.5 rounded-2xl text-secondary-300 hover:text-secondary-600 hover:bg-secondary-50 transition-all border border-transparent hover:border-secondary-100"
           >
             <X className="h-6 w-6" />

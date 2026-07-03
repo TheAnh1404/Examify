@@ -28,7 +28,7 @@ const CreateUser = () => {
   useEffect(() => {
     subjectService.getAll()
       .then(response => setSubjects(response.data))
-      .catch(err => setError(err.message || 'Failed to load subjects.'));
+      .catch(err => setError(err.message || 'Không thể tải danh sách môn học.'));
   }, []);
 
   const handleInputChange = (e) => {
@@ -39,11 +39,11 @@ const CreateUser = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.password) {
-      setError('Please fill in all required inputs.');
+      setError('Vui lòng điền đầy đủ thông tin bắt buộc.');
       return;
     }
     if (formData.password.length < 8) {
-      setError('Password must contain at least 8 characters.');
+      setError('Mật khẩu phải có ít nhất 8 ký tự.');
       return;
     }
 
@@ -57,13 +57,13 @@ const CreateUser = () => {
           ? Object.entries(teachingAssignments).map(([subjectId, note]) => ({ subjectId: Number(subjectId), note }))
           : []
       });
-      setSuccess(`User account for "${res.data.name}" provisioned successfully.`);
+      setSuccess(`Đã tạo tài khoản cho "${res.data.name}".`);
       
       setTimeout(() => {
         navigate('/admin/users');
       }, 1200);
     } catch (err) {
-      setError(err.message || 'Failed to create user.');
+      setError(err.message || 'Không thể tạo người dùng.');
     } finally {
       setLoading(false);
     }
@@ -89,8 +89,8 @@ const CreateUser = () => {
         </Link>
         <div>
           <PageHeader 
-            title="Create User Profile" 
-            subtitle="Provision system access credentials for students, instructors, or administrators."
+            title="Tạo hồ sơ người dùng"
+            subtitle="Cấp tài khoản truy cập hệ thống cho học sinh, giáo viên hoặc quản trị viên."
           />
         </div>
       </div>
@@ -108,50 +108,50 @@ const CreateUser = () => {
         </div>
       )}
 
-      <Card title="Account Details" subtitle="Submit user metadata to create record">
+      <Card title="Thông tin tài khoản" subtitle="Nhập thông tin để tạo hồ sơ người dùng">
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input 
-            label="Full Name"
+            label="Họ và tên"
             name="name"
             value={formData.name}
             onChange={handleInputChange}
-            placeholder="John Doe"
+            placeholder="Nguyễn Văn A"
             required
             icon={<User className="h-4.5 w-4.5" />}
           />
 
           <Input 
-            label="Email Address"
+            label="Địa chỉ email"
             name="email"
             type="email"
             value={formData.email}
             onChange={handleInputChange}
-            placeholder="john.doe@example.com"
+            placeholder="nguyenvana@example.com"
             required
             icon={<Mail className="h-4.5 w-4.5" />}
           />
 
           <Input 
-            label="Account Password"
+            label="Mật khẩu tài khoản"
             name="password"
             type="password"
             value={formData.password}
             onChange={handleInputChange}
-            placeholder="Minimum 8 characters"
+            placeholder="Tối thiểu 8 ký tự"
             minLength={8}
             required
             icon={<Lock className="h-4.5 w-4.5" />}
           />
 
           <Select 
-            label="System Access Role"
+            label="Vai trò truy cập"
             name="role"
             value={formData.role}
             onChange={handleInputChange}
             options={[
-              { value: 'STUDENT', label: 'Student Taker' },
-              { value: 'TEACHER', label: 'Instructor/Teacher' },
-              { value: 'ADMIN', label: 'System Administrator' }
+              { value: 'STUDENT', label: 'Học sinh' },
+              { value: 'TEACHER', label: 'Giáo viên' },
+              { value: 'ADMIN', label: 'Quản trị viên' }
             ]}
             required
           />
@@ -161,8 +161,8 @@ const CreateUser = () => {
               <div className="flex items-center gap-2">
                 <BookOpen className="h-4 w-4 text-primary-600" />
                 <div>
-                  <h4 className="text-sm font-bold text-secondary-800">Teaching Subjects</h4>
-                  <p className="text-xs text-secondary-500">Register the subjects this teacher is allowed to teach.</p>
+                  <h4 className="text-sm font-bold text-secondary-800">Môn giảng dạy</h4>
+                  <p className="text-xs text-secondary-500">Chọn các môn giáo viên này được phép giảng dạy.</p>
                 </div>
               </div>
               {subjects.map((subject) => {
@@ -185,7 +185,7 @@ const CreateUser = () => {
                           ...current,
                           [subject.id]: event.target.value
                         }))}
-                        placeholder="Assignment note, class, or responsibility..."
+                        placeholder="Ghi chú phân công, lớp hoặc trách nhiệm..."
                         className="saas-input text-sm"
                       />
                     )}
@@ -202,7 +202,7 @@ const CreateUser = () => {
               className="flex-1"
               disabled={loading}
             >
-              Cancel
+              Hủy
             </Button>
             <Button
               type="submit"
@@ -210,7 +210,7 @@ const CreateUser = () => {
               loading={loading}
               className="flex-1"
             >
-              Create Account
+              Tạo tài khoản
             </Button>
           </div>
         </form>

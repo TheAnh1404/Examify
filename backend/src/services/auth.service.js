@@ -9,7 +9,7 @@ export const register = async (userData) => {
 
   const userExists = await prisma.user.findUnique({ where: { email: normalizedEmail } });
   if (userExists) {
-    throw new Error('User already exists');
+    throw new Error('Người dùng đã tồn tại');
   }
 
   const salt = await bcrypt.genSalt(10);
@@ -36,7 +36,7 @@ export const login = async (email, password) => {
 
   if (user && (await bcrypt.compare(password, user.passwordHash))) {
     if (user.status === 'LOCKED') {
-      throw new Error('Account is locked');
+      throw new Error('Tài khoản đã bị khóa');
     }
 
     const { passwordHash: _, ...userWithoutPassword } = user;
@@ -45,7 +45,7 @@ export const login = async (email, password) => {
       token: generateToken(user.id)
     };
   } else {
-    throw new Error('Invalid email or password');
+    throw new Error('Email hoặc mật khẩu không đúng');
   }
 };
 
@@ -81,7 +81,7 @@ export const resetPassword = async (token, newPassword) => {
   });
 
   if (!user) {
-    throw new Error('Token is invalid or has expired');
+    throw new Error('Token không hợp lệ hoặc đã hết hạn');
   }
 
   const salt = await bcrypt.genSalt(10);

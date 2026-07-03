@@ -41,7 +41,7 @@ const SubjectManagement = () => {
       })
       .catch((err) => {
         console.error(err);
-        if (active) setError('Failed to fetch subjects list.');
+        if (active) setError('Không thể tải danh sách môn học.');
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -81,7 +81,7 @@ const SubjectManagement = () => {
   const handleModalSubmit = async (e) => {
     e.preventDefault();
     if (!formData.code || !formData.name) {
-      setError('Subject Code and Subject Name are required.');
+      setError('Mã môn học và tên môn học là bắt buộc.');
       return;
     }
 
@@ -92,15 +92,15 @@ const SubjectManagement = () => {
       if (isEdit) {
         const res = await subjectService.update(selectedSubject.id, formData);
         setSubjects(prev => prev.map(s => s.id === selectedSubject.id ? res.data : s));
-        setSuccess(`Subject "${res.data.name}" updated successfully.`);
+        setSuccess(`Đã cập nhật môn học "${res.data.name}".`);
       } else {
         const res = await subjectService.create(formData);
         setSubjects(prev => [...prev, res.data]);
-        setSuccess(`Subject "${res.data.name}" created successfully.`);
+        setSuccess(`Đã tạo môn học "${res.data.name}".`);
       }
       setModalOpen(false);
     } catch (err) {
-      setError(err.message || 'Failed to save subject details.');
+      setError(err.message || 'Không thể lưu thông tin môn học.');
     } finally {
       setSaveLoading(false);
     }
@@ -121,11 +121,11 @@ const SubjectManagement = () => {
       setDeleteLoading(true);
       await subjectService.delete(subjectToDelete.id);
       setSubjects(prev => prev.filter(s => s.id !== subjectToDelete.id));
-      setSuccess(`Subject "${subjectToDelete.name}" deleted successfully.`);
+      setSuccess(`Đã xóa môn học "${subjectToDelete.name}".`);
       setDeleteOpen(false);
       setSubjectToDelete(null);
     } catch (err) {
-      setError(err.message || 'Failed to delete subject.');
+      setError(err.message || 'Không thể xóa môn học.');
       setDeleteOpen(false);
     } finally {
       setDeleteLoading(false);
@@ -134,27 +134,27 @@ const SubjectManagement = () => {
 
   const columns = [
     { 
-      header: 'Code', 
+      header: 'Mã',
       key: 'code', 
       render: (row) => <span className="font-mono font-bold text-xs bg-secondary-100 px-2 py-1 border border-secondary-200 rounded text-secondary-800">{row.code}</span> 
     },
     { 
-      header: 'Subject Name', 
+      header: 'Tên môn học',
       key: 'name', 
       render: (row) => <span className="font-semibold text-secondary-800">{row.name}</span> 
     },
-    { header: 'Description', key: 'description' },
+    { header: 'Mô tả', key: 'description' },
     {
-      header: 'Usage',
+      header: 'Sử dụng',
       key: 'usage',
       render: (row) => (
         <span className="text-xs text-secondary-500 font-bold">
-          {row.questionCount} questions / {row.examCount} exams
+          {row.questionCount} câu hỏi / {row.examCount} bài thi
         </span>
       )
     },
     {
-      header: 'Actions',
+      header: 'Thao tác',
       key: 'actions',
       render: (row) => (
         <div className="flex gap-2 justify-end">
@@ -163,14 +163,14 @@ const SubjectManagement = () => {
             size="sm"
             onClick={() => handleEditOpen(row)}
             icon={<Edit className="h-3.5 w-3.5" />}
-            aria-label={`Edit ${row.name}`}
+            aria-label={`Chỉnh sửa ${row.name}`}
           />
           <Button
             variant="danger"
             size="sm"
             onClick={() => handleDeleteClick(row)}
             icon={<Trash2 className="h-3.5 w-3.5" />}
-            aria-label={`Delete ${row.name}`}
+            aria-label={`Xóa ${row.name}`}
           />
         </div>
       )
@@ -180,8 +180,8 @@ const SubjectManagement = () => {
   return (
     <div className="space-y-6">
       <PageHeader 
-        title="Subject Category Management" 
-        subtitle="Organize question banks and active examinations into academic course sections."
+        title="Quản lý môn học"
+        subtitle="Tổ chức ngân hàng câu hỏi và bài thi theo từng môn học."
         actions={
           <Button 
             variant="primary" 
@@ -189,7 +189,7 @@ const SubjectManagement = () => {
             onClick={handleCreateOpen}
             icon={<Plus className="h-4.5 w-4.5" />}
           >
-            Create Subject
+            Tạo môn học
           </Button>
         }
       />
@@ -213,40 +213,40 @@ const SubjectManagement = () => {
         data={subjects} 
         loading={loading}
         pageSize={6} 
-        emptyMessage="No subjects have been defined in the platform yet."
+        emptyMessage="Chưa có môn học nào trong hệ thống."
       />
 
       {/* Modal form */}
       <Modal 
         isOpen={modalOpen} 
         onClose={() => setModalOpen(false)}
-        title={isEdit ? 'Modify Subject Category' : 'Create Subject Category'}
+        title={isEdit ? 'Chỉnh sửa môn học' : 'Tạo môn học'}
       >
         <form onSubmit={handleModalSubmit} className="space-y-4">
           <Input 
-            label="Subject Code"
+            label="Mã môn học"
             name="code"
             value={formData.code}
             onChange={handleInputChange}
-            placeholder="e.g. CS-101"
+            placeholder="Ví dụ: CS-101"
             required
           />
 
           <Input 
-            label="Subject Name"
+            label="Tên môn học"
             name="name"
             value={formData.name}
             onChange={handleInputChange}
-            placeholder="e.g. Computer Science"
+            placeholder="Ví dụ: Tin học"
             required
           />
 
           <Textarea 
-            label="Description"
+            label="Mô tả"
             name="description"
             value={formData.description}
             onChange={handleInputChange}
-            placeholder="Outline topics covered under this subject..."
+            placeholder="Mô tả các chủ đề thuộc môn học này..."
           />
 
           <div className="flex gap-3 pt-4 border-t border-secondary-200">
@@ -255,7 +255,7 @@ const SubjectManagement = () => {
               onClick={() => setModalOpen(false)}
               className="flex-1"
             >
-              Cancel
+              Hủy
             </Button>
             <Button
               type="submit"
@@ -263,7 +263,7 @@ const SubjectManagement = () => {
               loading={saveLoading}
               className="flex-1"
             >
-              {isEdit ? 'Save Changes' : 'Create Subject'}
+              {isEdit ? 'Lưu thay đổi' : 'Tạo môn học'}
             </Button>
           </div>
         </form>
@@ -274,9 +274,9 @@ const SubjectManagement = () => {
         isOpen={deleteOpen}
         onClose={() => setDeleteOpen(false)}
         onConfirm={handleConfirmDelete}
-        title="Delete Subject Category"
-        message={`Delete subject "${subjectToDelete?.name}" (${subjectToDelete?.code})? Subjects used by questions or exams cannot be deleted.`}
-        confirmText="Delete Subject"
+        title="Xóa môn học"
+        message={`Xóa môn học "${subjectToDelete?.name}" (${subjectToDelete?.code})? Môn học đang được dùng bởi câu hỏi hoặc bài thi sẽ không thể xóa.`}
+        confirmText="Xóa môn học"
         loading={deleteLoading}
       />
     </div>

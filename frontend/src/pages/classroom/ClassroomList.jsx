@@ -179,11 +179,11 @@ const ClassroomList = () => {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'PENDING':
-        return <Badge variant="warning" className="text-[10px] tracking-widest uppercase flex items-center gap-1.5"><Clock className="h-3 w-3" />Pending</Badge>;
+        return <Badge variant="warning" className="text-[10px] tracking-widest uppercase flex items-center gap-1.5"><Clock className="h-3 w-3" />Đang chờ</Badge>;
       case 'REJECTED':
-        return <Badge variant="danger" className="text-[10px] tracking-widest uppercase flex items-center gap-1.5"><XCircle className="h-3 w-3" />Rejected</Badge>;
+        return <Badge variant="danger" className="text-[10px] tracking-widest uppercase flex items-center gap-1.5"><XCircle className="h-3 w-3" />Từ chối</Badge>;
       case 'APPROVED':
-        return <Badge variant="success" className="text-[10px] tracking-widest uppercase flex items-center gap-1.5"><CheckCircle className="h-3 w-3" />Approved</Badge>;
+        return <Badge variant="success" className="text-[10px] tracking-widest uppercase flex items-center gap-1.5"><CheckCircle className="h-3 w-3" />Đã duyệt</Badge>;
       default:
         return null;
     }
@@ -192,18 +192,18 @@ const ClassroomList = () => {
   return (
     <div className="space-y-8 animate-fade-in">
       <PageHeader
-        title={isTeacher ? "My Teaching Classrooms" : "Enrolled Classrooms"}
-        subtitle={isTeacher ? "Manage your virtual classrooms, assign subjects, and track student progress." : "Access your registered classes and join new ones."}
+        title={isTeacher ? "Lớp học của tôi" : "Lớp đã tham gia"}
+        subtitle={isTeacher ? "Quản lý lớp học, môn học và tiến độ học sinh." : "Truy cập lớp đã đăng ký và gửi yêu cầu tham gia lớp mới."}
         actions={
           <>
             {isTeacher && (
               <Button variant="primary" onClick={() => setIsModalOpen(true)} icon={<Plus className="h-4.5 w-4.5" />}>
-                New Classroom
+                Tạo lớp học
               </Button>
             )}
             {isStudent && (
               <Button variant="primary" onClick={() => setIsJoinModalOpen(true)} icon={<LogIn className="h-4.5 w-4.5" />}>
-                Join a Class
+                Tham gia lớp
               </Button>
             )}
           </>
@@ -221,7 +221,7 @@ const ClassroomList = () => {
                 : 'text-secondary-500 hover:text-secondary-700'
             }`}
           >
-            My Classes
+            Lớp của tôi
           </button>
           <button
             onClick={() => setActiveTab('requests')}
@@ -231,7 +231,7 @@ const ClassroomList = () => {
                 : 'text-secondary-500 hover:text-secondary-700'
             }`}
           >
-            Waiting Approval
+            Chờ duyệt
             {pendingCount > 0 && (
               <span className="h-5 min-w-[20px] px-1.5 rounded-full bg-amber-500 text-white text-[10px] font-black flex items-center justify-center">
                 {pendingCount}
@@ -250,7 +250,7 @@ const ClassroomList = () => {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary-400" />
               <input
                 type="text"
-                placeholder="Search by class name, code, or school..."
+                placeholder="Tìm theo tên lớp, mã lớp hoặc trường..."
                 className="w-full pl-12 pr-4 py-3.5 bg-white border border-secondary-100 rounded-2xl focus:ring-4 focus:ring-primary-500/5 focus:border-primary-500 outline-none transition-all font-medium text-secondary-900"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -259,16 +259,16 @@ const ClassroomList = () => {
           </div>
 
           {loading ? (
-            <Loading message="Syncing classroom directory..." />
+            <Loading message="Đang tải danh sách lớp học..." />
           ) : classrooms.length === 0 ? (
             <EmptyState
               icon={GraduationCap}
-              title="No Classrooms Found"
-              description={searchQuery ? "Try adjusting your search filters." : (isTeacher ? "Get started by creating your first virtual classroom." : "You haven't been enrolled in any classes yet. Use 'Join a Class' to get started.")}
+              title="Không tìm thấy lớp học"
+              description={searchQuery ? "Hãy thử thay đổi từ khóa tìm kiếm." : (isTeacher ? "Hãy bắt đầu bằng cách tạo lớp học đầu tiên." : "Bạn chưa tham gia lớp học nào. Hãy dùng 'Tham gia lớp' để bắt đầu.")}
               action={isTeacher && !searchQuery ? (
-                <Button variant="primary" onClick={() => setIsModalOpen(true)}>Create First Class</Button>
+                <Button variant="primary" onClick={() => setIsModalOpen(true)}>Tạo lớp đầu tiên</Button>
               ) : (isStudent && !searchQuery ? (
-                <Button variant="primary" onClick={() => setIsJoinModalOpen(true)} icon={<LogIn className="h-4 w-4" />}>Join a Class</Button>
+                <Button variant="primary" onClick={() => setIsJoinModalOpen(true)} icon={<LogIn className="h-4 w-4" />}>Tham gia lớp</Button>
               ) : null)}
             />
           ) : (
@@ -303,16 +303,16 @@ const ClassroomList = () => {
                     <div className="space-y-3.5 pt-4 border-t border-secondary-50">
                       <div className="flex items-center gap-3 text-xs font-bold text-secondary-500">
                         <School className="h-4 w-4 text-secondary-300" />
-                        <span className="truncate">{cls.schoolName || 'Global Institution'}</span>
+                        <span className="truncate">{cls.schoolName || 'Cơ sở giáo dục'}</span>
                       </div>
                       <div className="flex items-center gap-3 text-xs font-bold text-secondary-500">
                         <User className="h-4 w-4 text-secondary-300" />
-                        <span>{isTeacher ? `${cls.studentCount} Students Enrolled` : `Instructor: ${cls.teacher?.fullName}`}</span>
+                        <span>{isTeacher ? `${cls.studentCount} học sinh đã tham gia` : `Giáo viên: ${cls.teacher?.fullName}`}</span>
                       </div>
                     </div>
                   </div>
                   <div className="px-8 py-4 bg-secondary-50/50 flex items-center justify-between group-hover:bg-primary-50 transition-colors">
-                    <span className="text-[10px] font-black text-secondary-400 uppercase tracking-widest group-hover:text-primary-600">View Classroom</span>
+                    <span className="text-[10px] font-black text-secondary-400 uppercase tracking-widest group-hover:text-primary-600">Xem lớp học</span>
                     <ArrowRight className="h-4 w-4 text-secondary-300 group-hover:text-primary-500 group-hover:translate-x-1 transition-all" />
                   </div>
                 </Card>
@@ -326,14 +326,14 @@ const ClassroomList = () => {
       {isStudent && activeTab === 'requests' && (
         <>
           {requestsLoading ? (
-            <Loading message="Loading your enrollment requests..." />
+            <Loading message="Đang tải yêu cầu tham gia..." />
           ) : myRequests.length === 0 ? (
             <EmptyState
               icon={Clock}
-              title="No Enrollment Requests"
-              description="You haven't sent any join requests yet. Use 'Join a Class' to find and request access to a classroom."
+              title="Chưa có yêu cầu tham gia"
+              description="Bạn chưa gửi yêu cầu tham gia lớp nào. Hãy dùng 'Tham gia lớp' để tìm và gửi yêu cầu."
               action={
-                <Button variant="primary" onClick={() => setIsJoinModalOpen(true)} icon={<LogIn className="h-4 w-4" />}>Join a Class</Button>
+                <Button variant="primary" onClick={() => setIsJoinModalOpen(true)} icon={<LogIn className="h-4 w-4" />}>Tham gia lớp</Button>
               }
             />
           ) : (
@@ -372,17 +372,17 @@ const ClassroomList = () => {
                       </div>
                       <div className="flex items-center gap-2.5 font-bold text-secondary-500">
                         <School className="h-3.5 w-3.5 text-secondary-300" />
-                        <span>{req.classroom.schoolName || 'Global Institution'}</span>
+                        <span>{req.classroom.schoolName || 'Cơ sở giáo dục'}</span>
                       </div>
                       <div className="flex items-center gap-2.5 font-bold text-secondary-400">
                         <Clock className="h-3.5 w-3.5 text-secondary-300" />
-                        <span>{new Date(req.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                        <span>{new Date(req.createdAt).toLocaleDateString('vi-VN', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                       </div>
                     </div>
 
                     {req.message && (
                       <div className="bg-secondary-50 rounded-xl p-3.5">
-                        <p className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1.5">Your Message</p>
+                        <p className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1.5">Lời nhắn của bạn</p>
                         <p className="text-xs text-secondary-600 font-medium line-clamp-2">{req.message}</p>
                       </div>
                     )}
@@ -397,7 +397,7 @@ const ClassroomList = () => {
                           setIsJoinModalOpen(true);
                         }}
                       >
-                        Re-send Request
+                        Gửi lại yêu cầu
                       </Button>
                     )}
                   </div>
@@ -412,7 +412,7 @@ const ClassroomList = () => {
       <Modal
         isOpen={isJoinModalOpen}
         onClose={handleCloseJoinModal}
-        title="Join a Classroom"
+        title="Tham gia lớp học"
       >
         <div className="space-y-6">
           {joinSuccess ? (
@@ -420,21 +420,21 @@ const ClassroomList = () => {
               <div className="h-20 w-20 rounded-full bg-emerald-50 flex items-center justify-center mx-auto">
                 <CheckCircle className="h-10 w-10 text-emerald-500" />
               </div>
-              <h3 className="text-xl font-black text-secondary-900">Request Sent!</h3>
-              <p className="text-sm text-secondary-500 font-medium">Your join request has been submitted. The teacher will review it shortly.</p>
+              <h3 className="text-xl font-black text-secondary-900">Đã gửi yêu cầu!</h3>
+              <p className="text-sm text-secondary-500 font-medium">Yêu cầu tham gia của bạn đã được gửi. Giáo viên sẽ xét duyệt trong thời gian sớm nhất.</p>
             </div>
           ) : (
             <>
               {/* Class Code Input */}
               <div>
                 <label className="block text-xs font-black text-secondary-500 uppercase tracking-widest mb-2.5">
-                  Enter Class Code
+                  Nhập mã lớp
                 </label>
                 <div className="relative">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary-400" />
                   <input
                     type="text"
-                    placeholder="e.g. MAT3XKPR"
+                    placeholder="Ví dụ: MAT3XKPR"
                     className="w-full pl-12 pr-4 py-4 bg-secondary-50 border-none rounded-2xl focus:ring-4 focus:ring-primary-500/10 outline-none transition-all font-mono font-bold text-secondary-900 text-lg tracking-wider uppercase"
                     value={classCode}
                     onChange={(e) => setClassCode(e.target.value.toUpperCase())}
@@ -480,11 +480,11 @@ const ClassroomList = () => {
                       </div>
                       <div className="flex items-center gap-2.5 text-xs font-bold text-secondary-500">
                         <Users className="h-4 w-4 text-secondary-300" />
-                        <span>{classPreview._count?.students || 0} students</span>
+                      <span>{classPreview._count?.students || 0} học sinh</span>
                       </div>
                       <div className="flex items-center gap-2.5 text-xs font-bold text-secondary-500 col-span-2">
                         <School className="h-4 w-4 text-secondary-300" />
-                        <span>{classPreview.schoolName || 'Global Institution'}</span>
+                        <span>{classPreview.schoolName || 'Cơ sở giáo dục'}</span>
                       </div>
                     </div>
 
@@ -500,10 +500,10 @@ const ClassroomList = () => {
                 <div>
                   <label className="block text-xs font-black text-secondary-500 uppercase tracking-widest mb-2.5">
                     <MessageSquare className="h-3.5 w-3.5 inline mr-1.5" />
-                    Message to Teacher (Optional)
+                    Lời nhắn cho giáo viên (không bắt buộc)
                   </label>
                   <textarea
-                    placeholder="Introduce yourself or explain why you'd like to join..."
+                    placeholder="Giới thiệu bản thân hoặc lý do bạn muốn tham gia lớp..."
                     className="w-full px-5 py-4 bg-secondary-50 border-none rounded-2xl focus:ring-4 focus:ring-primary-500/10 outline-none transition-all font-medium text-secondary-900 text-sm resize-none"
                     rows={3}
                     value={joinMessage}
@@ -516,7 +516,7 @@ const ClassroomList = () => {
 
               {/* Actions */}
               <div className="flex justify-end gap-3 pt-2">
-                <Button variant="outline" onClick={handleCloseJoinModal}>Cancel</Button>
+                <Button variant="outline" onClick={handleCloseJoinModal}>Hủy</Button>
                 {classPreview && (
                   <Button
                     variant="primary"
@@ -524,7 +524,7 @@ const ClassroomList = () => {
                     loading={submittingJoin}
                     icon={<Send className="h-4 w-4" />}
                   >
-                    Send Join Request
+                    Gửi yêu cầu tham gia
                   </Button>
                 )}
               </div>
@@ -537,53 +537,53 @@ const ClassroomList = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Create Virtual Classroom"
+        title="Tạo lớp học"
       >
         <form onSubmit={handleCreateClass} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <Input
-              label="Class Name"
-              placeholder="e.g. Mathematics 10A1"
+              label="Tên lớp"
+              placeholder="Ví dụ: Toán 10A1"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               required
             />
             <Input
-              label="Class Code (Optional)"
-              placeholder="Auto-generated if empty"
+              label="Mã lớp (không bắt buộc)"
+              placeholder="Tự động tạo nếu để trống"
               value={formData.code}
               onChange={(e) => setFormData({ ...formData, code: e.target.value })}
             />
           </div>
           <Select
-            label="Subject"
+            label="Môn học"
             options={subjects}
             value={formData.subjectId}
             onChange={(e) => setFormData({ ...formData, subjectId: e.target.value })}
-            placeholder="Select a subject"
+            placeholder="Chọn môn học"
             required
           />
           <Input
-            label="Banner Image URL (Optional)"
+            label="URL ảnh bìa (không bắt buộc)"
             value={formData.bannerUrl}
             onChange={(e) => setFormData({ ...formData, bannerUrl: e.target.value })}
             placeholder="https://images.unsplash.com/..."
           />
           <Input
-            label="School / Institution"
+            label="Trường / Cơ sở"
             value={formData.schoolName}
             onChange={(e) => setFormData({ ...formData, schoolName: e.target.value })}
-            placeholder="e.g. International High School"
+            placeholder="Ví dụ: Trường THPT Quốc tế"
           />
           <Input
-            label="Short Description"
+            label="Mô tả ngắn"
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            placeholder="Brief overview of the class goals..."
+            placeholder="Mô tả ngắn về mục tiêu lớp học..."
           />
           <div className="flex justify-end gap-3 pt-4">
-            <Button variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-            <Button type="submit" variant="primary" loading={submitting}>Launch Classroom</Button>
+            <Button variant="outline" onClick={() => setIsModalOpen(false)}>Hủy</Button>
+            <Button type="submit" variant="primary" loading={submitting}>Tạo lớp học</Button>
           </div>
         </form>
       </Modal>

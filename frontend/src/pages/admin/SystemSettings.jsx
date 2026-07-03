@@ -9,7 +9,7 @@ import { Save, CheckCircle, Shield, Settings, ShieldAlert } from 'lucide-react';
 
 const SystemSettings = () => {
   const [formData, setFormData] = useState({
-    siteName: 'Examify Assessment Engine',
+    siteName: 'Examify - Hệ thống đánh giá',
     contactEmail: 'support@examify.com',
     proctoringEnforced: true,
     tabFocusWarnings: 3,
@@ -51,7 +51,7 @@ const SystemSettings = () => {
     try {
       const response = await settingsService.update(formData);
       setFormData(response.data);
-      setSuccess('System configuration parameters updated successfully.');
+      setSuccess('Cập nhật cấu hình hệ thống thành công.');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -59,13 +59,13 @@ const SystemSettings = () => {
     }
   };
 
-  if (loading) return <Loading message="Loading system configuration..." />;
+  if (loading) return <Loading message="Đang tải cấu hình hệ thống..." />;
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
       <PageHeader 
-        title="Global System Parameters" 
-        subtitle="Manage proctoring thresholds, register configurations, and email targets."
+        title="Tham số hệ thống"
+        subtitle="Quản lý ngưỡng giám sát, đăng ký tài khoản và email liên hệ."
       />
 
       {success && (
@@ -81,26 +81,26 @@ const SystemSettings = () => {
         </div>
       )}
 
-      <Card title="System Settings Panel" subtitle="Configure system rules">
+      <Card title="Bảng cài đặt hệ thống" subtitle="Cấu hình các quy tắc vận hành">
         <form onSubmit={handleSubmit} className="space-y-6">
           
           {/* General Section */}
           <div className="space-y-4">
             <h4 className="font-semibold text-sm text-secondary-800 flex items-center gap-2 border-b border-secondary-100 pb-2">
               <Settings className="h-4 w-4 text-primary-600" />
-              General Configuration
+              Cấu hình chung
             </h4>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input 
-                label="Site/Platform Name"
+                label="Tên nền tảng"
                 name="siteName"
                 value={formData.siteName}
                 onChange={handleInputChange}
                 required
               />
               <Input 
-                label="Contact E-mail Target"
+                label="Email liên hệ"
                 name="contactEmail"
                 type="email"
                 value={formData.contactEmail}
@@ -117,7 +117,7 @@ const SystemSettings = () => {
                 onChange={handleInputChange}
                 className="h-4.5 w-4.5 rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
               />
-              <span>Enable self-registration for new student accounts</span>
+              <span>Cho phép học sinh tự đăng ký tài khoản mới</span>
             </label>
           </div>
 
@@ -125,7 +125,7 @@ const SystemSettings = () => {
           <div className="space-y-4 pt-2">
             <h4 className="font-semibold text-sm text-secondary-800 flex items-center gap-2 border-b border-secondary-100 pb-2">
               <Shield className="h-4 w-4 text-accent-600" />
-              Proctoring Security Rules
+              Quy tắc giám sát bài thi
             </h4>
             
             <label className="flex items-center gap-2.5 cursor-pointer py-1 text-sm font-medium text-secondary-700">
@@ -136,11 +136,11 @@ const SystemSettings = () => {
                 onChange={handleInputChange}
                 className="h-4.5 w-4.5 rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
               />
-              <span>Enforce document visibility change/focus tracking for student tests</span>
+              <span>Bật theo dõi chuyển tab/mất tập trung trong bài thi của học sinh</span>
             </label>
 
             <Input 
-              label="Proctor warnings threshold (Max tab switches permitted before auto-flags)"
+              label="Ngưỡng cảnh báo giám sát (số lần chuyển tab tối đa trước khi đánh dấu)"
               name="tabFocusWarnings"
               type="number"
               value={formData.tabFocusWarnings}
@@ -160,7 +160,7 @@ const SystemSettings = () => {
               className="w-full flex items-center justify-center gap-2"
               icon={<Save className="h-4.5 w-4.5" />}
             >
-              Save Configuration Settings
+              Lưu cài đặt
             </Button>
           </div>
         </form>

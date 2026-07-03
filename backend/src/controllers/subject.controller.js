@@ -19,7 +19,7 @@ export const getSubjects = async (req, res, next) => {
       orderBy: { name: 'asc' }
     });
 
-    return successResponse(res, subjects, 'Subjects retrieved successfully');
+    return successResponse(res, subjects, 'Lấy danh sách môn học thành công');
   } catch (error) {
     next(error);
   }
@@ -32,7 +32,7 @@ export const getSubjectById = async (req, res, next) => {
       const assignment = await prisma.teacherSubject.findUnique({
         where: { teacherId_subjectId: { teacherId: req.user.id, subjectId } }
       });
-      if (!assignment) return errorResponse(res, 'You are not assigned to teach this subject', 403);
+      if (!assignment) return errorResponse(res, 'Bạn chưa được phân công giảng dạy môn học này', 403);
     }
     const subject = await prisma.subject.findUnique({
       where: { id: subjectId },
@@ -43,8 +43,8 @@ export const getSubjectById = async (req, res, next) => {
       }
     });
 
-    if (!subject) return errorResponse(res, 'Subject not found', 404);
-    return successResponse(res, subject, 'Subject retrieved successfully');
+    if (!subject) return errorResponse(res, 'Không tìm thấy môn học', 404);
+    return successResponse(res, subject, 'Lấy thông tin môn học thành công');
   } catch (error) {
     next(error);
   }
@@ -54,17 +54,17 @@ export const createSubject = async (req, res, next) => {
   try {
     const { name, code, description } = req.body;
 
-    if (!name?.trim() || !code?.trim()) return errorResponse(res, 'Subject name and code are required', 400);
+    if (!name?.trim() || !code?.trim()) return errorResponse(res, 'Vui lòng nhập tên và mã môn học', 400);
     const normalizedCode = code.trim().toUpperCase();
     const exists = await prisma.subject.findUnique({ where: { code: normalizedCode } });
-    if (exists) return errorResponse(res, 'Subject code already exists', 400);
+    if (exists) return errorResponse(res, 'Mã môn học đã tồn tại', 400);
 
     const subject = await prisma.subject.create({
       data: { name: name.trim(), code: normalizedCode, description: description?.trim() || null },
       include: { _count: { select: { questions: true, exams: true } } }
     });
 
-    return successResponse(res, subject, 'Subject created successfully', 201);
+    return successResponse(res, subject, 'Tạo môn học thành công', 201);
   } catch (error) {
     next(error);
   }
@@ -75,13 +75,13 @@ export const updateSubject = async (req, res, next) => {
     const { name, code, description } = req.body;
     const subjectId = parseInt(req.params.id);
 
-    if (!name?.trim() || !code?.trim()) return errorResponse(res, 'Subject name and code are required', 400);
+    if (!name?.trim() || !code?.trim()) return errorResponse(res, 'Vui lòng nhập tên và mã môn học', 400);
 
     const normalizedCode = code.trim().toUpperCase();
     const duplicate = await prisma.subject.findFirst({
       where: { code: normalizedCode, NOT: { id: subjectId } }
     });
-    if (duplicate) return errorResponse(res, 'Subject code already exists', 400);
+    if (duplicate) return errorResponse(res, 'Mã môn học đã tồn tại', 400);
 
     const subject = await prisma.subject.update({
       where: { id: subjectId },
@@ -89,7 +89,7 @@ export const updateSubject = async (req, res, next) => {
       include: { _count: { select: { questions: true, exams: true } } }
     });
 
-    return successResponse(res, subject, 'Subject updated successfully');
+    return successResponse(res, subject, 'Cập nhật môn học thành công');
   } catch (error) {
     next(error);
   }
@@ -102,13 +102,13 @@ export const deleteSubject = async (req, res, next) => {
       where: { id: subjectId },
       include: { _count: { select: { questions: true, exams: true } } }
     });
-    if (!subject) return errorResponse(res, 'Subject not found', 404);
+    if (!subject) return errorResponse(res, 'Không tìm thấy môn học', 404);
     if (subject._count.questions > 0 || subject._count.exams > 0) {
-      return errorResponse(res, 'Cannot delete a subject that is used by questions or exams', 409);
+      return errorResponse(res, 'Không thể xóa môn học đang được dùng bởi câu hỏi hoặc bài thi', 409);
     }
 
     await prisma.subject.delete({ where: { id: subjectId } });
-    return successResponse(res, null, 'Subject deleted successfully');
+    return successResponse(res, null, 'Xóa môn học thành công');
   } catch (error) {
     next(error);
   }

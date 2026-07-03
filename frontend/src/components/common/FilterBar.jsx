@@ -4,7 +4,7 @@ const FilterBar = ({
   value,
   onChange,
   options = [], // [{ value, label }]
-  label = 'Filter:',
+  label = 'Bộ lọc:',
   className = ''
 }) => {
   return (

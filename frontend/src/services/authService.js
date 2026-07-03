@@ -17,7 +17,7 @@ export const authService = {
 
       return { user, token };
     } catch (error) {
-      const message = error.response?.data?.message || 'Login failed. Please verify your credentials.';
+      const message = error.response?.data?.message || 'Đăng nhập không thành công. Vui lòng kiểm tra thông tin đăng nhập.';
       throw new Error(message, { cause: error });
     }
   },
@@ -38,7 +38,7 @@ export const authService = {
 
       return { user, token };
     } catch (error) {
-      const message = error.response?.data?.message || 'Registration failed. Try a different email address.';
+      const message = error.response?.data?.message || 'Đăng ký không thành công. Vui lòng thử địa chỉ email khác.';
       throw new Error(message, { cause: error });
     }
   },
@@ -60,7 +60,7 @@ export const authService = {
       const response = await API.post('/auth/forgot-password', { email });
       return response.data;
     } catch (error) {
-      const message = error.response?.data?.message || 'Failed to request password reset.';
+      const message = error.response?.data?.message || 'Không thể gửi yêu cầu đặt lại mật khẩu.';
       throw new Error(message, { cause: error });
     }
   },
@@ -70,7 +70,7 @@ export const authService = {
       const response = await API.post('/auth/reset-password', { token, newPassword, confirmPassword });
       return response.data;
     } catch (error) {
-      const message = error.response?.data?.message || 'Failed to reset password.';
+      const message = error.response?.data?.message || 'Không thể đặt lại mật khẩu.';
       throw new Error(message, { cause: error });
     }
   }

@@ -7,7 +7,7 @@ const DataTable = ({
   data = [],
   loading = false,
   pageSize = 10,
-  emptyMessage = 'No records available.'
+  emptyMessage = 'Chưa có dữ liệu.'
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -23,7 +23,7 @@ const DataTable = ({
   if (loading) {
     return (
       <div className="saas-card p-12 flex justify-center items-center">
-        <Loading message="Fetching records..." />
+        <Loading message="Đang tải dữ liệu..." />
       </div>
     );
   }
@@ -71,18 +71,18 @@ const DataTable = ({
       {data.length > pageSize && (
         <div className="flex items-center justify-between px-2 py-1">
           <p className="text-sm text-secondary-500">
-            Showing <span className="font-bold text-secondary-900">{startIndex + 1}</span> to{' '}
+            Hiển thị <span className="font-bold text-secondary-900">{startIndex + 1}</span> đến{' '}
             <span className="font-bold text-secondary-900">
               {Math.min(startIndex + pageSize, data.length)}
             </span>{' '}
-            of <span className="font-bold text-secondary-900">{data.length}</span> results
+            trong <span className="font-bold text-secondary-900">{data.length}</span> kết quả
           </p>
           
           <div className="flex items-center gap-2">
             <button
               onClick={() => handlePageChange(effectivePage - 1)}
               disabled={effectivePage === 1}
-              aria-label="Previous page"
+              aria-label="Trang trước"
               className="p-2 rounded-xl border border-secondary-100 bg-white text-secondary-500 hover:bg-secondary-50 hover:text-secondary-900 disabled:opacity-40 disabled:pointer-events-none transition-all shadow-sm"
             >
               <ChevronLeft className="h-5 w-5" />
@@ -103,7 +103,7 @@ const DataTable = ({
                         ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20'
                         : 'text-secondary-400 hover:bg-secondary-50 hover:text-secondary-900'
                     }`}
-                    aria-label={`Page ${pageNum}`}
+                    aria-label={`Trang ${pageNum}`}
                     aria-current={effectivePage === pageNum ? 'page' : undefined}
                   >
                     {pageNum}
@@ -115,7 +115,7 @@ const DataTable = ({
             <button
               onClick={() => handlePageChange(effectivePage + 1)}
               disabled={effectivePage === totalPages}
-              aria-label="Next page"
+              aria-label="Trang sau"
               className="p-2 rounded-xl border border-secondary-100 bg-white text-secondary-500 hover:bg-secondary-50 hover:text-secondary-900 disabled:opacity-40 disabled:pointer-events-none transition-all shadow-sm"
             >
               <ChevronRight className="h-5 w-5" />

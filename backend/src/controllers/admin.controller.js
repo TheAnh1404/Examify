@@ -29,7 +29,7 @@ class AdminController {
       return res.status(200).json(stats);
     } catch (error) {
       console.error('Admin stats error:', error);
-      return res.status(500).json({ message: 'Internal server error fetching stats.' });
+      return res.status(500).json({ message: 'Lỗi máy chủ khi tải thống kê.' });
     }
   }
 
@@ -44,7 +44,7 @@ class AdminController {
       return res.status(200).json(sanitizedUsers);
     } catch (error) {
       console.error('Admin getAllUsers error:', error);
-      return res.status(500).json({ message: 'Internal server error fetching users.' });
+      return res.status(500).json({ message: 'Lỗi máy chủ khi tải người dùng.' });
     }
   }
 
@@ -53,17 +53,17 @@ class AdminController {
       const { name, email, password, role } = req.body;
 
       if (!name || !email || !password || !role) {
-        return res.status(400).json({ message: 'All fields are required.' });
+        return res.status(400).json({ message: 'Vui lòng nhập đầy đủ thông tin.' });
       }
 
       const existingUser = await UserRepository.findByEmail(email);
       if (existingUser) {
-        return res.status(400).json({ message: 'User with this email already exists.' });
+        return res.status(400).json({ message: 'Người dùng với email này đã tồn tại.' });
       }
 
       const allowedRoles = ['admin', 'teacher', 'student'];
       if (!allowedRoles.includes(role)) {
-        return res.status(400).json({ message: 'Invalid user role.' });
+        return res.status(400).json({ message: 'Vai trò người dùng không hợp lệ.' });
       }
 
       // Hash password
@@ -81,7 +81,7 @@ class AdminController {
       return res.status(201).json(userWithoutPassword);
     } catch (error) {
       console.error('Admin createUser error:', error);
-      return res.status(500).json({ message: 'Internal server error creating user.' });
+      return res.status(500).json({ message: 'Lỗi máy chủ khi tạo người dùng.' });
     }
   }
 
@@ -92,7 +92,7 @@ class AdminController {
 
       const user = await UserRepository.findById(id);
       if (!user) {
-        return res.status(404).json({ message: 'User not found.' });
+        return res.status(404).json({ message: 'Không tìm thấy người dùng.' });
       }
 
       const updateData = {};
@@ -101,14 +101,14 @@ class AdminController {
         // Check if email taken by another user
         const existing = await UserRepository.findByEmail(email);
         if (existing && existing.id !== id) {
-          return res.status(400).json({ message: 'Email already in use.' });
+          return res.status(400).json({ message: 'Email đã được sử dụng.' });
         }
         updateData.email = email;
       }
       if (role) {
         const allowedRoles = ['admin', 'teacher', 'student'];
         if (!allowedRoles.includes(role)) {
-          return res.status(400).json({ message: 'Invalid user role.' });
+          return res.status(400).json({ message: 'Vai trò người dùng không hợp lệ.' });
         }
         updateData.role = role;
       }
@@ -123,7 +123,7 @@ class AdminController {
       return res.status(200).json(sanitized);
     } catch (error) {
       console.error('Admin updateUser error:', error);
-      return res.status(500).json({ message: 'Internal server error updating user.' });
+      return res.status(500).json({ message: 'Lỗi máy chủ khi cập nhật người dùng.' });
     }
   }
 
@@ -133,23 +133,23 @@ class AdminController {
 
       // Prevent self-deletion
       if (id === req.user.id) {
-        return res.status(400).json({ message: 'You cannot delete your own admin account.' });
+        return res.status(400).json({ message: 'Bạn không thể xóa tài khoản quản trị của chính mình.' });
       }
 
       const user = await UserRepository.findById(id);
       if (!user) {
-        return res.status(404).json({ message: 'User not found.' });
+        return res.status(404).json({ message: 'Không tìm thấy người dùng.' });
       }
 
       const success = await UserRepository.delete(id);
       if (success) {
-        return res.status(200).json({ message: 'User deleted successfully.' });
+        return res.status(200).json({ message: 'Xóa người dùng thành công.' });
       } else {
-        return res.status(400).json({ message: 'Failed to delete user.' });
+        return res.status(400).json({ message: 'Không thể xóa người dùng.' });
       }
     } catch (error) {
       console.error('Admin deleteUser error:', error);
-      return res.status(500).json({ message: 'Internal server error deleting user.' });
+      return res.status(500).json({ message: 'Lỗi máy chủ khi xóa người dùng.' });
     }
   }
 }

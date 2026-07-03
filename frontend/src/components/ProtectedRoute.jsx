@@ -14,7 +14,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
           <div className="absolute inset-0 rounded-full border-4 border-brand-500/20"></div>
           <div className="absolute inset-0 rounded-full border-4 border-brand-500 border-t-transparent animate-spin"></div>
         </div>
-        <p className="mt-4 text-slate-400 font-medium animate-pulse">Initializing Session...</p>
+        <p className="mt-4 text-slate-400 font-medium animate-pulse">Đang khởi tạo phiên đăng nhập...</p>
       </div>
     );
   }

@@ -21,7 +21,7 @@ const AdminDashboard = () => {
         setStatsData(res.data);
       } catch (err) {
         console.error(err);
-        setError('Failed to fetch system dashboard metrics.');
+        setError('Không thể tải số liệu bảng điều khiển hệ thống.');
       } finally {
         setLoading(false);
       }
@@ -32,7 +32,7 @@ const AdminDashboard = () => {
 
   if (loading) return (
     <div className="min-h-[60vh] flex items-center justify-center">
-      <Loading message="Assembling system overview..." />
+      <Loading message="Đang tổng hợp tổng quan hệ thống..." />
     </div>
   );
 
@@ -52,15 +52,15 @@ const AdminDashboard = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
         <div>
-          <h1 className="text-4xl font-extrabold text-secondary-900 tracking-tight mb-2">System Control Center</h1>
-          <p className="text-secondary-500 font-medium">Overview of system-wide SaaS stats, subject categories, and user allocations.</p>
+          <h1 className="text-4xl font-extrabold text-secondary-900 tracking-tight mb-2">Trung tâm quản trị hệ thống</h1>
+          <p className="text-secondary-500 font-medium">Tổng quan số liệu hệ thống, môn học và phân bổ người dùng.</p>
         </div>
         <div className="flex items-center gap-4">
           <Button variant="secondary" onClick={() => navigate('/admin/settings')} icon={<Settings size={18} />}>
-            Config
+            Cài đặt
           </Button>
           <Button variant="primary" onClick={() => navigate('/admin/users/create')} icon={<Activity size={18} />}>
-            Provision User
+            Tạo người dùng
           </Button>
         </div>
       </div>
@@ -68,42 +68,42 @@ const AdminDashboard = () => {
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
         <StatCard 
-          title="Total Students" 
+          title="Tổng học sinh"
           value={stats.totalStudents} 
           icon={GraduationCap} 
-          description="Registered student accounts"
+          description="Tài khoản học sinh đã đăng ký"
         />
         <StatCard 
-          title="Instructors" 
+          title="Giáo viên"
           value={stats.totalTeachers} 
           icon={Users} 
-          description="Active instructor accounts"
+          description="Tài khoản giáo viên hoạt động"
         />
         <StatCard 
-          title="Active Exams" 
+          title="Bài thi hoạt động"
           value={stats.totalExams} 
           icon={BookOpen} 
-          description="Published examinations"
+          description="Bài thi đã công bố"
         />
         <StatCard 
-          title="Total Attempts" 
+          title="Tổng lượt làm bài"
           value={stats.totalSubmissions} 
           icon={FileSpreadsheet} 
-          description={`${stats.flaggedAttempts} proctoring flags`}
+          description={`${stats.flaggedAttempts} cảnh báo giám sát`}
         />
         <StatCard 
-          title="Global Pass Rate" 
+          title="Tỷ lệ đạt toàn hệ thống"
           value={`${stats.passRate}%`} 
           icon={Award} 
-          description="Across submitted attempts"
+          description="Trên các lượt đã nộp"
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         {/* Leaderboard Panel */}
         <Card 
-          title="Student Leaderboard" 
-          subtitle="Highest performing student metrics across all attempts" 
+          title="Bảng xếp hạng học sinh"
+          subtitle="Học sinh có kết quả cao nhất trong toàn bộ lượt làm bài"
           className="lg:col-span-2 shadow-xl shadow-secondary-200/20"
           bodyClassName="p-0"
         >
@@ -111,9 +111,9 @@ const AdminDashboard = () => {
             <table className="w-full text-left text-sm border-collapse">
               <thead>
                 <tr className="bg-secondary-50/30 border-b border-secondary-50">
-                  <th className="px-8 py-5 text-[10px] font-extrabold text-secondary-400 uppercase tracking-[0.15em]">Student Profile</th>
-                  <th className="px-8 py-5 text-[10px] font-extrabold text-secondary-400 uppercase tracking-[0.15em] text-center">Attempts</th>
-                  <th className="px-8 py-5 text-[10px] font-extrabold text-secondary-400 uppercase tracking-[0.15em] text-right">Avg Performance</th>
+                  <th className="px-8 py-5 text-[10px] font-extrabold text-secondary-400 uppercase tracking-[0.15em]">Hồ sơ học sinh</th>
+                  <th className="px-8 py-5 text-[10px] font-extrabold text-secondary-400 uppercase tracking-[0.15em] text-center">Lượt làm</th>
+                  <th className="px-8 py-5 text-[10px] font-extrabold text-secondary-400 uppercase tracking-[0.15em] text-right">Điểm TB</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-secondary-50">
@@ -144,7 +144,7 @@ const AdminDashboard = () => {
                 {leaderboard.length === 0 && (
                   <tr>
                     <td colSpan="3" className="px-8 py-12 text-center text-secondary-400 font-semibold">
-                      No submitted attempts are available yet.
+                      Chưa có lượt nộp bài nào.
                     </td>
                   </tr>
                 )}
@@ -153,7 +153,7 @@ const AdminDashboard = () => {
           </div>
           <div className="p-6 bg-secondary-50/30 border-t border-secondary-50 flex justify-center">
             <Link to="/admin/results" className="text-[10px] font-extrabold text-primary-500 hover:text-primary-700 flex items-center gap-2 uppercase tracking-widest transition-all">
-              Review All System Results
+              Xem toàn bộ kết quả hệ thống
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
@@ -161,12 +161,12 @@ const AdminDashboard = () => {
 
         {/* Quick Management Links */}
         <div className="space-y-8">
-          <Card title="Administration" subtitle="Core system management" className="shadow-xl shadow-secondary-200/20">
+          <Card title="Quản trị" subtitle="Quản lý các thành phần cốt lõi" className="shadow-xl shadow-secondary-200/20">
             <div className="space-y-4">
               {[
-                { to: '/admin/users', icon: Users, color: 'text-primary-500 bg-primary-50', label: 'User Accounts' },
-                { to: '/admin/subjects', icon: BookOpen, color: 'text-accent-500 bg-accent-50', label: 'Subject Categories' },
-                { to: '/admin/settings', icon: Settings, color: 'text-secondary-400 bg-secondary-50', label: 'System Parameters' }
+                { to: '/admin/users', icon: Users, color: 'text-primary-500 bg-primary-50', label: 'Tài khoản người dùng' },
+                { to: '/admin/subjects', icon: BookOpen, color: 'text-accent-500 bg-accent-50', label: 'Môn học' },
+                { to: '/admin/settings', icon: Settings, color: 'text-secondary-400 bg-secondary-50', label: 'Tham số hệ thống' }
               ].map((link, idx) => (
                 <Link 
                   key={idx}
@@ -191,13 +191,13 @@ const AdminDashboard = () => {
               <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center mb-6 ring-1 ring-white/20">
                 <Activity className="h-6 w-6 text-primary-400" />
               </div>
-              <h4 className="text-xl font-extrabold mb-3 tracking-tight">System Health</h4>
+              <h4 className="text-xl font-extrabold mb-3 tracking-tight">Tình trạng hệ thống</h4>
               <p className="text-secondary-400 text-xs font-bold leading-relaxed mb-8 uppercase tracking-wide">
-                Database health verified at {new Date(systemStatus.generatedAt).toLocaleTimeString()}.
+                Cơ sở dữ liệu được kiểm tra lúc {new Date(systemStatus.generatedAt).toLocaleTimeString('vi-VN')}.
               </p>
               <div className="flex items-center gap-3 text-[10px] font-extrabold uppercase tracking-[0.2em] text-accent-400">
                 <div className="h-2.5 w-2.5 rounded-full bg-accent-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
-                {systemStatus.database === 'UP' ? 'Operational' : 'Unavailable'}
+                {systemStatus.database === 'UP' ? 'Hoạt động' : 'Không khả dụng'}
               </div>
             </div>
           </Card>

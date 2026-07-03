@@ -7,6 +7,7 @@ import Loading from '../../components/common/Loading';
 import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
 import { ArrowLeft, Edit, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { formatDifficulty } from '../../utils/i18n';
 
 const QuestionDetail = () => {
   const { id } = useParams();
@@ -23,7 +24,7 @@ const QuestionDetail = () => {
         setQuestion(res.data);
       } catch (err) {
         console.error(err);
-        setError('Failed to load question details.');
+        setError('Không thể tải thông tin câu hỏi.');
       } finally {
         setLoading(false);
       }
@@ -32,7 +33,7 @@ const QuestionDetail = () => {
     fetchQuestion();
   }, [id]);
 
-  if (loading) return <Loading message="Retrieving question prompt..." />;
+  if (loading) return <Loading message="Đang tải câu hỏi..." />;
 
   if (error) {
     return (
@@ -61,8 +62,8 @@ const QuestionDetail = () => {
         </Link>
         <div>
           <PageHeader 
-            title="Question Prompt Details" 
-            subtitle={`Reviewing details for ID: ${id}`}
+            title="Chi tiết câu hỏi"
+            subtitle={`Đang xem chi tiết ID: ${id}`}
             actions={
               <Button
                 variant="primary"
@@ -70,24 +71,24 @@ const QuestionDetail = () => {
                 icon={<Edit className="h-4 w-4" />}
                 size="sm"
               >
-                Edit Prompt
+                Chỉnh sửa
               </Button>
             }
           />
         </div>
       </div>
 
-      <Card title="Question Preview" subtitle={`${question.subjectCode} - ${question.subjectName}`}>
+      <Card title="Xem trước câu hỏi" subtitle={`${question.subjectCode} - ${question.subjectName}`}>
         <div className="space-y-6">
           {/* Question Text */}
           <div className="space-y-1">
-            <span className="text-xs font-semibold text-secondary-400 uppercase tracking-widest">Question prompt text</span>
+            <span className="text-xs font-semibold text-secondary-400 uppercase tracking-widest">Nội dung câu hỏi</span>
             <p className="text-base font-semibold text-secondary-800 leading-relaxed">{question.text}</p>
           </div>
 
           {/* Options Review */}
           <div className="space-y-2.5">
-            <span className="text-xs font-semibold text-secondary-400 uppercase tracking-widest block mb-1">Option Choices</span>
+            <span className="text-xs font-semibold text-secondary-400 uppercase tracking-widest block mb-1">Các lựa chọn</span>
             {question.options.map((option, idx) => {
               const label = String.fromCharCode(65 + idx); // A, B, C, D
               const isCorrect = question.correctOption === idx;
@@ -116,7 +117,7 @@ const QuestionDetail = () => {
                   {isCorrect && (
                     <span className="flex items-center gap-1 text-[10px] text-accent-700 bg-accent-100/40 rounded px-1.5 py-0.5 border border-accent-200 uppercase font-bold tracking-wider">
                       <CheckCircle2 className="h-3 w-3" />
-                      Correct Key
+                      Đáp án đúng
                     </span>
                   )}
                 </div>
@@ -127,12 +128,12 @@ const QuestionDetail = () => {
           {/* Metas */}
           <div className="pt-4 border-t border-secondary-200 grid grid-cols-2 gap-4">
             <div>
-              <span className="text-[10px] text-secondary-450 uppercase font-semibold block">Weight Allocation</span>
-              <span className="text-sm font-bold text-secondary-800">{question.marks} points</span>
+              <span className="text-[10px] text-secondary-450 uppercase font-semibold block">Điểm</span>
+              <span className="text-sm font-bold text-secondary-800">{question.marks} điểm</span>
             </div>
             <div>
-              <span className="text-[10px] text-secondary-450 uppercase font-semibold block">Difficulty Rank</span>
-              <Badge variant={getDifficultyVariant(question.difficulty)} className="mt-0.5">{question.difficulty}</Badge>
+              <span className="text-[10px] text-secondary-450 uppercase font-semibold block">Độ khó</span>
+              <Badge variant={getDifficultyVariant(question.difficulty)} className="mt-0.5">{formatDifficulty(question.difficulty)}</Badge>
             </div>
           </div>
         </div>

@@ -15,7 +15,7 @@ export const gradeAttempt = async (attemptId) => {
     }
   });
 
-  if (!attempt) throw new Error('Attempt not found');
+  if (!attempt) throw new Error('Không tìm thấy lượt làm bài');
 
   const examQuestions = attempt.exam.examQuestions;
   const studentAnswers = attempt.answers;

@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { authService } from '../../services/authService';
 import { Menu, User, LogOut, ChevronDown, Settings, Activity } from 'lucide-react';
+import { formatRole } from '../../utils/i18n';
 
 const Topbar = ({ onMenuClick }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const user = authService.getCurrentUser() || { name: 'Unknown User', role: 'STUDENT' };
+  const user = authService.getCurrentUser() || { name: 'Người dùng', role: 'STUDENT' };
 
   const handleLogout = async () => {
     await authService.logout();
@@ -20,17 +21,18 @@ const Topbar = ({ onMenuClick }) => {
 
   const getPageTitle = () => {
     const path = location.pathname;
-    if (path.includes('/dashboard')) return 'Overview';
-    if (path.includes('/users')) return 'User Management';
-    if (path.includes('/subjects')) return 'Subject Categories';
-    if (path.includes('/questions')) return 'Question Bank';
-    if (path.includes('/exams')) return 'Exam Management';
-    if (path.includes('/results')) return 'Results & Analytics';
-    if (path.includes('/analytics')) return 'Analytics Hub';
-    if (path.includes('/settings')) return 'System Settings';
-    if (path.includes('/profile')) return 'My Profile';
-    if (path.includes('/attempts')) return 'Exam History';
-    return 'Dashboard';
+    if (path.includes('/dashboard')) return 'Tổng quan';
+    if (path.includes('/users')) return 'Quản lý người dùng';
+    if (path.includes('/subjects')) return 'Môn học';
+    if (path.includes('/questions')) return 'Ngân hàng câu hỏi';
+    if (path.includes('/exams')) return 'Quản lý bài thi';
+    if (path.includes('/results')) return 'Kết quả và thống kê';
+    if (path.includes('/analytics')) return 'Thống kê';
+    if (path.includes('/settings')) return 'Cài đặt hệ thống';
+    if (path.includes('/profile')) return 'Hồ sơ cá nhân';
+    if (path.includes('/attempts')) return 'Lịch sử làm bài';
+    if (path.includes('/classrooms')) return 'Lớp học';
+    return 'Bảng điều khiển';
   };
 
   return (
@@ -39,7 +41,7 @@ const Topbar = ({ onMenuClick }) => {
       <div className="flex items-center gap-6">
         <button 
           onClick={onMenuClick}
-          aria-label="Open navigation menu"
+          aria-label="Mở menu điều hướng"
           className="p-2.5 rounded-xl text-secondary-500 hover:bg-secondary-50 md:hidden focus:outline-none transition-colors border border-transparent hover:border-secondary-100"
         >
           <Menu className="h-6 w-6" />
@@ -53,7 +55,7 @@ const Topbar = ({ onMenuClick }) => {
       <div className="hidden lg:flex flex-1 justify-center mx-12">
         <div className="inline-flex items-center gap-2 rounded-xl bg-accent-50 border border-accent-100 px-4 py-2 text-[10px] font-extrabold uppercase tracking-widest text-accent-700">
           <Activity className="h-4 w-4" />
-          Secure session active
+          Phiên đăng nhập an toàn
         </div>
       </div>
 
@@ -63,7 +65,7 @@ const Topbar = ({ onMenuClick }) => {
         <div className="relative">
           <button 
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            aria-label="Open account menu"
+            aria-label="Mở menu tài khoản"
             aria-expanded={dropdownOpen}
             className="flex items-center gap-3.5 p-1.5 rounded-2xl hover:bg-secondary-50 transition-all focus:outline-none border border-transparent hover:border-secondary-100"
           >
@@ -77,7 +79,7 @@ const Topbar = ({ onMenuClick }) => {
             
             <div className="hidden xl:block text-left">
               <p className="text-xs font-extrabold text-secondary-900 line-clamp-1 leading-none mb-1">{user.name}</p>
-              <p className="text-[9px] text-primary-500 uppercase font-extrabold tracking-widest leading-none">{user.role}</p>
+              <p className="text-[9px] text-primary-500 uppercase font-extrabold tracking-widest leading-none">{formatRole(user.role)}</p>
             </div>
             
             <ChevronDown className={`h-4 w-4 text-secondary-300 hidden xl:block transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
@@ -90,7 +92,7 @@ const Topbar = ({ onMenuClick }) => {
               <div className="absolute right-0 mt-4 w-64 bg-white border border-secondary-100 rounded-3xl shadow-2xl py-3 z-50 animate-fade-in ring-1 ring-secondary-900/5">
                 <div className="px-6 py-4 border-b border-secondary-50 xl:hidden">
                   <p className="text-sm font-extrabold text-secondary-900">{user.name}</p>
-                  <p className="text-[10px] text-primary-500 font-extrabold uppercase tracking-widest">{user.role}</p>
+                  <p className="text-[10px] text-primary-500 font-extrabold uppercase tracking-widest">{formatRole(user.role)}</p>
                 </div>
                 
                 <div className="py-2 px-2">
@@ -102,7 +104,7 @@ const Topbar = ({ onMenuClick }) => {
                     <div className="p-2 rounded-xl bg-secondary-50 text-secondary-400">
                       <User className="h-4.5 w-4.5" />
                     </div>
-                    My Profile
+                    Hồ sơ cá nhân
                   </Link>
                   {user.role === 'ADMIN' && (
                     <Link
@@ -113,7 +115,7 @@ const Topbar = ({ onMenuClick }) => {
                       <div className="p-2 rounded-xl bg-secondary-50 text-secondary-400">
                         <Settings className="h-4.5 w-4.5" />
                       </div>
-                      System Settings
+                      Cài đặt hệ thống
                     </Link>
                   )}
                 </div>
@@ -126,7 +128,7 @@ const Topbar = ({ onMenuClick }) => {
                     <div className="p-2 rounded-xl bg-danger-100/50">
                       <LogOut className="h-4.5 w-4.5" />
                     </div>
-                    Sign Out System
+                    Đăng xuất
                   </button>
                 </div>
               </div>

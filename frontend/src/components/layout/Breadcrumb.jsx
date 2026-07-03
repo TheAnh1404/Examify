@@ -13,7 +13,7 @@ const Breadcrumb = () => {
     // If it is an ID (e.g. att-xxx, ex-xxx, usr-xxx), abbreviate it
     if (str.includes('-')) {
       if (str.startsWith('usr-') || str.startsWith('sbj-') || str.startsWith('q-') || str.startsWith('ex-') || str.startsWith('att-')) {
-        return 'Details';
+        return 'Chi tiết';
       }
     }
     return str.charAt(0).toUpperCase() + str.slice(1);

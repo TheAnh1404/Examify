@@ -21,7 +21,7 @@ const ExamDetail = () => {
         setExam(res.data);
       } catch (err) {
         console.error(err);
-        setError('Failed to load exam details.');
+        setError('Không thể tải thông tin bài thi.');
       } finally {
         setLoading(false);
       }
@@ -32,7 +32,7 @@ const ExamDetail = () => {
 
   if (loading) return (
     <div className="min-h-[60vh] flex items-center justify-center">
-      <Loading message="Loading exam parameters..." />
+      <Loading message="Đang tải thông tin bài thi..." />
     </div>
   );
 
@@ -41,11 +41,11 @@ const ExamDetail = () => {
       <div className="p-8 rounded-2xl bg-danger-50 border border-danger-100 text-danger-700 flex flex-col items-center gap-4 text-center animate-fade-in">
         <ShieldAlert className="h-10 w-10 shrink-0" />
         <div>
-          <h4 className="text-lg font-bold">Access Error</h4>
-          <p className="font-medium text-sm mt-1">{error || 'Exam details could not be found.'}</p>
+          <h4 className="text-lg font-bold">Lỗi truy cập</h4>
+          <p className="font-medium text-sm mt-1">{error || 'Không tìm thấy thông tin bài thi.'}</p>
         </div>
         <Button onClick={() => navigate('/teacher/exams')} size="md" variant="primary" className="mt-2">
-          Back to List
+          Quay lại danh sách
         </Button>
       </div>
     );
@@ -62,8 +62,8 @@ const ExamDetail = () => {
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
-            <h1 className="h1 mb-1">Exam Preview</h1>
-            <p className="p">Reviewing structure for {exam.title}</p>
+            <h1 className="h1 mb-1">Xem trước bài thi</h1>
+            <p className="p">Đang xem cấu trúc của {exam.title}</p>
           </div>
         </div>
         <Button
@@ -72,50 +72,50 @@ const ExamDetail = () => {
           icon={<FolderLock className="h-4 w-4" />}
           className="shadow-lg shadow-primary-500/20"
         >
-          Manage Questions
+          Quản lý câu hỏi
         </Button>
       </div>
 
       {/* Settings Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-2">
-          <Card title="Assessment Configuration" icon={BookOpen}>
+          <Card title="Cấu hình bài thi" icon={BookOpen}>
             <div className="space-y-6">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="p-4 bg-secondary-50 border border-secondary-100 rounded-2xl">
                   <div className="flex items-center gap-2 text-secondary-400 mb-1">
                     <Clock className="h-3.5 w-3.5" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">Time</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Thời gian</span>
                   </div>
-                  <span className="text-sm font-bold text-secondary-900">{exam.duration}m</span>
+                  <span className="text-sm font-bold text-secondary-900">{exam.duration} phút</span>
                 </div>
                 <div className="p-4 bg-secondary-50 border border-secondary-100 rounded-2xl">
                   <div className="flex items-center gap-2 text-secondary-400 mb-1">
                     <Award className="h-3.5 w-3.5" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">Marks</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Điểm</span>
                   </div>
-                  <span className="text-sm font-bold text-secondary-900">{exam.totalMarks}pt</span>
+                  <span className="text-sm font-bold text-secondary-900">{exam.totalMarks} điểm</span>
                 </div>
                 <div className="p-4 bg-secondary-50 border border-secondary-100 rounded-2xl">
                   <div className="flex items-center gap-2 text-secondary-400 mb-1">
                     <ListChecks className="h-3.5 w-3.5" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">Pass %</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Điểm đạt</span>
                   </div>
                   <span className="text-sm font-bold text-secondary-900">{exam.passPercentage}%</span>
                 </div>
                 <div className="p-4 bg-secondary-50 border border-secondary-100 rounded-2xl">
                   <div className="flex items-center gap-2 text-secondary-400 mb-1">
                     <BookOpen className="h-3.5 w-3.5" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">Items</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Câu hỏi</span>
                   </div>
                   <span className="text-sm font-bold text-secondary-900">{exam.resolvedQuestions.length}</span>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <h4 className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest">Instructional Description</h4>
+                <h4 className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest">Hướng dẫn</h4>
                 <p className="text-sm text-secondary-600 leading-relaxed font-medium bg-secondary-50/50 p-4 rounded-xl border border-secondary-100/50">
-                  {exam.description || 'No instructions provided for this exam.'}
+                  {exam.description || 'Chưa có hướng dẫn cho bài thi này.'}
                 </p>
               </div>
             </div>
@@ -123,14 +123,14 @@ const ExamDetail = () => {
         </div>
 
         <div className="space-y-6">
-          <Card title="Subject Meta" className="bg-primary-600 border-none text-white">
+          <Card title="Thông tin môn học" className="bg-primary-600 border-none text-white">
             <div className="space-y-4">
               <div>
-                <span className="text-[10px] font-bold text-primary-200 uppercase tracking-widest block mb-1">Category Code</span>
+                <span className="text-[10px] font-bold text-primary-200 uppercase tracking-widest block mb-1">Mã môn</span>
                 <span className="text-lg font-bold">{exam.subjectCode}</span>
               </div>
               <div>
-                <span className="text-[10px] font-bold text-primary-200 uppercase tracking-widest block mb-1">Subject Name</span>
+                <span className="text-[10px] font-bold text-primary-200 uppercase tracking-widest block mb-1">Tên môn</span>
                 <span className="text-lg font-bold">{exam.subjectName}</span>
               </div>
             </div>
@@ -141,8 +141,8 @@ const ExamDetail = () => {
       {/* Questions Sheet */}
       <div className="space-y-6">
         <div className="flex items-center justify-between border-b border-secondary-100 pb-4">
-          <h3 className="text-lg font-bold text-secondary-900 tracking-tight">Examination Sheet</h3>
-          <span className="text-xs font-bold text-secondary-400 uppercase tracking-widest">{exam.resolvedQuestions.length} Questions</span>
+          <h3 className="text-lg font-bold text-secondary-900 tracking-tight">Đề thi</h3>
+          <span className="text-xs font-bold text-secondary-400 uppercase tracking-widest">{exam.resolvedQuestions.length} câu hỏi</span>
         </div>
         
         {exam.resolvedQuestions.length === 0 ? (
@@ -150,10 +150,10 @@ const ExamDetail = () => {
             <div className="h-16 w-16 rounded-2xl bg-secondary-50 text-secondary-300 flex items-center justify-center mx-auto mb-4">
               <BookOpen className="h-8 w-8" />
             </div>
-            <h4 className="text-secondary-900 font-bold mb-1">Empty Sheet</h4>
-            <p className="text-secondary-500 text-sm mb-6">No questions have been linked to this template yet.</p>
+            <h4 className="text-secondary-900 font-bold mb-1">Đề thi trống</h4>
+            <p className="text-secondary-500 text-sm mb-6">Chưa có câu hỏi nào được liên kết vào đề thi này.</p>
             <Button variant="outline" onClick={() => navigate(`/teacher/exams/${id}/questions`)}>
-              Add Questions Now
+              Thêm câu hỏi ngay
             </Button>
           </div>
         ) : (
@@ -171,7 +171,7 @@ const ExamDetail = () => {
                       </h4>
                     </div>
                     <span className="text-xs font-bold text-secondary-400 uppercase tracking-widest bg-secondary-50 px-2 py-1 rounded-lg border border-secondary-100">
-                      {q.marks} Pts
+                      {q.marks} điểm
                     </span>
                   </div>
                   
@@ -191,7 +191,7 @@ const ExamDetail = () => {
                           <span className="leading-snug">{String.fromCharCode(65 + oIdx)}. {opt}</span>
                           {isCorrect && (
                             <span className="text-[9px] font-bold text-white bg-accent-600 rounded-lg px-2 py-1 uppercase tracking-widest">
-                              Key
+                              Đáp án
                             </span>
                           )}
                         </div>

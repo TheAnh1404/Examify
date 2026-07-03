@@ -11,6 +11,7 @@ import Loading from '../../components/common/Loading';
 import Select from '../../components/common/Select';
 import Textarea from '../../components/common/Textarea';
 import { ArrowLeft, BookOpen, CheckCircle2, Plus, Save, Send, ShieldAlert, Trash2 } from 'lucide-react';
+import { formatDifficulty, formatStatus } from '../../utils/i18n';
 
 const emptyQuestion = () => ({
   text: '',
@@ -50,7 +51,7 @@ const CreateExamWizard = () => {
         setForm((current) => ({ ...current, subjectId: subjectResponse.data[0]?.id || '' }));
       })
       .catch((requestError) => {
-        if (active) setError(requestError.message || 'Failed to load exam builder data.');
+        if (active) setError(requestError.message || 'Không thể tải dữ liệu tạo bài thi.');
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -104,15 +105,15 @@ const CreateExamWizard = () => {
   };
 
   const validate = () => {
-    if (!form.subjectId) return 'You have not been assigned to teach any subject.';
-    if (!form.title.trim()) return 'Exam title is required.';
-    if (Number(form.duration) <= 0) return 'Duration must be greater than 0.';
-    if (Object.keys(selectedQuestions).length + newQuestions.length === 0) return 'Add at least one existing or new question.';
+    if (!form.subjectId) return 'Bạn chưa được phân công giảng dạy môn nào.';
+    if (!form.title.trim()) return 'Vui lòng nhập tiêu đề bài thi.';
+    if (Number(form.duration) <= 0) return 'Thời gian làm bài phải lớn hơn 0.';
+    if (Object.keys(selectedQuestions).length + newQuestions.length === 0) return 'Vui lòng thêm ít nhất một câu hỏi có sẵn hoặc câu hỏi mới.';
     for (const [index, question] of newQuestions.entries()) {
       if (!question.text.trim() || question.options.some(option => !option.trim())) {
-        return `New question ${index + 1} requires a prompt and all four options.`;
+        return `Câu hỏi mới ${index + 1} cần có nội dung và đủ bốn lựa chọn.`;
       }
-      if (Number(question.marks) <= 0) return `New question ${index + 1} point must be greater than 0.`;
+      if (Number(question.marks) <= 0) return `Điểm của câu hỏi mới ${index + 1} phải lớn hơn 0.`;
     }
     return '';
   };
@@ -143,16 +144,16 @@ const CreateExamWizard = () => {
           marks: Number(question.marks)
         }))
       });
-      setSuccess(publish ? 'Exam and questions published successfully.' : 'Exam draft and questions saved successfully.');
+      setSuccess(publish ? 'Đã tạo và công bố bài thi thành công.' : 'Đã lưu bản nháp bài thi thành công.');
       setTimeout(() => navigate('/teacher/exams'), 900);
     } catch (requestError) {
-      setError(requestError.message || 'Failed to create exam.');
+      setError(requestError.message || 'Không thể tạo bài thi.');
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <Loading message="Preparing exam builder..." />;
+  if (loading) return <Loading message="Đang chuẩn bị trình tạo bài thi..." />;
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto animate-fade-in">
@@ -160,13 +161,13 @@ const CreateExamWizard = () => {
         <Link
           to="/teacher/exams"
           className="h-10 w-10 flex items-center justify-center rounded-xl bg-white border border-secondary-200 text-secondary-500 hover:text-secondary-900"
-          aria-label="Back to exams"
+          aria-label="Quay lại danh sách bài thi"
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div>
-          <h1 className="h1 mb-1">Create Examination</h1>
-          <p className="p">Build an exam, reuse question-bank items, and create multiple new questions in one transaction.</p>
+          <h1 className="h1 mb-1">Tạo bài thi</h1>
+          <p className="p">Tạo bài thi, tái sử dụng ngân hàng câu hỏi và thêm câu hỏi mới trong một lần lưu.</p>
         </div>
       </div>
 
@@ -187,23 +188,23 @@ const CreateExamWizard = () => {
         <Card>
           <div className="py-10 text-center space-y-3">
             <BookOpen className="h-10 w-10 text-secondary-300 mx-auto" />
-            <h3 className="font-bold text-secondary-900">No teaching subject assigned</h3>
-            <p className="text-sm text-secondary-500">An administrator must assign a teaching subject before you can create an exam.</p>
+            <h3 className="font-bold text-secondary-900">Chưa có môn được phân công</h3>
+            <p className="text-sm text-secondary-500">Quản trị viên cần phân công môn học trước khi bạn tạo bài thi.</p>
           </div>
         </Card>
       ) : (
         <>
-          <Card title="1. Exam Configuration" subtitle="Access rules and assessment settings">
+          <Card title="1. Cấu hình bài thi" subtitle="Quy tắc truy cập và thiết lập bài thi">
             <div className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <Input
-                  label="Exam Title"
+                  label="Tiêu đề bài thi"
                   value={form.title}
                   onChange={(event) => updateForm('title', event.target.value)}
                   required
                 />
                 <Select
-                  label="Assigned Subject"
+                  label="Môn được phân công"
                   value={form.subjectId}
                   onChange={(event) => changeSubject(event.target.value)}
                   options={subjects.map(subject => ({
@@ -213,20 +214,20 @@ const CreateExamWizard = () => {
                 />
               </div>
               <Textarea
-                label="Instructions for Students"
+                label="Hướng dẫn cho học sinh"
                 value={form.description}
                 onChange={(event) => updateForm('description', event.target.value)}
               />
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <Input
-                  label="Duration (Minutes)"
+                  label="Thời gian làm bài (phút)"
                   type="number"
                   min={1}
                   value={form.duration}
                   onChange={(event) => updateForm('duration', event.target.value)}
                 />
                 <Input
-                  label="Pass Threshold (%)"
+                  label="Ngưỡng đạt (%)"
                   type="number"
                   min={0}
                   max={100}
@@ -234,31 +235,31 @@ const CreateExamWizard = () => {
                   onChange={(event) => updateForm('passPercentage', event.target.value)}
                 />
                 <Select
-                  label="Visibility"
+                  label="Phạm vi hiển thị"
                   value={form.visibility}
                   onChange={(event) => updateForm('visibility', event.target.value)}
                   options={[
-                    { value: 'PRIVATE', label: 'Private' },
-                    { value: 'PUBLIC', label: 'Public' }
+                    { value: 'PRIVATE', label: formatStatus('PRIVATE') },
+                    { value: 'PUBLIC', label: formatStatus('PUBLIC') }
                   ]}
                 />
                 <Input
-                  label="Access Password"
+                  label="Mật khẩu truy cập"
                   type="password"
                   value={form.accessPassword}
                   onChange={(event) => updateForm('accessPassword', event.target.value)}
-                  placeholder="Optional"
+                  placeholder="Không bắt buộc"
                 />
               </div>
             </div>
           </Card>
 
           <Card
-            title="2. Select Existing Questions"
-            subtitle={`${Object.keys(selectedQuestions).length} selected from your question bank`}
+            title="2. Chọn câu hỏi có sẵn"
+            subtitle={`${Object.keys(selectedQuestions).length} câu đã chọn từ ngân hàng câu hỏi`}
           >
             {subjectQuestions.length === 0 ? (
-              <p className="text-sm text-secondary-500 py-6 text-center">No existing questions are available for this subject.</p>
+              <p className="text-sm text-secondary-500 py-6 text-center">Chưa có câu hỏi nào cho môn học này.</p>
             ) : (
               <div className="space-y-3 max-h-[55vh] overflow-y-auto pr-2">
                 {subjectQuestions.map((question) => {
@@ -277,7 +278,7 @@ const CreateExamWizard = () => {
                         />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-bold text-secondary-900">{question.text}</p>
-                          <Badge variant="slate" className="mt-2">{question.difficulty}</Badge>
+                          <Badge variant="slate" className="mt-2">{formatDifficulty(question.difficulty)}</Badge>
                         </div>
                         {selected && (
                           <input
@@ -290,7 +291,7 @@ const CreateExamWizard = () => {
                               [question.id]: event.target.value
                             }))}
                             className="saas-input w-24"
-                            aria-label={`Points for ${question.text}`}
+                            aria-label={`Điểm cho ${question.text}`}
                           />
                         )}
                       </div>
@@ -302,24 +303,24 @@ const CreateExamWizard = () => {
           </Card>
 
           <Card
-            title="3. Create New Questions With Exam"
-            subtitle={`${newQuestions.length} new question${newQuestions.length === 1 ? '' : 's'} will also be saved to your bank`}
+            title="3. Tạo câu hỏi mới cùng bài thi"
+            subtitle={`${newQuestions.length} câu hỏi mới sẽ được lưu vào ngân hàng của bạn`}
           >
             <div className="space-y-5">
               {newQuestions.map((question, questionIndex) => (
                 <div key={questionIndex} className="rounded-2xl border border-secondary-200 p-5 space-y-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="font-bold text-secondary-900">New Question {questionIndex + 1}</h4>
+                    <h4 className="font-bold text-secondary-900">Câu hỏi mới {questionIndex + 1}</h4>
                     <Button
                       variant="danger"
                       size="sm"
                       onClick={() => setNewQuestions((current) => current.filter((_, index) => index !== questionIndex))}
                       icon={<Trash2 className="h-4 w-4" />}
-                      aria-label={`Remove new question ${questionIndex + 1}`}
+                      aria-label={`Xóa câu hỏi mới ${questionIndex + 1}`}
                     />
                   </div>
                   <Input
-                    label="Question Prompt"
+                    label="Nội dung câu hỏi"
                     value={question.text}
                     onChange={(event) => updateNewQuestion(questionIndex, 'text', event.target.value)}
                   />
@@ -327,7 +328,7 @@ const CreateExamWizard = () => {
                     {question.options.map((option, optionIndex) => (
                       <Input
                         key={optionIndex}
-                        label={`Option ${String.fromCharCode(65 + optionIndex)}`}
+                        label={`Lựa chọn ${String.fromCharCode(65 + optionIndex)}`}
                         value={option}
                         onChange={(event) => updateNewOption(questionIndex, optionIndex, event.target.value)}
                       />
@@ -335,16 +336,16 @@ const CreateExamWizard = () => {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Select
-                      label="Correct Choice"
+                      label="Đáp án đúng"
                       value={question.correctOption}
                       onChange={(event) => updateNewQuestion(questionIndex, 'correctOption', event.target.value)}
                       options={[0, 1, 2, 3].map(index => ({
                         value: String(index),
-                        label: `Option ${String.fromCharCode(65 + index)}`
+                        label: `Lựa chọn ${String.fromCharCode(65 + index)}`
                       }))}
                     />
                     <Input
-                      label="Exam Points"
+                      label="Điểm câu hỏi"
                       type="number"
                       min={0.1}
                       step={0.1}
@@ -352,10 +353,10 @@ const CreateExamWizard = () => {
                       onChange={(event) => updateNewQuestion(questionIndex, 'marks', event.target.value)}
                     />
                     <Select
-                      label="Difficulty"
+                      label="Độ khó"
                       value={question.difficulty}
                       onChange={(event) => updateNewQuestion(questionIndex, 'difficulty', event.target.value)}
-                      options={['Easy', 'Medium', 'Hard'].map(value => ({ value, label: value }))}
+                      options={['Easy', 'Medium', 'Hard'].map(value => ({ value, label: formatDifficulty(value) }))}
                     />
                   </div>
                 </div>
@@ -365,15 +366,15 @@ const CreateExamWizard = () => {
                 onClick={() => setNewQuestions((current) => [...current, emptyQuestion()])}
                 icon={<Plus className="h-4 w-4" />}
               >
-                Create New Question In This Exam
+                Tạo câu hỏi mới trong bài thi này
               </Button>
             </div>
           </Card>
 
           <div className="sticky bottom-4 bg-white/95 backdrop-blur border border-secondary-200 rounded-2xl shadow-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-sm text-secondary-600">
-              <strong>{Object.keys(selectedQuestions).length + newQuestions.length}</strong> questions,
-              {' '}<strong>{totalPoints}</strong> total points
+              <strong>{Object.keys(selectedQuestions).length + newQuestions.length}</strong> câu hỏi,
+              {' '}<strong>{totalPoints}</strong> tổng điểm
             </div>
             <div className="flex gap-3">
               <Button
@@ -382,14 +383,14 @@ const CreateExamWizard = () => {
                 onClick={() => saveExam(false)}
                 icon={<Save className="h-4 w-4" />}
               >
-                Save Draft
+                Lưu bản nháp
               </Button>
               <Button
                 loading={saving}
                 onClick={() => saveExam(true)}
                 icon={<Send className="h-4 w-4" />}
               >
-                Publish Exam
+                Công bố bài thi
               </Button>
             </div>
           </div>

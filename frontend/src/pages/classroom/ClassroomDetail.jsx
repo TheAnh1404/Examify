@@ -10,6 +10,7 @@ import DataTable from '../../components/common/DataTable';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Modal from '../../components/common/Modal';
 import { GraduationCap, Users, BookOpen, UserPlus, Trash2, ArrowLeft, School, Search, Check, ChevronRight, Clock, CheckCircle, XCircle, MessageSquare, UserCheck, Inbox, Copy, FileText, CalendarDays } from 'lucide-react';
+import { formatStatus } from '../../utils/i18n';
 
 const ClassroomDetail = () => {
   const { id: classroomId } = useParams();
@@ -157,11 +158,11 @@ const ClassroomDetail = () => {
     }
   };
 
-  if (loading) return <Loading message="Entering virtual classroom..." />;
+  if (loading) return <Loading message="Đang vào lớp học..." />;
   if (error) return (
     <div className="p-8 text-center space-y-4">
       <p className="text-danger-600 font-bold">{error}</p>
-      <Button onClick={() => navigate(-1)}>Go Back</Button>
+      <Button onClick={() => navigate(-1)}>Quay lại</Button>
     </div>
   );
 
@@ -170,7 +171,7 @@ const ClassroomDetail = () => {
   // DataTable columns — render receives (row, rowIdx) per DataTable API
   const studentColumns = [
     {
-      header: 'Student',
+      header: 'Học sinh',
       key: 'student',
       render: (row) => (
         <div className="flex items-center gap-3">
@@ -189,17 +190,17 @@ const ClassroomDetail = () => {
       )
     },
     {
-      header: 'Institution',
+      header: 'Cơ sở',
       key: 'schoolName',
-      render: (row) => <span className="text-xs font-bold text-secondary-500">{row.student?.schoolName || 'Global'}</span>
+      render: (row) => <span className="text-xs font-bold text-secondary-500">{row.student?.schoolName || 'Cơ sở giáo dục'}</span>
     },
     {
-      header: 'Joined Date',
+      header: 'Ngày tham gia',
       key: 'joinedAt',
       render: (row) => (
         <div className="flex items-center gap-2 text-secondary-500">
           <CalendarDays className="h-3.5 w-3.5" />
-          <span className="text-xs font-bold">{new Date(row.joinedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+          <span className="text-xs font-bold">{new Date(row.joinedAt).toLocaleDateString('vi-VN', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
         </div>
       )
     },
@@ -214,7 +215,7 @@ const ClassroomDetail = () => {
               setRemoveConfirm({ isOpen: true, studentId: row.studentId, studentName: row.student?.fullName });
             }}
             className="p-2.5 rounded-xl text-secondary-300 hover:text-red-500 hover:bg-red-50 transition-all"
-            title={`Remove ${row.student?.fullName}`}
+            title={`Xóa ${row.student?.fullName}`}
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -239,7 +240,7 @@ const ClassroomDetail = () => {
               <button
                 onClick={handleCopyCode}
                 className="hidden md:flex items-center gap-2.5 px-5 py-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all"
-                title="Copy class code"
+                title="Sao chép mã lớp"
               >
                 <span className="font-mono font-bold text-sm tracking-widest">{classroom.code}</span>
                 {codeCopied ? <Check className="h-4 w-4 text-emerald-300" /> : <Copy className="h-4 w-4 text-white/70" />}
@@ -268,7 +269,7 @@ const ClassroomDetail = () => {
               <button
                 onClick={handleCopyCode}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-secondary-50 hover:bg-primary-50 border border-secondary-100 hover:border-primary-200 transition-all group"
-                title="Copy class code"
+                title="Sao chép mã lớp"
               >
                 <span className="font-mono font-bold text-xs text-secondary-600 group-hover:text-primary-600 tracking-widest">{classroom.code}</span>
                 {codeCopied ? (
@@ -279,8 +280,8 @@ const ClassroomDetail = () => {
               </button>
             </div>
             <p className="text-secondary-500 font-medium text-sm">
-              {classroom.subject?.name} • {classroom.schoolName || 'Global Institution'}
-              {classroom.description && <span className="text-secondary-400"> — {classroom.description}</span>}
+              {classroom.subject?.name} - {classroom.schoolName || 'Cơ sở giáo dục'}
+              {classroom.description && <span className="text-secondary-400"> - {classroom.description}</span>}
             </p>
           </div>
         </div>
@@ -303,7 +304,7 @@ const ClassroomDetail = () => {
                   )}
                 </div>
                 <div className="space-y-1.5">
-                  <p className="text-primary-200 text-[10px] font-black uppercase tracking-[0.2em]">Primary Instructor</p>
+                  <p className="text-primary-200 text-[10px] font-black uppercase tracking-[0.2em]">Giáo viên phụ trách</p>
                   <h3 className="text-2xl font-black tracking-tight">{classroom.teacher?.fullName}</h3>
                   <p className="text-primary-100 text-sm font-medium opacity-80">{classroom.teacher?.email}</p>
                 </div>
@@ -323,7 +324,7 @@ const ClassroomDetail = () => {
                 }`}
               >
                 <Users className="h-4 w-4" />
-                Class Roster
+                Danh sách lớp
                 <span className="text-[10px] font-black text-secondary-400 bg-secondary-100 px-2 py-0.5 rounded-lg">
                   {classroom.students.length}
                 </span>
@@ -337,7 +338,7 @@ const ClassroomDetail = () => {
                 }`}
               >
                 <UserCheck className="h-4 w-4" />
-                Enrollment Requests
+                Yêu cầu tham gia
                 {pendingEnrollmentCount > 0 && (
                   <span className="h-5 min-w-[20px] px-1.5 rounded-full bg-amber-500 text-white text-[10px] font-black flex items-center justify-center animate-pulse">
                     {pendingEnrollmentCount}
@@ -350,11 +351,11 @@ const ClassroomDetail = () => {
           {/* Tab: Class Roster */}
           {(activeTab === 'roster' || !isTeacher) && (
             <Card
-              title="Class Roster"
-              subtitle={`${classroom.students.length} students enrolled in this session`}
+              title="Danh sách lớp"
+              subtitle={`${classroom.students.length} học sinh trong lớp`}
               actions={isTeacher && (
                 <Button onClick={() => setIsAddModalOpen(true)} variant="primary" size="sm" icon={<UserPlus size={14} />}>
-                  Enroll Student
+                  Thêm học sinh
                 </Button>
               )}
             >
@@ -362,7 +363,7 @@ const ClassroomDetail = () => {
                 columns={studentColumns}
                 data={classroom.students}
                 loading={loading}
-                emptyMessage="No students enrolled yet."
+                emptyMessage="Chưa có học sinh nào."
                 pageSize={8}
               />
             </Card>
@@ -371,19 +372,19 @@ const ClassroomDetail = () => {
           {/* Tab: Enrollment Requests (Teacher) */}
           {isTeacher && activeTab === 'enrollments' && (
             <Card
-              title="Pending Enrollment Requests"
-              subtitle={`${pendingEnrollmentCount} students waiting for approval`}
+              title="Yêu cầu tham gia đang chờ"
+              subtitle={`${pendingEnrollmentCount} học sinh đang chờ duyệt`}
             >
               {enrollmentLoading ? (
-                <Loading message="Loading enrollment requests..." />
+                <Loading message="Đang tải yêu cầu tham gia..." />
               ) : enrollmentRequests.length === 0 ? (
                 <div className="py-16 text-center space-y-4">
                   <div className="h-16 w-16 rounded-full bg-secondary-50 flex items-center justify-center mx-auto">
                     <Inbox className="h-8 w-8 text-secondary-200" />
                   </div>
                   <div>
-                    <p className="font-bold text-secondary-500">No Pending Requests</p>
-                    <p className="text-xs text-secondary-400 font-medium mt-1">All enrollment requests have been processed.</p>
+                    <p className="font-bold text-secondary-500">Không có yêu cầu chờ duyệt</p>
+                    <p className="text-xs text-secondary-400 font-medium mt-1">Tất cả yêu cầu tham gia đã được xử lý.</p>
                   </div>
                 </div>
               ) : (
@@ -406,18 +407,18 @@ const ClassroomDetail = () => {
                             <h4 className="font-black text-secondary-900 truncate">{req.student.fullName}</h4>
                             <Badge variant="warning" className="text-[8px] tracking-widest uppercase shrink-0 flex items-center gap-1">
                               <Clock className="h-2.5 w-2.5" />
-                              Pending
+                              Đang chờ
                             </Badge>
                           </div>
                           <p className="text-[10px] text-secondary-400 font-bold uppercase tracking-widest truncate">{req.student.email}</p>
                           <div className="flex items-center gap-4 mt-1.5">
                             <span className="text-[10px] text-secondary-400 font-bold flex items-center gap-1.5">
                               <School className="h-3 w-3" />
-                              {req.student.schoolName || 'Global'}
+                              {req.student.schoolName || 'Cơ sở giáo dục'}
                             </span>
                             <span className="text-[10px] text-secondary-400 font-bold flex items-center gap-1.5">
                               <Clock className="h-3 w-3" />
-                              {new Date(req.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              {new Date(req.createdAt).toLocaleDateString('vi-VN', { month: 'short', day: 'numeric' })}
                             </span>
                           </div>
                           {req.message && (
@@ -434,7 +435,7 @@ const ClassroomDetail = () => {
                           disabled={processingRequestId === req.id}
                           onClick={() => handleUpdateEnrollment(req.id, 'REJECTED')}
                           className="h-11 w-11 rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all duration-300 disabled:opacity-50 shadow-sm hover:shadow-lg hover:shadow-red-500/20"
-                          title="Reject"
+                          title="Từ chối"
                         >
                           <XCircle className="h-5 w-5" />
                         </button>
@@ -442,14 +443,14 @@ const ClassroomDetail = () => {
                           disabled={processingRequestId === req.id}
                           onClick={() => handleUpdateEnrollment(req.id, 'APPROVED')}
                           className="h-11 px-5 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white flex items-center gap-2 transition-all duration-300 disabled:opacity-50 font-bold text-xs shadow-sm hover:shadow-lg hover:shadow-emerald-500/20"
-                          title="Approve"
+                          title="Duyệt"
                         >
                           {processingRequestId === req.id ? (
                             <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
                           ) : (
                             <>
                               <CheckCircle className="h-4.5 w-4.5" />
-                              Approve
+                              Duyệt
                             </>
                           )}
                         </button>
@@ -470,14 +471,14 @@ const ClassroomDetail = () => {
               <div className="h-10 w-10 rounded-xl bg-primary-50 text-primary-500 flex items-center justify-center mb-4">
                 <Users className="h-5 w-5" />
               </div>
-              <p className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1">Students</p>
+              <p className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1">Học sinh</p>
               <h4 className="text-3xl font-black text-secondary-900">{classroom.students.length}</h4>
             </div>
             <div className="bg-white p-6 rounded-[2rem] border border-secondary-50 shadow-sm hover:shadow-md transition-shadow">
               <div className="h-10 w-10 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center mb-4">
                 <FileText className="h-5 w-5" />
               </div>
-              <p className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1">Assessments</p>
+              <p className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1">Bài thi</p>
               <h4 className="text-3xl font-black text-secondary-900">{classroom.exams?.length || 0}</h4>
             </div>
           </div>
@@ -493,8 +494,8 @@ const ClassroomDetail = () => {
                   <UserCheck className="h-6 w-6" />
                 </div>
                 <div>
-                  <p className="text-sm font-black text-amber-900">{pendingEnrollmentCount} Pending Request{pendingEnrollmentCount > 1 ? 's' : ''}</p>
-                  <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest mt-0.5">Click to review</p>
+                  <p className="text-sm font-black text-amber-900">{pendingEnrollmentCount} yêu cầu chờ duyệt</p>
+                  <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest mt-0.5">Nhấn để xem</p>
                 </div>
               </div>
             </div>
@@ -503,7 +504,7 @@ const ClassroomDetail = () => {
           {/* Class Code Card (Teacher) */}
           {isTeacher && (
             <div className="bg-white p-6 rounded-[2rem] border border-secondary-50 shadow-sm">
-              <p className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-3">Share Class Code</p>
+              <p className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-3">Chia sẻ mã lớp</p>
               <div className="flex items-center justify-between bg-secondary-50 rounded-2xl px-5 py-4">
                 <span className="font-mono font-black text-xl tracking-[0.2em] text-secondary-900">{classroom.code}</span>
                 <button
@@ -513,25 +514,25 @@ const ClassroomDetail = () => {
                       ? 'bg-emerald-100 text-emerald-600'
                       : 'bg-white text-secondary-500 hover:bg-primary-50 hover:text-primary-600 shadow-sm'
                   }`}
-                  title="Copy code"
+                  title="Sao chép mã"
                 >
                   {codeCopied ? <Check className="h-4.5 w-4.5" /> : <Copy className="h-4.5 w-4.5" />}
                 </button>
               </div>
-              <p className="text-[10px] text-secondary-400 font-medium mt-2.5">Share this code with students so they can request to join.</p>
+              <p className="text-[10px] text-secondary-400 font-medium mt-2.5">Chia sẻ mã này để học sinh gửi yêu cầu tham gia lớp.</p>
             </div>
           )}
 
           {/* Assigned Assessments */}
           <Card
-            title="Assigned Assessments"
-            subtitle="Tests linked to this classroom"
+            title="Bài thi được giao"
+            subtitle="Các bài thi liên kết với lớp học này"
             bodyClassName="p-0"
           >
             {classroom.exams?.length === 0 ? (
               <div className="p-10 text-center space-y-3">
                 <BookOpen className="h-8 w-8 text-secondary-200 mx-auto" />
-                <p className="text-[10px] text-secondary-400 font-black uppercase tracking-widest">No active exams</p>
+                <p className="text-[10px] text-secondary-400 font-black uppercase tracking-widest">Chưa có bài thi hoạt động</p>
               </div>
             ) : (
               <div className="divide-y divide-secondary-50">
@@ -540,7 +541,7 @@ const ClassroomDetail = () => {
                     <div className="min-w-0 flex-1">
                       <h4 className="font-extrabold text-secondary-900 text-sm truncate group-hover:text-primary-600 transition-colors">{exam.title}</h4>
                       <div className="flex items-center gap-3 mt-1.5">
-                        <Badge variant={exam.status === 'PUBLISHED' ? 'success' : exam.status === 'CLOSED' ? 'danger' : 'slate'} size="sm" className="text-[8px]">{exam.status}</Badge>
+                        <Badge variant={exam.status === 'PUBLISHED' ? 'success' : exam.status === 'CLOSED' ? 'danger' : 'slate'} size="sm" className="text-[8px]">{formatStatus(exam.status)}</Badge>
                         <span className="text-[9px] font-bold text-secondary-400 uppercase tracking-widest flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {exam.durationMinutes}m
@@ -555,27 +556,27 @@ const ClassroomDetail = () => {
           </Card>
 
           {/* Classroom Info */}
-          <Card title="Classroom Info" className="bg-secondary-900 text-white border-none shadow-2xl">
+          <Card title="Thông tin lớp học" className="bg-secondary-900 text-white border-none shadow-2xl">
             <div className="space-y-5">
               <div className="flex items-start gap-4">
                 <div className="h-1.5 w-1.5 rounded-full bg-primary-400 mt-2 shadow-[0_0_8px_rgba(99,102,241,0.8)]"></div>
                 <div>
-                  <p className="text-xs font-bold text-secondary-100">Created</p>
-                  <p className="text-[10px] text-secondary-400 font-bold uppercase tracking-widest mt-0.5">{new Date(classroom.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                  <p className="text-xs font-bold text-secondary-100">Ngày tạo</p>
+                  <p className="text-[10px] text-secondary-400 font-bold uppercase tracking-widest mt-0.5">{new Date(classroom.createdAt).toLocaleDateString('vi-VN', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
                 <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 mt-2 shadow-[0_0_8px_rgba(52,211,153,0.8)]"></div>
                 <div>
-                  <p className="text-xs font-bold text-secondary-100">Status</p>
-                  <p className="text-[10px] text-secondary-400 font-bold uppercase tracking-widest mt-0.5">{classroom.status || 'Active'}</p>
+                  <p className="text-xs font-bold text-secondary-100">Trạng thái</p>
+                  <p className="text-[10px] text-secondary-400 font-bold uppercase tracking-widest mt-0.5">{formatStatus(classroom.status || 'ACTIVE')}</p>
                 </div>
               </div>
               {classroom.teacher && (
                 <div className="flex items-start gap-4">
                   <div className="h-1.5 w-1.5 rounded-full bg-amber-400 mt-2 shadow-[0_0_8px_rgba(245,158,11,0.8)]"></div>
                   <div>
-                    <p className="text-xs font-bold text-secondary-100">Instructor</p>
+                    <p className="text-xs font-bold text-secondary-100">Giáo viên</p>
                     <p className="text-[10px] text-secondary-400 font-bold uppercase tracking-widest mt-0.5">{classroom.teacher.fullName}</p>
                   </div>
                 </div>
@@ -584,7 +585,7 @@ const ClassroomDetail = () => {
                 <div className="flex items-start gap-4">
                   <div className="h-1.5 w-1.5 rounded-full bg-cyan-400 mt-2 shadow-[0_0_8px_rgba(34,211,238,0.8)]"></div>
                   <div>
-                    <p className="text-xs font-bold text-secondary-100">Description</p>
+                    <p className="text-xs font-bold text-secondary-100">Mô tả</p>
                     <p className="text-[10px] text-secondary-400 font-medium mt-0.5 leading-relaxed">{classroom.description}</p>
                   </div>
                 </div>
@@ -602,14 +603,14 @@ const ClassroomDetail = () => {
           setSearchQuery('');
           setSearchResults([]);
         }}
-        title="Enroll New Student"
+        title="Thêm học sinh vào lớp"
       >
         <div className="space-y-6">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary-400" />
             <input
               type="text"
-              placeholder="Search by Name, Email, ID, or School..."
+              placeholder="Tìm theo tên, email, ID hoặc trường..."
               className="w-full pl-12 pr-4 py-4 bg-secondary-50 border-none rounded-2xl focus:ring-4 focus:ring-primary-500/10 outline-none transition-all font-bold text-secondary-900"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -627,7 +628,7 @@ const ClassroomDetail = () => {
               <div className="py-12 text-center space-y-3">
                 <Users className="h-10 w-10 text-secondary-100 mx-auto" />
                 <p className="text-sm font-bold text-secondary-400">
-                  {searchQuery.length < 2 ? 'Enter at least 2 characters to search' : 'No students found matching your query'}
+                  {searchQuery.length < 2 ? 'Nhập ít nhất 2 ký tự để tìm kiếm' : 'Không tìm thấy học sinh phù hợp'}
                 </p>
               </div>
             ) : (
@@ -646,13 +647,13 @@ const ClassroomDetail = () => {
                       <div>
                         <h5 className="font-black text-secondary-900 leading-tight">{student.fullName}</h5>
                         <p className="text-[10px] text-secondary-400 font-bold uppercase tracking-widest mt-0.5">{student.email}</p>
-                        <p className="text-[10px] text-primary-600 font-bold uppercase tracking-[0.1em] mt-1">{student.schoolName || 'Global Institution'}</p>
+                        <p className="text-[10px] text-primary-600 font-bold uppercase tracking-[0.1em] mt-1">{student.schoolName || 'Cơ sở giáo dục'}</p>
                       </div>
                     </div>
                     {isAlreadyIn ? (
                       <div className="h-10 px-4 rounded-xl bg-emerald-50 text-emerald-600 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest border border-emerald-100">
                         <Check size={14} />
-                        Enrolled
+                        Đã tham gia
                       </div>
                     ) : (
                       <Button
@@ -662,7 +663,7 @@ const ClassroomDetail = () => {
                         onClick={() => handleEnrollStudent(student.id)}
                         className="px-6 rounded-xl shadow-lg shadow-primary-500/20"
                       >
-                        Enroll
+                        Thêm
                       </Button>
                     )}
                   </div>
@@ -672,8 +673,8 @@ const ClassroomDetail = () => {
           </div>
 
           <div className="pt-4 border-t border-secondary-50 flex justify-between items-center">
-             <p className="text-[10px] text-secondary-400 font-bold uppercase tracking-widest">Showing up to 10 results</p>
-             <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>Close</Button>
+             <p className="text-[10px] text-secondary-400 font-bold uppercase tracking-widest">Hiển thị tối đa 10 kết quả</p>
+             <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>Đóng</Button>
           </div>
         </div>
       </Modal>
@@ -682,9 +683,9 @@ const ClassroomDetail = () => {
         isOpen={removeConfirm.isOpen}
         onClose={() => setRemoveConfirm({ ...removeConfirm, isOpen: false })}
         onConfirm={handleRemoveStudent}
-        title="Unenroll Student"
-        message={`Are you sure you want to remove ${removeConfirm.studentName} from this classroom? This will not delete their exam attempts.`}
-        confirmText="Yes, Remove"
+        title="Xóa học sinh khỏi lớp"
+        message={`Bạn có chắc muốn xóa ${removeConfirm.studentName} khỏi lớp học này? Thao tác này không xóa các lượt làm bài của học sinh.`}
+        confirmText="Xác nhận xóa"
         type="danger"
       />
     </div>

@@ -1,13 +1,13 @@
 import bcrypt from 'bcryptjs';
 
-// Sync hash function for seeding
+// Hàm hash đồng bộ cho dữ liệu mẫu
 const hashPassword = (password) => bcrypt.hashSync(password, 10);
 
 export const db = {
   users: [
     {
       id: "usr-student-809772",
-      name: "Tuan Nguyen",
+      name: "Nguyễn Anh Tuấn",
       email: "tuan@examify.com",
       password: hashPassword("tuan123"),
       role: "student",
@@ -15,7 +15,7 @@ export const db = {
     },
     {
       id: "usr-admin-1",
-      name: "System Administrator",
+      name: "Quản trị hệ thống",
       email: "admin@examify.com",
       password: hashPassword("admin123"),
       role: "admin",
@@ -23,7 +23,7 @@ export const db = {
     },
     {
       id: "usr-teacher-1",
-      name: "Dr. Sarah Jenkins",
+      name: "Nguyễn Minh Anh",
       email: "teacher@examify.com",
       password: hashPassword("teacher123"),
       role: "teacher",
@@ -31,7 +31,7 @@ export const db = {
     },
     {
       id: "usr-student-1",
-      name: "Alex Rivera",
+      name: "Trần Gia Bảo",
       email: "student@examify.com",
       password: hashPassword("student123"),
       role: "student",
@@ -42,28 +42,28 @@ export const db = {
   exams: [
     {
       id: "ex-1",
-      title: "Introduction to Computer Science",
-      description: "Test your knowledge on basic programming concepts, binary calculations, and computer hardware.",
-      duration: 15, // minutes
+      title: "Nhập môn Tin học",
+      description: "Kiểm tra kiến thức về khái niệm lập trình cơ bản, phép tính nhị phân và phần cứng máy tính.",
+      duration: 15, // phút
       totalMarks: 30,
       passPercentage: 50,
       teacherId: "usr-teacher-1",
       questions: [
         {
           id: "q-1-1",
-          text: "What does CPU stand for?",
+          text: "CPU là viết tắt của cụm từ nào?",
           options: [
-            "Central Processing Unit",
-            "Computer Personal Unit",
-            "Central Processor Unifier",
-            "Control Processing Unit"
+            "Bộ xử lý trung tâm",
+            "Bộ máy tính cá nhân",
+            "Bộ hợp nhất xử lý trung tâm",
+            "Bộ xử lý điều khiển"
           ],
           correctOption: 0,
           marks: 10
         },
         {
           id: "q-1-2",
-          text: "Which of the following is NOT a programming language?",
+          text: "Công nghệ nào sau đây không phải là ngôn ngữ lập trình?",
           options: [
             "Python",
             "HTML",
@@ -75,7 +75,7 @@ export const db = {
         },
         {
           id: "q-1-3",
-          text: "What is the binary representation of decimal number 5?",
+          text: "Biểu diễn nhị phân của số thập phân 5 là gì?",
           options: [
             "100",
             "101",
@@ -90,8 +90,8 @@ export const db = {
     },
     {
       id: "ex-2",
-      title: "Advanced React & State Management",
-      description: "Assesses hooks, performance optimization, context, and state management strategies in React.",
+      title: "React nâng cao và quản lý trạng thái",
+      description: "Đánh giá kiến thức về Hook, tối ưu hiệu năng, context và chiến lược quản lý trạng thái trong React.",
       duration: 20,
       totalMarks: 40,
       passPercentage: 60,
@@ -99,7 +99,7 @@ export const db = {
       questions: [
         {
           id: "q-2-1",
-          text: "Which hook is used to cache the result of a calculation between re-renders?",
+          text: "Hook nào dùng để lưu kết quả tính toán giữa các lần render?",
           options: [
             "useEffect",
             "useCallback",
@@ -111,12 +111,12 @@ export const db = {
         },
         {
           id: "q-2-2",
-          text: "What is the primary purpose of React.memo?",
+          text: "Mục đích chính của React.memo là gì?",
           options: [
-            "To store state",
-            "To prevent a component from re-rendering unless its props change",
-            "To handle asynchronous side effects",
-            "To update the DOM directly"
+            "Lưu trạng thái",
+            "Ngăn component render lại trừ khi props thay đổi",
+            "Xử lý tác vụ bất đồng bộ",
+            "Cập nhật DOM trực tiếp"
           ],
           correctOption: 1,
           marks: 20
@@ -132,13 +132,13 @@ export const db = {
       examId: "ex-1",
       studentId: "usr-student-1",
       answers: [
-        { questionId: "q-1-1", selectedOption: 0 }, // correct, 10
-        { questionId: "q-1-2", selectedOption: 1 }, // correct, 10
-        { questionId: "q-1-3", selectedOption: 0 }  // incorrect, 0
+        { questionId: "q-1-1", selectedOption: 0 }, // đúng, 10
+        { questionId: "q-1-2", selectedOption: 1 }, // đúng, 10
+        { questionId: "q-1-3", selectedOption: 0 }  // sai, 0
       ],
       score: 20,
       totalCorrect: 2,
-      status: "pass", // 20/30 = 66.6% (passing score >= 50%)
+      status: "pass", // 20/30 = 66.6% (điểm đạt >= 50%)
       tabFocusLosses: 0,
       startedAt: new Date("2026-06-05T10:00:00.000Z"),
       submittedAt: new Date("2026-06-05T10:08:32.000Z")

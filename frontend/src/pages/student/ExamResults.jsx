@@ -19,7 +19,7 @@ const ExamResults = () => {
         setDetails(res.data);
       } catch (err) {
         console.error(err);
-        setError('Failed to load submission results.');
+        setError('Không thể tải kết quả bài nộp.');
       } finally {
         setLoading(false);
       }
@@ -60,8 +60,8 @@ const ExamResults = () => {
           <ArrowLeft className="h-4.5 w-4.5" />
         </Link>
         <div>
-          <h2 className="font-display font-bold text-2xl text-slate-100">Graded Report</h2>
-          <p className="text-sm text-slate-400">Review score results and correct answer keys</p>
+          <h2 className="font-display font-bold text-2xl text-slate-100">Kết quả đã chấm</h2>
+          <p className="text-sm text-slate-400">Xem điểm số và đáp án đúng</p>
         </div>
       </div>
 
@@ -75,14 +75,14 @@ const ExamResults = () => {
         <div className="space-y-3 relative z-10 text-center md:text-left">
           <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">{exam.title}</p>
           <h3 className="font-display font-extrabold text-3xl text-slate-100">
-            {submission.score} <span className="text-slate-500 text-base font-normal">/ {exam.totalMarks} points</span>
+            {submission.score} <span className="text-slate-500 text-base font-normal">/ {exam.totalMarks} điểm</span>
           </h3>
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-2 text-xs">
-            <span className="text-slate-400 font-semibold">{scorePct.toFixed(0)}% Score</span>
-            <span>•</span>
-            <span className="text-slate-400">{submission.totalCorrect} / {exam.questions.length} Correct</span>
-            <span>•</span>
-            <span className="text-slate-500">Passing criteria: {exam.passPercentage}%</span>
+            <span className="text-slate-400 font-semibold">Điểm {scorePct.toFixed(0)}%</span>
+            <span>-</span>
+            <span className="text-slate-400">{submission.totalCorrect} / {exam.questions.length} câu đúng</span>
+            <span>-</span>
+            <span className="text-slate-500">Ngưỡng đạt: {exam.passPercentage}%</span>
           </div>
         </div>
 
@@ -93,7 +93,7 @@ const ExamResults = () => {
                 <CheckCircle className="h-9 w-9" />
               </div>
               <span className="px-3.5 py-1 text-sm font-bold uppercase tracking-wider rounded-full bg-emerald-500/15 border border-emerald-500/25 text-emerald-400">
-                Exam Passed
+                Đạt
               </span>
             </div>
           ) : (
@@ -102,7 +102,7 @@ const ExamResults = () => {
                 <AlertCircle className="h-9 w-9" />
               </div>
               <span className="px-3.5 py-1 text-sm font-bold uppercase tracking-wider rounded-full bg-red-500/15 border border-red-500/25 text-red-400">
-                Exam Failed
+                Chưa đạt
               </span>
             </div>
           )}
@@ -114,9 +114,9 @@ const ExamResults = () => {
         <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-500 text-xs leading-relaxed animate-slide-up">
           <AlertTriangle className="h-5 w-5 shrink-0" />
           <div>
-            <p className="font-semibold text-amber-400">Proctoring Incidents Registered</p>
+            <p className="font-semibold text-amber-400">Đã ghi nhận cảnh báo giám sát</p>
             <p className="mt-0.5 text-slate-400">
-              The platform logged <strong className="text-amber-500">{submission.tabFocusLosses} instances</strong> where browser focus was lost. This audit event is saved with your responses and visible to teachers.
+              Hệ thống ghi nhận <strong className="text-amber-500">{submission.tabFocusLosses} lần</strong> trình duyệt mất tập trung. Nhật ký này được lưu cùng bài làm và hiển thị cho giáo viên.
             </p>
           </div>
         </div>
@@ -124,7 +124,7 @@ const ExamResults = () => {
 
       {/* Answer Key Grid */}
       <div className="space-y-4">
-        <h3 className="font-semibold text-lg text-slate-200 border-b border-dark-800 pb-2.5">Graded Answers Review</h3>
+        <h3 className="font-semibold text-lg text-slate-200 border-b border-dark-800 pb-2.5">Xem lại đáp án</h3>
         
         {exam.questions.map((q, idx) => {
           const studentSelection = submission.answers.find(a => a.questionId === q.id)?.selectedOption;
@@ -140,7 +140,7 @@ const ExamResults = () => {
                   <h4 className="text-sm md:text-base font-semibold text-slate-200 leading-snug">{q.text}</h4>
                 </div>
                 <span className={`text-xs font-bold shrink-0 ${isCorrect ? 'text-emerald-400' : 'text-red-400'}`}>
-                  {isCorrect ? `+${q.marks} pts` : `0 / ${q.marks} pts`}
+                  {isCorrect ? `+${q.marks} điểm` : `0 / ${q.marks} điểm`}
                 </span>
               </div>
 
@@ -164,8 +164,8 @@ const ExamResults = () => {
                       className={`px-4 py-2.5 rounded-xl border text-xs flex justify-between items-center ${style}`}
                     >
                       <span>{String.fromCharCode(65 + optIdx)}. {option}</span>
-                      {isSelected && <span className="text-[9px] uppercase tracking-wide font-bold">{isCorrect ? 'Correct' : 'Incorrect Selection'}</span>}
-                      {!isSelected && isAnswerKey && <span className="text-[9px] uppercase tracking-wide font-bold text-emerald-500/80">Correct Answer</span>}
+                      {isSelected && <span className="text-[9px] uppercase tracking-wide font-bold">{isCorrect ? 'Đúng' : 'Chọn sai'}</span>}
+                      {!isSelected && isAnswerKey && <span className="text-[9px] uppercase tracking-wide font-bold text-emerald-500/80">Đáp án đúng</span>}
                     </div>
                   );
                 })}

@@ -9,6 +9,7 @@ import Loading from '../../components/common/Loading';
 import SearchBox from '../../components/common/SearchBox';
 import FilterBar from '../../components/common/FilterBar';
 import { AlertTriangle, ShieldAlert, FileSpreadsheet, User, BookOpen, Eye } from 'lucide-react';
+import { formatStatus } from '../../utils/i18n';
 
 const AdminResults = () => {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ const AdminResults = () => {
         setWarningThreshold(settingsResponse.data.tabFocusWarnings);
       } catch (err) {
         console.error(err);
-        setError('Failed to fetch system attempts gradebook.');
+        setError('Không thể tải sổ điểm toàn hệ thống.');
       } finally {
         setLoading(false);
       }
@@ -52,7 +53,7 @@ const AdminResults = () => {
 
   const columns = [
     { 
-      header: 'Student', 
+      header: 'Học sinh',
       key: 'studentName', 
       render: (row) => (
         <div className="flex items-center gap-3">
@@ -67,7 +68,7 @@ const AdminResults = () => {
       ) 
     },
     { 
-      header: 'Examination', 
+      header: 'Bài thi',
       key: 'examTitle',
       render: (row) => (
         <div className="flex items-center gap-2">
@@ -77,46 +78,46 @@ const AdminResults = () => {
       )
     },
     { 
-      header: 'Performance', 
+      header: 'Kết quả',
       key: 'score', 
       render: (row) => (
         <div className="flex flex-col">
           <span className="font-bold text-secondary-900">
-            {row.score.toFixed(2)} / {row.examTotalMarks} pts
+            {row.score.toFixed(2)} / {row.examTotalMarks} điểm
           </span>
           <span className="text-[10px] text-secondary-400 font-bold uppercase tracking-widest">
-            {row.scorePercentage}% Accuracy
+            Độ chính xác {row.scorePercentage}%
           </span>
         </div>
       ) 
     },
     { 
-      header: 'Status', 
+      header: 'Trạng thái',
       key: 'status', 
       render: (row) => (
         <Badge variant={row.status === 'Pass' ? 'success' : row.status === 'Fail' ? 'danger' : 'warning'} dot>
-          {row.status}
+          {formatStatus(row.status)}
         </Badge>
       ) 
     },
     { 
-      header: 'Security Logs', 
+      header: 'Nhật ký giám sát',
       key: 'tabFocusLosses', 
       render: (row) => (
         row.tabFocusLosses >= warningThreshold ? (
           <Badge variant="danger" className="lowercase">
             <AlertTriangle className="h-3 w-3 mr-1" />
-            {row.tabFocusLosses} flagged
+            {row.tabFocusLosses} cảnh báo
           </Badge>
         ) : row.tabFocusLosses > 0 ? (
-          <Badge variant="warning">{row.tabFocusLosses} warnings</Badge>
+          <Badge variant="warning">{row.tabFocusLosses} cảnh báo</Badge>
         ) : (
-          <Badge variant="slate">Secure</Badge>
+          <Badge variant="slate">An toàn</Badge>
         )
       ) 
     },
     { 
-      header: 'Submitted', 
+      header: 'Đã nộp',
       key: 'submittedAt', 
       render: (row) => (
         <span className="text-secondary-500 font-bold text-xs">
@@ -124,7 +125,7 @@ const AdminResults = () => {
             month: 'short',
             day: 'numeric',
             year: 'numeric'
-          }) : 'Not submitted'}
+          }) : 'Chưa nộp'}
         </span>
       ) 
     },
@@ -137,14 +138,14 @@ const AdminResults = () => {
           size="sm"
           onClick={() => navigate(`/admin/results/${row.id}`)}
           icon={<Eye className="h-4 w-4" />}
-          aria-label={`View ${row.studentName}'s attempt`}
+          aria-label={`Xem lượt làm bài của ${row.studentName}`}
         />
       )
     }
   ];
 
   const exportCsv = () => {
-    const header = ['Student', 'Email', 'Exam', 'Score', 'Score Percentage', 'Status', 'Focus Losses', 'Submitted At'];
+    const header = ['Học sinh', 'Email', 'Bài thi', 'Điểm', 'Tỷ lệ điểm', 'Trạng thái', 'Lượt mất tập trung', 'Thời điểm nộp'];
     const rows = filteredAttempts.map((attempt) => [
       attempt.studentName,
       attempt.studentEmail,
@@ -169,7 +170,7 @@ const AdminResults = () => {
 
   if (loading) return (
     <div className="min-h-[60vh] flex items-center justify-center">
-      <Loading message="Fetching student gradebook..." />
+      <Loading message="Đang tải sổ điểm học sinh..." />
     </div>
   );
 
@@ -177,11 +178,11 @@ const AdminResults = () => {
     <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="h1 mb-1">Submissions Log</h1>
-          <p className="p">Review student scorecard entries and proctoring security logs globally.</p>
+          <h1 className="h1 mb-1">Nhật ký nộp bài</h1>
+          <p className="p">Xem điểm số học sinh và nhật ký giám sát trên toàn hệ thống.</p>
         </div>
         <Button variant="outline" icon={<FileSpreadsheet className="h-4 w-4" />} onClick={exportCsv}>
-          Export CSV
+          Xuất CSV
         </Button>
       </div>
 
@@ -197,18 +198,18 @@ const AdminResults = () => {
         <SearchBox 
           value={search} 
           onChange={(e) => setSearch(e.target.value)} 
-          placeholder="Search student or exam..." 
+          placeholder="Tìm học sinh hoặc bài thi..."
         />
         
         <FilterBar 
           value={statusFilter} 
           onChange={(e) => setStatusFilter(e.target.value)}
-          label="Status:"
+          label="Trạng thái:"
           options={[
-            { value: 'ALL', label: 'All Results' },
-            { value: 'PASS', label: 'Passing Only' },
-            { value: 'FAIL', label: 'Failing Only' },
-            { value: 'IN PROGRESS', label: 'In Progress' }
+            { value: 'ALL', label: 'Tất cả kết quả' },
+            { value: 'PASS', label: 'Chỉ bài đạt' },
+            { value: 'FAIL', label: 'Chỉ bài chưa đạt' },
+            { value: 'IN PROGRESS', label: 'Đang làm' }
           ]} 
         />
       </div>
@@ -218,7 +219,7 @@ const AdminResults = () => {
         columns={columns} 
         data={filteredAttempts} 
         pageSize={10} 
-        emptyMessage="No student attempts match the current filters."
+        emptyMessage="Không có lượt làm bài nào khớp với bộ lọc."
       />
     </div>
   );

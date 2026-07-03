@@ -40,7 +40,7 @@ export const getQuestions = async (req, res, next) => {
       return q;
     });
 
-    return successResponse(res, processedQuestions, 'Questions retrieved successfully');
+    return successResponse(res, processedQuestions, 'Lấy danh sách câu hỏi thành công');
   } catch (error) {
     next(error);
   }
@@ -59,21 +59,21 @@ export const getQuestionById = async (req, res, next) => {
       }
     });
 
-    if (!question) return errorResponse(res, 'Question not found', 404);
+    if (!question) return errorResponse(res, 'Không tìm thấy câu hỏi', 404);
 
     // Ownership check for teachers
     if (role === 'TEACHER' && question.createdById !== userId) {
-      return errorResponse(res, 'Access denied. You can only view your own questions.', 403);
+      return errorResponse(res, 'Bạn không có quyền truy cập. Bạn chỉ có thể xem câu hỏi do mình tạo.', 403);
     }
     if (role === 'TEACHER') await assertSubjectAccess(req.user, question.subjectId);
 
     // Hide correct answer for students
     if (role === 'STUDENT') {
       const { correctAnswer, ...rest } = question;
-      return successResponse(res, rest, 'Question retrieved successfully');
+      return successResponse(res, rest, 'Lấy thông tin câu hỏi thành công');
     }
 
-    return successResponse(res, question, 'Question retrieved successfully');
+    return successResponse(res, question, 'Lấy thông tin câu hỏi thành công');
   } catch (error) {
     next(error);
   }
@@ -99,7 +99,7 @@ export const createQuestion = async (req, res, next) => {
       }
     });
 
-    return successResponse(res, question, 'Question created successfully', 201);
+    return successResponse(res, question, 'Tạo câu hỏi thành công', 201);
   } catch (error) {
     next(error);
   }
@@ -112,28 +112,28 @@ export const updateQuestion = async (req, res, next) => {
     const { subjectId, content, optionA, optionB, optionC, optionD, correctAnswer, difficulty, defaultPoint } = req.body;
 
     const existingQuestion = await prisma.question.findUnique({ where: { id: questionId } });
-    if (!existingQuestion) return errorResponse(res, 'Question not found', 404);
+    if (!existingQuestion) return errorResponse(res, 'Không tìm thấy câu hỏi', 404);
     
     // Ownership check
     if (existingQuestion.createdById !== userId && req.user.role !== 'ADMIN') {
-      return errorResponse(res, 'Access denied. You do not own this question.', 403);
+      return errorResponse(res, 'Bạn không có quyền truy cập. Bạn không sở hữu câu hỏi này.', 403);
     }
     await assertSubjectAccess(req.user, subjectId || existingQuestion.subjectId);
 
     // Validation if fields are provided
     if (correctAnswer && !['A', 'B', 'C', 'D'].includes(correctAnswer)) {
-      return errorResponse(res, 'Correct answer must be A, B, C, or D', 400);
+      return errorResponse(res, 'Đáp án đúng phải là A, B, C hoặc D', 400);
     }
 
     if (difficulty && !['EASY', 'MEDIUM', 'HARD'].includes(difficulty)) {
-      return errorResponse(res, 'Difficulty must be EASY, MEDIUM, or HARD', 400);
+      return errorResponse(res, 'Độ khó phải là EASY, MEDIUM hoặc HARD', 400);
     }
 
     if (subjectId) {
       await assertSubjectAccess(req.user, subjectId);
     }
     if (defaultPoint !== undefined && (!Number.isFinite(Number(defaultPoint)) || Number(defaultPoint) <= 0)) {
-      return errorResponse(res, 'Question point must be greater than 0', 400);
+      return errorResponse(res, 'Điểm của câu hỏi phải lớn hơn 0', 400);
     }
 
     const question = await prisma.question.update({
@@ -151,7 +151,7 @@ export const updateQuestion = async (req, res, next) => {
       }
     });
 
-    return successResponse(res, question, 'Question updated successfully');
+    return successResponse(res, question, 'Cập nhật câu hỏi thành công');
   } catch (error) {
     next(error);
   }
@@ -161,10 +161,10 @@ export const createQuestionsBulk = async (req, res, next) => {
   try {
     const questions = req.body.questions;
     if (!Array.isArray(questions) || questions.length === 0) {
-      return errorResponse(res, 'Questions must be a non-empty array', 400);
+      return errorResponse(res, 'Danh sách câu hỏi phải là mảng không rỗng', 400);
     }
     if (questions.length > 100) {
-      return errorResponse(res, 'A maximum of 100 questions can be created at once', 400);
+      return errorResponse(res, 'Chỉ có thể tạo tối đa 100 câu hỏi trong một lần', 400);
     }
 
     try {
@@ -188,7 +188,7 @@ export const createQuestionsBulk = async (req, res, next) => {
       return records;
     });
 
-    return successResponse(res, created, `${created.length} questions created successfully`, 201);
+    return successResponse(res, created, `Đã tạo ${created.length} câu hỏi thành công`, 201);
   } catch (error) {
     next(error);
   }
@@ -200,19 +200,19 @@ export const deleteQuestion = async (req, res, next) => {
     const userId = req.user.id;
 
     const existingQuestion = await prisma.question.findUnique({ where: { id: questionId } });
-    if (!existingQuestion) return errorResponse(res, 'Question not found', 404);
+    if (!existingQuestion) return errorResponse(res, 'Không tìm thấy câu hỏi', 404);
     if (existingQuestion.createdById !== userId && req.user.role !== 'ADMIN') {
-      return errorResponse(res, 'Access denied.', 403);
+      return errorResponse(res, 'Bạn không có quyền truy cập.', 403);
     }
     await assertSubjectAccess(req.user, existingQuestion.subjectId);
 
     const usageCount = await prisma.examQuestion.count({ where: { questionId } });
     if (usageCount > 0) {
-      return errorResponse(res, 'Cannot delete a question that is linked to an exam', 409);
+      return errorResponse(res, 'Không thể xóa câu hỏi đã được liên kết với bài thi', 409);
     }
 
     await prisma.question.delete({ where: { id: questionId } });
-    return successResponse(res, null, 'Question deleted successfully');
+    return successResponse(res, null, 'Xóa câu hỏi thành công');
   } catch (error) {
     next(error);
   }

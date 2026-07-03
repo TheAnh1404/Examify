@@ -35,7 +35,7 @@ const toExamView = (exam) => {
     ...exam,
     id: String(exam.id),
     subjectId: String(exam.subjectId),
-    subjectName: exam.subject?.name || 'Unknown Subject',
+    subjectName: exam.subject?.name || 'Môn học không xác định',
     subjectCode: exam.subject?.code || '',
     duration: exam.durationMinutes,
     passPercentage: exam.passPercentage ?? 50,
@@ -60,17 +60,17 @@ const toExamPayload = (exam) => ({
 
 export const examService = {
   getAll: async () => {
-    const result = await handle(() => API.get('/exams'), 'Failed to fetch exams');
+    const result = await handle(() => API.get('/exams'), 'Không thể tải danh sách bài thi');
     return { ...result, data: result.data.map(toExamView) };
   },
 
   getById: async (id) => {
-    const result = await handle(() => API.get(`/exams/${id}`), 'Failed to fetch exam');
+    const result = await handle(() => API.get(`/exams/${id}`), 'Không thể tải bài thi');
     return { ...result, data: toExamView(result.data) };
   },
 
   create: async (exam) => {
-    const result = await handle(() => API.post('/exams', toExamPayload(exam)), 'Failed to create exam');
+    const result = await handle(() => API.post('/exams', toExamPayload(exam)), 'Không thể tạo bài thi');
     const examId = result.data.id;
 
     for (const [index, questionId] of (exam.questions || []).entries()) {
@@ -78,11 +78,11 @@ export const examService = {
         questionId,
         questionOrder: index + 1,
         point: 1
-      }), 'Failed to add question to exam');
+      }), 'Không thể thêm câu hỏi vào bài thi');
     }
 
     if (String(exam.status).toUpperCase() === 'PUBLISHED') {
-      await handle(() => API.patch(`/exams/${examId}/publish`), 'Failed to publish exam');
+      await handle(() => API.patch(`/exams/${examId}/publish`), 'Không thể công bố bài thi');
     }
 
     return examService.getById(examId);
@@ -105,24 +105,24 @@ export const examService = {
         defaultPoint: Number(question.marks ?? 1),
         point: Number(question.marks ?? 1)
       }))
-    }), 'Failed to create exam');
+    }), 'Không thể tạo bài thi');
     return examService.getById(result.data.id);
   },
 
   update: async (id, exam) => {
-    const result = await handle(() => API.put(`/exams/${id}`, toExamPayload(exam)), 'Failed to update exam');
+    const result = await handle(() => API.put(`/exams/${id}`, toExamPayload(exam)), 'Không thể cập nhật bài thi');
     return { ...result, data: toExamView(result.data) };
   },
 
   delete: async (id) => {
-    return handle(() => API.delete(`/exams/${id}`), 'Failed to delete exam');
+    return handle(() => API.delete(`/exams/${id}`), 'Không thể xóa bài thi');
   },
 
   addQuestionToExam: async (examId, questionId, point = 1) => {
-    return handle(() => API.post(`/exams/${examId}/questions`, { questionId, point }), 'Failed to add question');
+    return handle(() => API.post(`/exams/${examId}/questions`, { questionId, point }), 'Không thể thêm câu hỏi');
   },
 
   removeQuestionFromExam: async (examId, questionId) => {
-    return handle(() => API.delete(`/exams/${examId}/questions/${questionId}`), 'Failed to remove question');
+    return handle(() => API.delete(`/exams/${examId}/questions/${questionId}`), 'Không thể xóa câu hỏi');
   }
 };

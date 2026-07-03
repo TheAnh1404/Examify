@@ -24,9 +24,9 @@ const Unauthorized = () => {
           <ShieldAlert className="h-10 w-10" />
         </div>
         
-        <h1 className="font-display font-bold text-2xl text-slate-100 mb-2">Access Denied</h1>
+        <h1 className="font-display font-bold text-2xl text-slate-100 mb-2">Không có quyền truy cập</h1>
         <p className="text-slate-400 text-sm mb-8">
-          You do not have permissions to access this page. This area is restricted to authorized credentials.
+          Bạn không có quyền truy cập trang này.
         </p>
 
         <button
@@ -34,7 +34,7 @@ const Unauthorized = () => {
           className="glow-button w-full flex items-center justify-center gap-2"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Dashboard
+          Quay về bảng điều khiển
         </button>
       </div>
     </div>

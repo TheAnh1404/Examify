@@ -7,6 +7,7 @@ import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import { Plus, Eye, Trash2, FolderLock, ShieldAlert, CheckCircle } from 'lucide-react';
+import { formatStatus } from '../../utils/i18n';
 
 const ExamList = () => {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ const ExamList = () => {
       })
       .catch((err) => {
         console.error(err);
-        if (active) setError('Failed to fetch examinations list.');
+        if (active) setError('Không thể tải danh sách bài thi.');
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -54,11 +55,11 @@ const ExamList = () => {
       setDeleteLoading(true);
       await examService.delete(examToDelete.id);
       setExams(prev => prev.filter(e => e.id !== examToDelete.id));
-      setSuccess(`Exam "${examToDelete.title}" deleted successfully.`);
+      setSuccess(`Đã xóa bài thi "${examToDelete.title}".`);
       setDeleteOpen(false);
       setExamToDelete(null);
     } catch (err) {
-      setError(err.message || 'Failed to delete exam.');
+      setError(err.message || 'Không thể xóa bài thi.');
       setDeleteOpen(false);
     } finally {
       setDeleteLoading(false);
@@ -67,48 +68,48 @@ const ExamList = () => {
 
   const columns = [
     { 
-      header: 'Exam Details', 
+      header: 'Thông tin bài thi',
       key: 'title', 
       render: (row) => (
         <div>
           <Link to={`/teacher/exams/${row.id}`} className="font-semibold text-secondary-800 hover:text-primary-600 transition-colors">
             {row.title}
           </Link>
-          <p className="text-xs text-secondary-400 mt-0.5 line-clamp-1 max-w-sm">{row.description || 'No description'}</p>
+          <p className="text-xs text-secondary-400 mt-0.5 line-clamp-1 max-w-sm">{row.description || 'Không có mô tả'}</p>
         </div>
       ) 
     },
     { 
-      header: 'Subject', 
+      header: 'Môn học',
       key: 'subjectName', 
       render: (row) => <Badge variant="indigo">{row.subjectName}</Badge> 
     },
     { 
-      header: 'Duration', 
+      header: 'Thời gian',
       key: 'duration', 
-      render: (row) => <span className="text-secondary-500 font-medium">{row.duration} mins</span> 
+      render: (row) => <span className="text-secondary-500 font-medium">{row.duration} phút</span>
     },
     { 
-      header: 'Total Marks', 
+      header: 'Tổng điểm',
       key: 'totalMarks', 
-      render: (row) => <span className="font-bold">{row.totalMarks} pts</span> 
+      render: (row) => <span className="font-bold">{row.totalMarks} điểm</span>
     },
     { 
-      header: 'Questions', 
+      header: 'Câu hỏi',
       key: 'questionCount', 
-      render: (row) => <span className="font-medium">{row.questionCount} Qs</span> 
+      render: (row) => <span className="font-medium">{row.questionCount} câu</span>
     },
     { 
-      header: 'Status', 
+      header: 'Trạng thái',
       key: 'status', 
       render: (row) => (
         <Badge variant={row.status.toUpperCase() === 'PUBLISHED' ? 'success' : 'slate'}>
-          {row.status}
+          {formatStatus(row.status)}
         </Badge>
       ) 
     },
     {
-      header: 'Actions',
+      header: 'Thao tác',
       key: 'actions',
       render: (row) => (
         <div className="flex gap-1.5 justify-end shrink-0">
@@ -117,21 +118,21 @@ const ExamList = () => {
             size="sm"
             onClick={() => navigate(`/teacher/exams/${row.id}`)}
             icon={<Eye className="h-3.5 w-3.5 text-secondary-500" />}
-            title="View Details"
+            title="Xem chi tiết"
           />
           <Button
             variant="secondary"
             size="sm"
             onClick={() => navigate(`/teacher/exams/${row.id}/questions`)}
             icon={<FolderLock className="h-3.5 w-3.5 text-secondary-500" />}
-            title="Manage Questions"
+            title="Quản lý câu hỏi"
           />
           <Button
             variant="danger"
             size="sm"
             onClick={() => handleDeleteClick(row)}
             icon={<Trash2 className="h-3.5 w-3.5" />}
-            title="Delete Exam"
+            title="Xóa bài thi"
           />
         </div>
       )
@@ -141,8 +142,8 @@ const ExamList = () => {
   return (
     <div className="space-y-6">
       <PageHeader 
-        title="Examination List" 
-        subtitle="Review, structure, and modify academic quizzes."
+        title="Danh sách bài thi"
+        subtitle="Xem, tổ chức và chỉnh sửa các bài kiểm tra."
         actions={
           <Button 
             variant="primary" 
@@ -150,7 +151,7 @@ const ExamList = () => {
             onClick={() => navigate('/teacher/exams/create')}
             icon={<Plus className="h-4.5 w-4.5" />}
           >
-            Create Exam
+            Tạo bài thi
           </Button>
         }
       />
@@ -174,7 +175,7 @@ const ExamList = () => {
         data={exams} 
         loading={loading}
         pageSize={6} 
-        emptyMessage="No exams have been published yet."
+        emptyMessage="Chưa có bài thi nào."
       />
 
       {/* Delete Confirmation */}
@@ -182,9 +183,9 @@ const ExamList = () => {
         isOpen={deleteOpen}
         onClose={() => setDeleteOpen(false)}
         onConfirm={handleConfirmDelete}
-        title="Delete Examination"
-        message={`Are you sure you want to permanently delete exam "${examToDelete?.title}"? All student attempts logged under this exam will be deleted.`}
-        confirmText="Delete Exam"
+        title="Xóa bài thi"
+        message={`Bạn có chắc muốn xóa vĩnh viễn bài thi "${examToDelete?.title}"? Tất cả lượt làm bài ghi nhận dưới bài thi này sẽ bị xóa.`}
+        confirmText="Xóa bài thi"
         loading={deleteLoading}
       />
     </div>

@@ -14,7 +14,7 @@ const ForgotPasswordPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email) {
-      setError('Please input your registered email address.');
+      setError('Vui lòng nhập địa chỉ email đã đăng ký.');
       return;
     }
 
@@ -23,10 +23,10 @@ const ForgotPasswordPage = () => {
       setSuccess('');
       setLoading(true);
       const res = await authService.forgotPassword(email);
-      setSuccess(res.message || 'Recovery instructions sent to your email.');
+      setSuccess(res.message || 'Hướng dẫn khôi phục đã được gửi đến email của bạn.');
       setEmail('');
     } catch (err) {
-      setError(err.message || 'Error processing password recovery.');
+      setError(err.message || 'Không thể xử lý yêu cầu khôi phục mật khẩu.');
     } finally {
       setLoading(false);
     }
@@ -50,22 +50,22 @@ const ForgotPasswordPage = () => {
               <CheckCircle2 className="h-9 w-9" />
             </div>
             <div className="space-y-2">
-              <h4 className="text-xl font-bold text-slate-900 tracking-tight">Check your email</h4>
+              <h4 className="text-xl font-bold text-slate-900 tracking-tight">Kiểm tra email của bạn</h4>
               <p className="text-sm text-slate-500 font-medium leading-relaxed px-2">
-                We've sent recovery instructions to your inbox. Please check your spam folder if it doesn't arrive in a few minutes.
+                Chúng tôi đã gửi hướng dẫn khôi phục vào hộp thư của bạn. Vui lòng kiểm tra thư rác nếu chưa thấy email sau vài phút.
               </p>
             </div>
             <button
               onClick={() => navigate('/login')}
               className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white py-2.5 rounded-lg font-semibold text-sm transition shadow-md shadow-blue-500/10"
             >
-              Back to Sign In
+              Quay lại đăng nhập
             </button>
             <button 
               onClick={() => setSuccess('')}
               className="text-xs text-slate-400 font-bold hover:text-blue-600 transition"
             >
-              Resend Link
+              Gửi lại liên kết
             </button>
           </div>
         ) : (
@@ -117,9 +117,9 @@ const ForgotPasswordPage = () => {
             </div>
 
             <div>
-              <h1 className="text-xl font-bold text-slate-900 mb-1.5">Forgot Password?</h1>
+              <h1 className="text-xl font-bold text-slate-900 mb-1.5">Quên mật khẩu?</h1>
               <p className="text-slate-500 text-xs leading-relaxed px-4">
-                Enter your email address and we'll send you a password reset link.
+                Nhập địa chỉ email để nhận liên kết đặt lại mật khẩu.
               </p>
             </div>
 
@@ -132,7 +132,7 @@ const ForgotPasswordPage = () => {
 
             {/* Email Input */}
             <div className="space-y-1 text-left">
-              <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Email Address</label>
+              <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Địa chỉ email</label>
               <div className="relative">
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
                   <Mail className="h-4.5 w-4.5" />
@@ -141,7 +141,7 @@ const ForgotPasswordPage = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="e.g., name@company.com"
+                  placeholder="Ví dụ: ten@truong.edu.vn"
                   required
                   className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition"
                 />
@@ -158,7 +158,7 @@ const ForgotPasswordPage = () => {
                 <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
               ) : (
                 <>
-                  <span>Send Reset Link</span>
+                  <span>Gửi liên kết đặt lại</span>
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}
@@ -174,7 +174,7 @@ const ForgotPasswordPage = () => {
                 className="inline-flex items-center gap-1.5 font-bold text-slate-500 hover:text-slate-800 transition-colors"
               >
                 <ArrowLeft className="h-4 w-4" />
-                <span>Back to Login</span>
+                <span>Quay lại đăng nhập</span>
               </Link>
             </div>
           </form>
@@ -183,7 +183,7 @@ const ForgotPasswordPage = () => {
 
       {/* Page Footer */}
       <div className="mt-8 text-slate-400 text-xs text-center font-medium">
-        &copy; 2024 Examify Education Systems. All rights reserved.
+        &copy; 2024 Examify Education Systems. Mọi quyền được bảo lưu.
       </div>
     </div>
   );

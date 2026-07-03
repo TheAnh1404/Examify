@@ -22,9 +22,9 @@ const NotFound = () => {
         </div>
         
         <h1 className="font-display font-extrabold text-3xl text-secondary-800 tracking-tight">404</h1>
-        <h2 className="font-semibold text-base text-secondary-700 mt-1">Page Not Found</h2>
+        <h2 className="font-semibold text-base text-secondary-700 mt-1">Không tìm thấy trang</h2>
         <p className="text-secondary-500 text-sm mt-2 mb-8 leading-relaxed font-medium">
-          The routing path you specified could not be resolved in the application workspace.
+          Đường dẫn bạn truy cập không tồn tại hoặc đã được di chuyển.
         </p>
 
         <Button
@@ -33,7 +33,7 @@ const NotFound = () => {
           className="w-full"
           icon={<ArrowLeft className="h-4.5 w-4.5" />}
         >
-          Back to Dashboard
+          Quay về bảng điều khiển
         </Button>
       </div>
     </div>

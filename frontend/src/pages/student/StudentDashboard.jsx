@@ -11,10 +11,11 @@ import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
 import { authService } from '../../services/authService';
 import { BookOpen, ClipboardList, Award, CheckCircle2, ArrowRight, Play, Eye, ShieldAlert, TrendingUp, Calendar, GraduationCap, ChevronRight } from 'lucide-react';
+import { formatStatus } from '../../utils/i18n';
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
-  const user = authService.getCurrentUser() || { id: 'usr-student', name: 'Student' };
+  const user = authService.getCurrentUser() || { id: 'usr-student', name: 'Học sinh' };
 
   const [metrics, setMetrics] = useState(null);
   const [exams, setExams] = useState([]);
@@ -38,7 +39,7 @@ const StudentDashboard = () => {
       setClassrooms(classroomsRes.data);
     } catch (err) {
       console.error(err);
-      setError('Failed to fetch student dashboard data.');
+      setError('Không thể tải dữ liệu bảng điều khiển học sinh.');
     } finally {
       setLoading(false);
     }
@@ -50,7 +51,7 @@ const StudentDashboard = () => {
 
   if (loading) return (
     <div className="min-h-[60vh] flex items-center justify-center">
-      <Loading message="Assembling student portal..." />
+      <Loading message="Đang tải cổng học sinh..." />
     </div>
   );
 
@@ -70,35 +71,35 @@ const StudentDashboard = () => {
     <div className="space-y-10 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
         <div>
-          <h1 className="text-4xl font-extrabold text-secondary-900 tracking-tight mb-2">Learning Portal</h1>
-          <p className="text-secondary-500 font-medium">Review assigned assessments, test your skills, and check instant scorecards.</p>
+          <h1 className="text-4xl font-extrabold text-secondary-900 tracking-tight mb-2">Cổng học tập</h1>
+          <p className="text-secondary-500 font-medium">Xem bài thi được giao, làm bài và theo dõi kết quả của bạn.</p>
         </div>
         <Button variant="primary" onClick={() => navigate('/student/exams')} icon={<BookOpen size={18} />} className="shadow-xl shadow-primary-500/30">
-          Browse Catalog
+          Xem bài thi
         </Button>
       </div>
 
       {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
         <StatCard 
-          title="Exams Completed" 
+          title="Bài thi đã hoàn thành"
           value={metrics.examsTaken} 
           icon={ClipboardList} 
-          description="Total attempts recorded"
+          description="Tổng lượt làm bài đã ghi nhận"
         />
         <StatCard 
-          title="Average Score" 
+          title="Điểm trung bình"
           value={`${metrics.averageScore}%`} 
           icon={TrendingUp} 
           trendValue="+2.5%"
           trendType="up"
-          description="Overall performance"
+          description="Hiệu suất tổng quan"
         />
         <StatCard 
-          title="Passing Ratio" 
+          title="Tỷ lệ đạt"
           value={`${metrics.passRate}%`} 
           icon={CheckCircle2} 
-          description="Success rate metric"
+          description="Chỉ số hoàn thành"
         />
       </div>
 
@@ -106,13 +107,13 @@ const StudentDashboard = () => {
         
         {/* My Classrooms Overview */}
         <Card 
-          title="My Active Classrooms" 
-          subtitle="Quick access to your enrolled academic sessions"
+          title="Lớp học của tôi"
+          subtitle="Truy cập nhanh các lớp bạn đã tham gia"
           bodyClassName="p-0"
           className="shadow-xl shadow-secondary-200/20"
           actions={
             <Link to="/student/classrooms" className="text-[10px] font-extrabold text-primary-500 hover:text-primary-700 flex items-center gap-2 uppercase tracking-widest transition-all">
-              Manage All
+              Quản lý tất cả
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           }
@@ -120,7 +121,7 @@ const StudentDashboard = () => {
           {classrooms.length === 0 ? (
             <div className="p-16 text-center">
               <GraduationCap className="h-8 w-8 text-secondary-200 mx-auto mb-4" />
-              <p className="text-xs text-secondary-400 font-bold uppercase tracking-widest">No classes joined yet.</p>
+              <p className="text-xs text-secondary-400 font-bold uppercase tracking-widest">Chưa tham gia lớp học nào.</p>
             </div>
           ) : (
             <div className="divide-y divide-secondary-50">
@@ -132,7 +133,7 @@ const StudentDashboard = () => {
                     </div>
                     <div className="min-w-0">
                       <h4 className="font-extrabold text-secondary-900 text-sm truncate group-hover:text-primary-600 transition-colors">{cls.name}</h4>
-                      <p className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mt-0.5">{cls.teacher?.fullName} • {cls.subject?.name}</p>
+                      <p className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mt-0.5">{cls.teacher?.fullName} - {cls.subject?.name}</p>
                     </div>
                   </div>
                   <ChevronRight className="h-4 w-4 text-secondary-300 group-hover:text-primary-500 transition-all" />
@@ -144,14 +145,14 @@ const StudentDashboard = () => {
 
         {/* Subject Performance Analysis */}
         <Card 
-          title="Performance by Subject" 
-          subtitle="Your average score breakdown per category"
+          title="Kết quả theo môn học"
+          subtitle="Điểm trung bình của bạn theo từng môn"
           className="shadow-xl shadow-secondary-200/20"
         >
           {metrics.performanceBySubject?.length === 0 ? (
             <div className="p-12 text-center">
               <BookOpen className="h-8 w-8 text-secondary-200 mx-auto mb-4" />
-              <p className="text-xs text-secondary-400 font-bold uppercase tracking-widest">No subject data yet.</p>
+              <p className="text-xs text-secondary-400 font-bold uppercase tracking-widest">Chưa có dữ liệu môn học.</p>
             </div>
           ) : (
             <div className="space-y-6 py-4">
@@ -178,13 +179,13 @@ const StudentDashboard = () => {
 
         {/* Available Exams */}
         <Card 
-          title="Available Assessments" 
-          subtitle="Tests ready for you to attempt"
+          title="Bài thi có thể làm"
+          subtitle="Các bài thi sẵn sàng để bạn bắt đầu"
           bodyClassName="p-0"
           className="shadow-xl shadow-secondary-200/20"
           actions={
             <Link to="/student/exams" className="text-[10px] font-extrabold text-primary-500 hover:text-primary-700 flex items-center gap-2 uppercase tracking-widest transition-all">
-              Browse All
+              Xem tất cả
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           }
@@ -194,8 +195,8 @@ const StudentDashboard = () => {
               <div className="h-16 w-16 rounded-3xl bg-secondary-50 text-secondary-200 flex items-center justify-center mx-auto mb-6 ring-1 ring-secondary-100">
                 <CheckCircle2 className="h-8 w-8" />
               </div>
-              <p className="text-sm font-extrabold text-secondary-900 uppercase tracking-tight">All caught up!</p>
-              <p className="text-xs text-secondary-400 font-bold uppercase tracking-widest mt-2">No pending examinations assigned.</p>
+              <p className="text-sm font-extrabold text-secondary-900 uppercase tracking-tight">Bạn đã hoàn thành tất cả!</p>
+              <p className="text-xs text-secondary-400 font-bold uppercase tracking-widest mt-2">Không có bài thi nào đang chờ làm.</p>
             </div>
           ) : (
             <div className="divide-y divide-secondary-50">
@@ -205,7 +206,7 @@ const StudentDashboard = () => {
                     <h4 className="font-extrabold text-secondary-900 truncate group-hover:text-primary-600 transition-colors tracking-tight text-base">{exam.title}</h4>
                     <div className="flex items-center gap-4 mt-2">
                       <Badge variant="slate">{exam.subjectName}</Badge>
-                      <span className="text-[9px] font-extrabold text-secondary-400 uppercase tracking-[0.15em]">{exam.duration} mins</span>
+                      <span className="text-[9px] font-extrabold text-secondary-400 uppercase tracking-[0.15em]">{exam.duration} phút</span>
                     </div>
                   </div>
                   <Button
@@ -214,7 +215,7 @@ const StudentDashboard = () => {
                     onClick={() => navigate(`/student/exams/${exam.id}/instruction`)}
                     icon={<Play size={14} className="fill-current" />}
                   >
-                    Start
+                    Bắt đầu
                   </Button>
                 </div>
               ))}
@@ -224,13 +225,13 @@ const StudentDashboard = () => {
 
         {/* History Attempts List */}
         <Card 
-          title="Recent Results" 
-          subtitle="Latest graded scorecard summaries"
+          title="Kết quả gần đây"
+          subtitle="Các phiếu điểm đã chấm mới nhất"
           bodyClassName="p-0"
           className="shadow-xl shadow-secondary-200/20"
           actions={
             <Link to="/student/attempts" className="text-[10px] font-extrabold text-primary-500 hover:text-primary-700 flex items-center gap-2 uppercase tracking-widest transition-all">
-              Full History
+              Toàn bộ lịch sử
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           }
@@ -240,8 +241,8 @@ const StudentDashboard = () => {
               <div className="h-16 w-16 rounded-3xl bg-secondary-50 text-secondary-200 flex items-center justify-center mx-auto mb-6 ring-1 ring-secondary-100">
                 <Calendar className="h-8 w-8" />
               </div>
-              <p className="text-sm font-extrabold text-secondary-900 uppercase tracking-tight">No attempts yet</p>
-              <p className="text-xs text-secondary-400 font-bold uppercase tracking-widest mt-2">Start your first exam to see results.</p>
+              <p className="text-sm font-extrabold text-secondary-900 uppercase tracking-tight">Chưa có lượt làm bài</p>
+              <p className="text-xs text-secondary-400 font-bold uppercase tracking-widest mt-2">Hãy bắt đầu bài thi đầu tiên để xem kết quả.</p>
             </div>
           ) : (
             <div className="divide-y divide-secondary-50">
@@ -254,8 +255,8 @@ const StudentDashboard = () => {
                     <div className="min-w-0 flex-1">
                       <h4 className="font-extrabold text-secondary-900 truncate tracking-tight text-base">{sub.examTitle}</h4>
                       <div className="flex items-center gap-4 mt-2">
-                        <Badge variant={isPass ? 'success' : 'danger'} dot>{sub.status}</Badge>
-                        <span className="text-[9px] font-extrabold text-secondary-400 uppercase tracking-[0.15em]">{sub.score} / {sub.examTotalMarks} pts ({subPct.toFixed(0)}%)</span>
+                        <Badge variant={isPass ? 'success' : 'danger'} dot>{formatStatus(sub.status)}</Badge>
+                        <span className="text-[9px] font-extrabold text-secondary-400 uppercase tracking-[0.15em]">{sub.score} / {sub.examTotalMarks} điểm ({subPct.toFixed(0)}%)</span>
                       </div>
                     </div>
                     
@@ -265,7 +266,7 @@ const StudentDashboard = () => {
                       onClick={() => navigate(`/student/results/${sub.id}`)}
                       icon={<Eye size={14} />}
                     >
-                      Report
+                      Xem kết quả
                     </Button>
                   </div>
                 );

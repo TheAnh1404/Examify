@@ -15,7 +15,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) {
-      setError('Please fill in all fields.');
+      setError('Vui lòng điền đầy đủ thông tin.');
       return;
     }
 
@@ -54,14 +54,14 @@ const Login = () => {
             <GraduationCap className="h-8 w-8" />
           </div>
           <h1 className="font-display font-bold text-3xl text-slate-100 tracking-wide">
-            Welcome back to <span className="bg-gradient-to-r from-brand-400 to-indigo-400 bg-clip-text text-transparent">Examify</span>
+            Chào mừng trở lại <span className="bg-gradient-to-r from-brand-400 to-indigo-400 bg-clip-text text-transparent">Examify</span>
           </h1>
-          <p className="text-slate-400 text-sm mt-1.5">Enterprise Multiple-Choice Exam Platform</p>
+          <p className="text-slate-400 text-sm mt-1.5">Nền tảng thi trắc nghiệm trực tuyến</p>
         </div>
 
         {/* Login Form Card */}
         <div className="glass-panel p-8 mb-6">
-          <h2 className="font-semibold text-lg text-slate-200 mb-6">Sign In</h2>
+          <h2 className="font-semibold text-lg text-slate-200 mb-6">Đăng nhập</h2>
           
           {error && (
             <div className="mb-5 flex items-center gap-2.5 p-3.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm animate-slide-up">
@@ -72,14 +72,14 @@ const Login = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Email Address</label>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Địa chỉ email</label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-slate-500" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@example.com"
+                  placeholder="ten@truong.edu.vn"
                   className="glass-input pl-11"
                   required
                 />
@@ -87,7 +87,7 @@ const Login = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Password</label>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Mật khẩu</label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-slate-500" />
                 <input
@@ -109,16 +109,16 @@ const Login = () => {
               {loading ? (
                 <div className="h-5 w-5 rounded-full border-2 border-white/20 border-t-white animate-spin"></div>
               ) : (
-                'Sign In'
+                'Đăng nhập'
               )}
             </button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-slate-400 text-sm">
-              Don't have an account?{' '}
+              Chưa có tài khoản?{' '}
               <Link to="/register" className="text-brand-400 hover:text-brand-300 font-semibold transition-colors duration-150">
-                Register here
+                Đăng ký tại đây
               </Link>
             </p>
           </div>
@@ -126,25 +126,25 @@ const Login = () => {
 
         {/* Quick Fill Box */}
         <div className="glass-panel p-5 border-dashed border-dark-700/80 bg-dark-900/20">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3.5 text-center">Demo Quick-Fill Credentials</p>
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3.5 text-center">Tài khoản mẫu</p>
           <div className="grid grid-cols-3 gap-2">
             <button
               onClick={() => handleQuickFill('admin@examify.com', 'admin123')}
               className="px-2.5 py-2 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 text-purple-300 text-xs font-medium transition-all duration-200"
             >
-              System Admin
+              Quản trị viên
             </button>
             <button
               onClick={() => handleQuickFill('teacher@examify.com', 'teacher123')}
               className="px-2.5 py-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-300 text-xs font-medium transition-all duration-200"
             >
-              Dr. Sarah (Teacher)
+              Giáo viên mẫu
             </button>
             <button
               onClick={() => handleQuickFill('student@examify.com', 'student123')}
               className="px-2.5 py-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-300 text-xs font-medium transition-all duration-200"
             >
-              Alex (Student)
+              Học sinh mẫu
             </button>
           </div>
         </div>

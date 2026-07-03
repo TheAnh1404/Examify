@@ -9,6 +9,7 @@ import DataTable from '../../components/common/DataTable';
 import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
 import { Eye, AlertTriangle, ShieldAlert } from 'lucide-react';
+import { formatStatus } from '../../utils/i18n';
 
 const ResultsManagement = () => {
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ const ResultsManagement = () => {
         setWarningThreshold(settingsResponse.data.tabFocusWarnings);
       } catch (err) {
         console.error(err);
-        setError('Failed to fetch student attempts.');
+        setError('Không thể tải lượt làm bài của học sinh.');
       } finally {
         setLoading(false);
       }
@@ -53,7 +54,7 @@ const ResultsManagement = () => {
 
   const columns = [
     { 
-      header: 'Student', 
+      header: 'Học sinh',
       key: 'studentName', 
       render: (row) => (
         <div>
@@ -62,27 +63,27 @@ const ResultsManagement = () => {
         </div>
       ) 
     },
-    { header: 'Exam Title', key: 'examTitle' },
+    { header: 'Bài thi', key: 'examTitle' },
     { 
-      header: 'Score', 
+      header: 'Điểm',
       key: 'score', 
       render: (row) => (
         <span className="font-mono font-bold text-secondary-800">
-          {row.score.toFixed(2)} / {row.examTotalMarks} pts
+          {row.score.toFixed(2)} / {row.examTotalMarks} điểm
         </span>
       ) 
     },
     { 
-      header: 'Status', 
+      header: 'Trạng thái',
       key: 'status', 
       render: (row) => (
         <Badge variant={row.status === 'Pass' ? 'success' : row.status === 'Fail' ? 'danger' : 'warning'}>
-          {row.status}
+          {formatStatus(row.status)}
         </Badge>
       )
     },
     { 
-      header: 'Focus Warnings', 
+      header: 'Cảnh báo tập trung',
       key: 'tabFocusLosses', 
       render: (row) => (
         row.tabFocusLosses > 0 ? (
@@ -92,15 +93,15 @@ const ResultsManagement = () => {
               : 'bg-warning-50 border-warning-100 text-warning-600'
           }`}>
             <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-            {row.tabFocusLosses} Switches
+            {row.tabFocusLosses} lần chuyển
           </span>
         ) : (
-          <span className="text-xs text-secondary-400 font-medium">None</span>
+          <span className="text-xs text-secondary-400 font-medium">Không có</span>
         )
       ) 
     },
     { 
-      header: 'Date Submitted', 
+      header: 'Ngày nộp',
       key: 'submittedAt', 
       render: (row) => (
         <span className="text-secondary-450 text-xs">
@@ -108,12 +109,12 @@ const ResultsManagement = () => {
             year: 'numeric',
             month: 'short',
             day: 'numeric'
-          }) : 'Not submitted'}
+          }) : 'Chưa nộp'}
         </span>
       ) 
     },
     {
-      header: 'Actions',
+      header: 'Thao tác',
       key: 'actions',
       render: (row) => (
         <div className="flex justify-end">
@@ -122,7 +123,7 @@ const ResultsManagement = () => {
             size="sm"
             onClick={() => navigate(`/teacher/results/${row.id}`)}
             icon={<Eye className="h-3.5 w-3.5 text-secondary-500" />}
-            title="Review Sheet"
+            title="Xem bài làm"
           />
         </div>
       )
@@ -132,8 +133,8 @@ const ResultsManagement = () => {
   return (
     <div className="space-y-6">
       <PageHeader 
-        title="Gradebook & Results" 
-        subtitle="Audit student submissions, view scoring breakdowns, and monitor visual proctoring logs."
+        title="Sổ điểm và kết quả"
+        subtitle="Xem bài nộp, phân tích điểm và theo dõi nhật ký giám sát."
       />
 
       {error && (
@@ -148,17 +149,17 @@ const ResultsManagement = () => {
         <SearchBox 
           value={search} 
           onChange={(e) => setSearch(e.target.value)} 
-          placeholder="Search by student or exam..." 
+          placeholder="Tìm theo học sinh hoặc bài thi..."
         />
         
         <FilterBar 
           value={statusFilter} 
           onChange={(e) => setStatusFilter(e.target.value)}
           options={[
-            { value: 'ALL', label: 'All Attempt Statuses' },
-            { value: 'PASS', label: 'Passing Scores' },
-            { value: 'FAIL', label: 'Failing Scores' },
-            { value: 'IN PROGRESS', label: 'In Progress' }
+            { value: 'ALL', label: 'Tất cả trạng thái' },
+            { value: 'PASS', label: 'Bài đạt' },
+            { value: 'FAIL', label: 'Bài chưa đạt' },
+            { value: 'IN PROGRESS', label: 'Đang làm' }
           ]} 
         />
       </div>

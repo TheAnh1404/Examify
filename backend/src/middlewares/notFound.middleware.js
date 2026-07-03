@@ -1,5 +1,5 @@
 import { errorResponse } from '../utils/response.js';
 
 export const notFoundMiddleware = (req, res, next) => {
-  return errorResponse(res, `Endpoint not found - ${req.originalUrl}`, 404);
+  return errorResponse(res, `Không tìm thấy endpoint - ${req.originalUrl}`, 404);
 };

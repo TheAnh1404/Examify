@@ -3,7 +3,7 @@ import { Search, X } from 'lucide-react';
 const SearchBox = ({
   value,
   onChange,
-  placeholder = 'Search records...',
+  placeholder = 'Tìm kiếm dữ liệu...',
   className = ''
 }) => {
   return (

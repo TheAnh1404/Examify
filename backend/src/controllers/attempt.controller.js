@@ -18,7 +18,7 @@ export const startAttempt = async (req, res, next) => {
     });
 
     if (!exam || exam.status !== 'PUBLISHED') {
-      return errorResponse(res, 'Exam not available', 403);
+      return errorResponse(res, 'Bài thi hiện không khả dụng', 403);
     }
 
     // Access control for PRIVATE exams
@@ -27,18 +27,18 @@ export const startAttempt = async (req, res, next) => {
         where: { examId_studentId: { examId: parseInt(examId), studentId } }
       });
       if (!assigned && req.user.role === 'STUDENT') {
-        return errorResponse(res, 'Access denied. You are not assigned to this private exam.', 403);
+        return errorResponse(res, 'Bạn không có quyền truy cập. Bạn chưa được phân công làm bài thi riêng tư này.', 403);
       }
     }
 
     // Password protection check
     if (exam.accessPasswordHash) {
       if (!accessPassword) {
-        return errorResponse(res, 'Access password required', 403);
+        return errorResponse(res, 'Vui lòng nhập mật khẩu truy cập', 403);
       }
       const isMatch = await bcrypt.compare(accessPassword, exam.accessPasswordHash);
       if (!isMatch) {
-        return errorResponse(res, 'Invalid access password', 403);
+        return errorResponse(res, 'Mật khẩu truy cập không đúng', 403);
       }
     }
 
@@ -49,7 +49,7 @@ export const startAttempt = async (req, res, next) => {
     });
 
     if (existingAttempt) {
-      return successResponse(res, existingAttempt, 'Resuming existing attempt');
+      return successResponse(res, existingAttempt, 'Tiếp tục lượt làm bài hiện có');
     }
 
     const attempt = await prisma.examAttempt.create({
@@ -61,7 +61,7 @@ export const startAttempt = async (req, res, next) => {
       }
     });
 
-    return successResponse(res, attempt, 'Exam attempt started', 201);
+    return successResponse(res, attempt, 'Bắt đầu lượt làm bài thành công', 201);
   } catch (error) {
     next(error);
   }
@@ -74,10 +74,10 @@ export const saveAnswers = async (req, res, next) => {
 
     const attempt = await prisma.examAttempt.findUnique({ where: { id: attemptId } });
     if (!attempt || attempt.status !== 'IN_PROGRESS') {
-      return errorResponse(res, 'Attempt not found or already submitted', 400);
+      return errorResponse(res, 'Không tìm thấy lượt làm bài hoặc bài đã được nộp', 400);
     }
     if (attempt.studentId !== req.user.id) {
-      return errorResponse(res, 'Access denied', 403);
+      return errorResponse(res, 'Bạn không có quyền truy cập', 403);
     }
 
     const upsertPromises = answers.map(ans => {
@@ -95,7 +95,7 @@ export const saveAnswers = async (req, res, next) => {
     });
 
     await Promise.all(upsertPromises);
-    return successResponse(res, null, 'Answers saved successfully');
+    return successResponse(res, null, 'Lưu câu trả lời thành công');
   } catch (error) {
     next(error);
   }
@@ -107,10 +107,10 @@ export const submitAttempt = async (req, res, next) => {
     const attempt = await prisma.examAttempt.findUnique({ where: { id: attemptId } });
 
     if (!attempt || attempt.status !== 'IN_PROGRESS') {
-      return errorResponse(res, 'Attempt not found or already submitted', 400);
+      return errorResponse(res, 'Không tìm thấy lượt làm bài hoặc bài đã được nộp', 400);
     }
     if (attempt.studentId !== req.user.id) {
-      return errorResponse(res, 'Access denied', 403);
+      return errorResponse(res, 'Bạn không có quyền truy cập', 403);
     }
 
     const settings = await settingsService.getSettings();
@@ -124,7 +124,7 @@ export const submitAttempt = async (req, res, next) => {
     });
 
     const result = await gradingService.gradeAttempt(attemptId);
-    return successResponse(res, result, 'Exam submitted and graded successfully');
+    return successResponse(res, result, 'Nộp bài và chấm điểm thành công');
   } catch (error) {
     next(error);
   }
@@ -151,17 +151,17 @@ export const getAttemptResult = async (req, res, next) => {
       }
     });
 
-    if (!attempt) return errorResponse(res, 'Attempt not found', 404);
+    if (!attempt) return errorResponse(res, 'Không tìm thấy lượt làm bài', 404);
 
     // Security check: only the student who took it, or teacher/admin
     if (req.user.role === 'STUDENT' && attempt.studentId !== req.user.id) {
-      return errorResponse(res, 'Access denied', 403);
+      return errorResponse(res, 'Bạn không có quyền truy cập', 403);
     }
     if (req.user.role === 'TEACHER' && attempt.exam.createdById !== req.user.id) {
-      return errorResponse(res, 'Access denied', 403);
+      return errorResponse(res, 'Bạn không có quyền truy cập', 403);
     }
 
-    return successResponse(res, attempt, 'Attempt result retrieved');
+    return successResponse(res, attempt, 'Lấy kết quả làm bài thành công');
   } catch (error) {
     next(error);
   }
@@ -180,7 +180,7 @@ export const getStudentHistory = async (req, res, next) => {
       orderBy: { startedAt: 'desc' }
     });
 
-    return successResponse(res, history, 'Student history retrieved');
+    return successResponse(res, history, 'Lấy lịch sử làm bài của học sinh thành công');
   } catch (error) {
     next(error);
   }
@@ -204,7 +204,7 @@ export const getAllAttempts = async (req, res, next) => {
       orderBy: { startedAt: 'desc' }
     });
 
-    return successResponse(res, attempts, 'All exam attempts retrieved');
+    return successResponse(res, attempts, 'Lấy danh sách lượt làm bài thành công');
   } catch (error) {
     next(error);
   }

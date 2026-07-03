@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
             }));
           }
         } catch (error) {
-          console.log('Backend auth check failed', error.message || error);
+          console.log('Kiểm tra xác thực từ backend thất bại', error.message || error);
           localStorage.removeItem('examify_token');
           localStorage.removeItem('examify_role');
           localStorage.removeItem('examify_user');
@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }) => {
       setUser(data.user);
       return data.user;
     } catch (error) {
-      throw error.message || 'Login failed. Please try again.';
+      throw error.message || 'Đăng nhập không thành công. Vui lòng thử lại.';
     }
   };
 
@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }) => {
       setUser(data.user);
       return data.user;
     } catch (error) {
-      throw error.message || 'Registration failed. Please try again.';
+      throw error.message || 'Đăng ký không thành công. Vui lòng thử lại.';
     }
   };
 

@@ -39,7 +39,7 @@ const AvailableExams = () => {
 
   if (loading) return (
     <div className="min-h-[60vh] flex items-center justify-center">
-      <Loading message="Loading available assessments..." />
+      <Loading message="Đang tải bài thi có thể làm..." />
     </div>
   );
 
@@ -54,13 +54,13 @@ const AvailableExams = () => {
     <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="h1 mb-1">Assessment Catalog</h1>
-          <p className="p">Browse and start published subject examinations.</p>
+          <h1 className="h1 mb-1">Danh sách bài thi</h1>
+          <p className="p">Tìm và bắt đầu các bài thi đã công bố.</p>
         </div>
         <SearchBox 
           value={search} 
           onChange={(e) => setSearch(e.target.value)} 
-          placeholder="Search assessments..." 
+          placeholder="Tìm bài thi..."
         />
       </div>
 
@@ -69,8 +69,8 @@ const AvailableExams = () => {
           <div className="h-16 w-16 rounded-2xl bg-secondary-50 text-secondary-300 flex items-center justify-center mx-auto mb-4">
             <BookOpen className="h-8 w-8" />
           </div>
-          <h4 className="text-secondary-900 font-bold mb-1">No assessments found</h4>
-          <p className="text-secondary-500 text-sm">We couldn't find any exams matching your current criteria.</p>
+          <h4 className="text-secondary-900 font-bold mb-1">Không tìm thấy bài thi</h4>
+          <p className="text-secondary-500 text-sm">Không có bài thi nào khớp với tiêu chí hiện tại.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -94,7 +94,7 @@ const AvailableExams = () => {
                       onClick={() => navigate(`/student/results/${studentAttempt.id}`)}
                       icon={<Award className="h-4 w-4" />}
                     >
-                      View Graded Result
+                      Xem kết quả
                     </Button>
                   ) : (
                     <Button
@@ -104,36 +104,36 @@ const AvailableExams = () => {
                       icon={<Play className="h-4 w-4" />}
                       className="shadow-lg shadow-primary-500/20"
                     >
-                      View Directions
+                      Xem hướng dẫn
                     </Button>
                   )
                 }
               >
                 <div className="space-y-6 flex-1">
                   <p className="text-sm text-secondary-500 font-medium leading-relaxed line-clamp-2">
-                    {exam.description || 'Standard proctored multiple-choice assessment for the selected subject category.'}
+                    {exam.description || 'Bài thi trắc nghiệm có giám sát cho môn học đã chọn.'}
                   </p>
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-3 bg-secondary-50 border border-secondary-100 rounded-xl">
                       <div className="flex items-center gap-1.5 text-secondary-400 mb-1">
                         <Clock className="h-3 w-3" />
-                        <span className="text-[9px] font-bold uppercase tracking-widest">Duration</span>
+                        <span className="text-[9px] font-bold uppercase tracking-widest">Thời gian</span>
                       </div>
-                      <span className="text-sm font-bold text-secondary-900">{exam.duration}m</span>
+                      <span className="text-sm font-bold text-secondary-900">{exam.duration} phút</span>
                     </div>
                     <div className="p-3 bg-secondary-50 border border-secondary-100 rounded-xl">
                       <div className="flex items-center gap-1.5 text-secondary-400 mb-1">
                         <Award className="h-3 w-3" />
-                        <span className="text-[9px] font-bold uppercase tracking-widest">Weight</span>
+                        <span className="text-[9px] font-bold uppercase tracking-widest">Điểm</span>
                       </div>
-                      <span className="text-sm font-bold text-secondary-900">{exam.totalMarks}pt</span>
+                      <span className="text-sm font-bold text-secondary-900">{exam.totalMarks} điểm</span>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between pt-2">
                     <Badge variant={isTaken ? 'success' : 'primary'} dot>
-                      {isTaken ? 'Attempted' : 'Available'}
+                      {isTaken ? 'Đã làm' : 'Có thể làm'}
                     </Badge>
                     <span className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest">
                       ID: {exam.id.slice(-6)}

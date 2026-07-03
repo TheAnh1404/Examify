@@ -23,7 +23,7 @@ const StudentResult = () => {
         setDetails(res.data);
       } catch (err) {
         console.error(err);
-        setError(err.message || 'Failed to load scorecard results.');
+        setError(err.message || 'Không thể tải kết quả bài thi.');
       } finally {
         setLoading(false);
       }
@@ -36,7 +36,7 @@ const StudentResult = () => {
 
   if (loading) return (
     <div className="min-h-[60vh] flex items-center justify-center">
-      <Loading message="Loading graded scorecard report..." />
+      <Loading message="Đang tải phiếu điểm..." />
     </div>
   );
 
@@ -45,11 +45,11 @@ const StudentResult = () => {
       <div className="p-8 rounded-2xl bg-danger-50 border border-danger-100 text-danger-700 flex flex-col items-center gap-4 text-center animate-fade-in">
         <ShieldAlert className="h-10 w-10 shrink-0" />
         <div>
-          <h4 className="text-lg font-bold">Report Error</h4>
-          <p className="font-medium text-sm mt-1">{error || 'Scorecard details could not be found.'}</p>
+          <h4 className="text-lg font-bold">Lỗi kết quả</h4>
+          <p className="font-medium text-sm mt-1">{error || 'Không tìm thấy thông tin phiếu điểm.'}</p>
         </div>
         <Button onClick={() => navigate('/student/dashboard')} size="md" variant="primary" className="mt-2">
-          Return to Dashboard
+          Quay về bảng điều khiển
         </Button>
       </div>
     );
@@ -76,12 +76,12 @@ const StudentResult = () => {
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
-            <h1 className="h1 mb-1">Graded Exam Report</h1>
-            <p className="p">Review your performance achievements and feedback keys.</p>
+            <h1 className="h1 mb-1">Kết quả bài thi</h1>
+            <p className="p">Xem điểm số, đáp án và phản hồi của bạn.</p>
           </div>
         </div>
         <Button variant="outline" onClick={() => window.print()} className="hidden sm:flex">
-          Download PDF
+          Tải PDF
         </Button>
       </div>
 
@@ -96,7 +96,7 @@ const StudentResult = () => {
               {isPassed ? <Award className="h-12 w-12" /> : <XCircle className="h-12 w-12" />}
             </div>
             <Badge variant={isPassed ? 'success' : 'danger'} size="lg" className="px-6 py-1.5 text-xs">
-              {isPassed ? 'Examination Passed' : 'Examination Failed'}
+              {isPassed ? 'Đạt' : 'Chưa đạt'}
             </Badge>
           </div>
 
@@ -106,7 +106,7 @@ const StudentResult = () => {
               <span className="text-6xl md:text-7xl font-extrabold text-secondary-900 tracking-tighter">{attempt.score}</span>
               <div className="text-left">
                 <p className="text-xl md:text-2xl font-bold text-secondary-400 leading-none mb-1">/ {exam.totalMarks}</p>
-                <p className="text-sm font-bold text-secondary-500 uppercase tracking-widest leading-none">Total Points</p>
+                <p className="text-sm font-bold text-secondary-500 uppercase tracking-widest leading-none">Tổng điểm</p>
               </div>
             </div>
           </div>
@@ -115,22 +115,22 @@ const StudentResult = () => {
             <div className="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-secondary-100">
               <TrendingUp className="h-4 w-4 text-primary-600 mx-auto mb-2" />
               <p className="text-lg font-bold text-secondary-900 leading-none">{scorePct.toFixed(0)}%</p>
-              <p className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mt-1">Accuracy</p>
+              <p className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mt-1">Độ chính xác</p>
             </div>
             <div className="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-secondary-100">
               <CheckCircle2 className="h-4 w-4 text-accent-600 mx-auto mb-2" />
               <p className="text-lg font-bold text-secondary-900 leading-none">{attempt.totalCorrect} / {exam.questions.length}</p>
-              <p className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mt-1">Correct</p>
+              <p className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mt-1">Câu đúng</p>
             </div>
             <div className="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-secondary-100">
               <Clock className="h-4 w-4 text-warning-600 mx-auto mb-2" />
               <p className="text-lg font-bold text-secondary-900 leading-none">{timeSpent}m</p>
-              <p className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mt-1">Time Spent</p>
+              <p className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mt-1">Thời gian</p>
             </div>
             <div className="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-secondary-100">
               <ShieldAlert className="h-4 w-4 text-danger-600 mx-auto mb-2" />
               <p className="text-lg font-bold text-secondary-900 leading-none">{attempt.tabFocusLosses}</p>
-              <p className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mt-1">Incidents</p>
+              <p className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mt-1">Cảnh báo</p>
             </div>
           </div>
         </div>
@@ -141,9 +141,9 @@ const StudentResult = () => {
         <div className="flex items-start gap-4 p-6 rounded-2xl bg-warning-50 border border-warning-100 text-warning-800">
           <AlertTriangle className="h-6 w-6 text-warning-600 shrink-0" />
           <div>
-            <p className="font-bold text-sm">Security Log: Tab Focus Loss Detected</p>
+            <p className="font-bold text-sm">Nhật ký giám sát: Phát hiện mất tập trung</p>
             <p className="mt-1 text-xs text-warning-700 leading-relaxed font-medium">
-              The platform recorded <strong>{attempt.tabFocusLosses} incidents</strong> where the exam window lost cursor focus. This information has been reported to your instructor for audit purposes.
+              Hệ thống ghi nhận <strong>{attempt.tabFocusLosses} lần</strong> cửa sổ bài thi mất tập trung. Thông tin này đã được gửi đến giáo viên để rà soát.
             </p>
           </div>
         </div>
@@ -152,8 +152,8 @@ const StudentResult = () => {
       {/* Answer Key */}
       <div className="space-y-6">
         <div className="flex items-center justify-between border-b border-secondary-100 pb-4">
-          <h3 className="text-lg font-bold text-secondary-900 tracking-tight">Question Feedback</h3>
-          <span className="text-xs font-bold text-secondary-400 uppercase tracking-widest">{exam.questions.length} Items</span>
+          <h3 className="text-lg font-bold text-secondary-900 tracking-tight">Phản hồi câu hỏi</h3>
+          <span className="text-xs font-bold text-secondary-400 uppercase tracking-widest">{exam.questions.length} câu</span>
         </div>
 
         <div className="space-y-4">
@@ -174,7 +174,7 @@ const StudentResult = () => {
                       </h4>
                     </div>
                     <Badge variant={isCorrect ? 'success' : 'danger'} dot className="hidden sm:flex">
-                      {isCorrect ? `+${q.marks} pts` : `0 / ${q.marks} pts`}
+                      {isCorrect ? `+${q.marks} điểm` : `0 / ${q.marks} điểm`}
                     </Badge>
                   </div>
 
@@ -199,12 +199,12 @@ const StudentResult = () => {
                             <span className={`text-[9px] uppercase tracking-widest font-extrabold px-2 py-1 rounded-lg ${
                               isCorrect ? 'bg-accent-600 text-white' : 'bg-danger-600 text-white'
                             }`}>
-                              {isCorrect ? 'Correct' : 'Your Pick'}
+                              {isCorrect ? 'Đúng' : 'Bạn chọn'}
                             </span>
                           )}
                           {!isSelected && isCorrectAnswer && (
                             <span className="text-[9px] uppercase tracking-widest font-extrabold px-2 py-1 bg-accent-100 text-accent-800 rounded-lg">
-                              Key
+                              Đáp án
                             </span>
                           )}
                         </div>
@@ -220,7 +220,7 @@ const StudentResult = () => {
 
       <div className="flex justify-center pt-8">
         <Button onClick={() => navigate('/student/dashboard')} variant="primary" size="lg" className="px-12 shadow-xl shadow-primary-500/25">
-          Return to Learning Portal
+          Quay về cổng học tập
         </Button>
       </div>
 

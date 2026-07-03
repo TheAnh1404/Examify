@@ -132,7 +132,7 @@ const ExamTaking = () => {
 
       } catch (err) {
         console.error(err);
-        setError(err.message || 'Failed to initialize exam workspace.');
+        setError(err.message || 'Không thể khởi tạo không gian làm bài.');
       } finally {
         setLoading(false);
       }
@@ -156,7 +156,7 @@ const ExamTaking = () => {
         selectedOption: optionIndex
       }]);
     } catch (err) {
-      console.error('Failed to auto-save answer:', err);
+      console.error('Không thể tự động lưu câu trả lời:', err);
       // In a real app, we might show a small "Connection lost" indicator
     }
   };
@@ -186,7 +186,7 @@ const ExamTaking = () => {
       navigate(`/student/results/${res.data.id}`);
     } catch (err) {
       console.error(err);
-      setError('An error occurred during submission. Please check your connection.');
+      setError('Đã xảy ra lỗi khi nộp bài. Vui lòng kiểm tra kết nối.');
       setSubmitting(false);
     }
   }, [attemptId, navigate, submitting, tabFocusLosses]);
@@ -214,7 +214,7 @@ const ExamTaking = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  if (loading) return <Loading message="Entering proctored workspace..." fullPage />;
+  if (loading) return <Loading message="Đang vào phòng thi có giám sát..." fullPage />;
 
   if (!isFullscreen && !submitting) {
     return (
@@ -224,16 +224,16 @@ const ExamTaking = () => {
             <ShieldAlert className="h-10 w-10" />
           </div>
           <div className="space-y-3">
-            <h3 className="text-2xl font-bold text-secondary-900 tracking-tight">Fullscreen Required</h3>
+            <h3 className="text-2xl font-bold text-secondary-900 tracking-tight">Cần bật toàn màn hình</h3>
             <p className="text-secondary-500 font-medium leading-relaxed">
-              To maintain academic integrity, this assessment must be completed in full-screen mode. Switching or exiting will be recorded.
+              Để đảm bảo tính trung thực, bài thi cần được làm ở chế độ toàn màn hình. Việc rời khỏi chế độ này sẽ được ghi nhận.
             </p>
           </div>
           <Button onClick={enterFullscreen} variant="primary" fullWidth size="lg" className="py-4 shadow-xl shadow-primary-500/25">
-            Enter Fullscreen & Begin
+            Bật toàn màn hình và bắt đầu
           </Button>
           <p className="text-[10px] text-secondary-400 font-bold uppercase tracking-widest">
-            By clicking, you agree to the proctoring terms.
+            Khi tiếp tục, bạn đồng ý với quy định giám sát bài thi.
           </p>
         </div>
       </div>
@@ -247,10 +247,10 @@ const ExamTaking = () => {
           <div className="h-16 w-16 rounded-2xl bg-danger-50 text-danger-600 flex items-center justify-center mx-auto shadow-sm">
             <ShieldAlert className="h-8 w-8" />
           </div>
-          <h3 className="text-2xl font-bold text-secondary-900 tracking-tight">Access Denied</h3>
+          <h3 className="text-2xl font-bold text-secondary-900 tracking-tight">Không có quyền truy cập</h3>
           <p className="text-secondary-500 font-medium leading-relaxed">{error}</p>
           <Button onClick={() => navigate('/student/dashboard')} variant="primary" fullWidth size="lg">
-            Return to Dashboard
+            Quay về bảng điều khiển
           </Button>
         </div>
       </div>
@@ -278,7 +278,7 @@ const ExamTaking = () => {
               {exam.title}
             </h1>
             <span className="text-[10px] text-primary-600 font-bold uppercase tracking-widest">
-              {proctoringEnforced ? 'Live Proctoring Active' : 'Standard Assessment'}
+              {proctoringEnforced ? 'Đang bật giám sát' : 'Bài thi tiêu chuẩn'}
             </span>
           </div>
         </div>
@@ -287,7 +287,7 @@ const ExamTaking = () => {
         {tabFocusLosses > 0 && (
           <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-danger-50 border border-danger-100 text-danger-700 text-[10px] font-bold uppercase tracking-wider animate-fade-in">
             <ShieldAlert className="h-4 w-4" />
-            <span>Incidents: {tabFocusLosses}</span>
+            <span>Cảnh báo: {tabFocusLosses}</span>
           </div>
         )}
 
@@ -309,7 +309,7 @@ const ExamTaking = () => {
       {showWarning && (
         <div className="bg-danger-600 text-white px-8 py-2.5 text-center text-xs font-bold uppercase tracking-widest animate-fade-in shrink-0">
           <AlertTriangle className="h-4 w-4 inline-block mr-2 -mt-0.5" />
-          <span>Warning: Tab Switching Detected. Incident #{tabFocusLosses} Recorded.</span>
+          <span>Cảnh báo: Phát hiện chuyển tab. Đã ghi nhận lần #{tabFocusLosses}.</span>
         </div>
       )}
 
@@ -318,7 +318,7 @@ const ExamTaking = () => {
         
         {/* Left: Question Navigator (Desktop) */}
         <aside className="hidden lg:flex w-80 bg-white border-r border-secondary-100 p-8 flex-col shrink-0 overflow-y-auto">
-          <h4 className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mb-6">Question Sheet</h4>
+          <h4 className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mb-6">Danh sách câu hỏi</h4>
           
           <div className="grid grid-cols-4 gap-3 mb-8">
             {exam.resolvedQuestions.map((q, idx) => {
@@ -352,9 +352,9 @@ const ExamTaking = () => {
 
           <div className="mt-auto space-y-6">
             <div className="p-5 rounded-2xl bg-secondary-50 border border-secondary-100 space-y-4">
-              <h5 className="text-[10px] font-bold text-secondary-900 uppercase tracking-widest">Progress</h5>
+              <h5 className="text-[10px] font-bold text-secondary-900 uppercase tracking-widest">Tiến độ</h5>
               <div className="flex justify-between items-center text-sm font-bold">
-                <span className="text-secondary-500">Answered</span>
+                <span className="text-secondary-500">Đã trả lời</span>
                 <span className="text-primary-600">{exam.resolvedQuestions.length - unansweredCount} / {exam.resolvedQuestions.length}</span>
               </div>
               <div className="w-full h-2 bg-secondary-200 rounded-full overflow-hidden">
@@ -374,7 +374,7 @@ const ExamTaking = () => {
               className="py-4 shadow-xl shadow-primary-500/25"
               icon={<Send className="h-5 w-5" />}
             >
-              Submit Sheet
+              Nộp bài
             </Button>
           </div>
         </aside>
@@ -386,7 +386,7 @@ const ExamTaking = () => {
             <div className="saas-card shadow-xl overflow-visible border-none bg-white">
               <div className="px-8 py-6 border-b border-secondary-50 flex items-center justify-between">
                 <span className="text-xs font-bold text-primary-600 uppercase tracking-widest bg-primary-50 px-3 py-1 rounded-lg">
-                  Question {currentIdx + 1}
+                  Câu hỏi {currentIdx + 1}
                 </span>
                 <div className="flex items-center gap-4">
                   <button 
@@ -394,10 +394,10 @@ const ExamTaking = () => {
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${flaggedQuestions.includes(currentQ.id) ? 'bg-warning-50 text-warning-700 border border-warning-200' : 'bg-secondary-50 text-secondary-400 hover:bg-secondary-100 hover:text-secondary-600 border border-secondary-100'}`}
                   >
                     <AlertTriangle className={`h-3.5 w-3.5 ${flaggedQuestions.includes(currentQ.id) ? 'fill-current' : ''}`} />
-                    {flaggedQuestions.includes(currentQ.id) ? 'Flagged' : 'Flag for Review'}
+                    {flaggedQuestions.includes(currentQ.id) ? 'Đã đánh dấu' : 'Đánh dấu xem lại'}
                   </button>
                   <span className="text-xs font-bold text-secondary-400 uppercase tracking-widest">
-                    {currentQ.marks} Points
+                    {currentQ.marks} điểm
                   </span>
                 </div>
               </div>
@@ -446,7 +446,7 @@ const ExamTaking = () => {
                   icon={<ChevronLeft className="h-5 w-5" />}
                   className="px-6"
                 >
-                  Previous
+                  Trước
                 </Button>
                 
                 <Button
@@ -456,7 +456,7 @@ const ExamTaking = () => {
                   icon={currentIdx === exam.resolvedQuestions.length - 1 ? <Send className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
                   iconRight
                 >
-                  {currentIdx === exam.resolvedQuestions.length - 1 ? 'Finish Exam' : 'Next Question'}
+                  {currentIdx === exam.resolvedQuestions.length - 1 ? 'Hoàn tất bài thi' : 'Câu tiếp theo'}
                 </Button>
               </div>
             </div>
@@ -487,13 +487,13 @@ const ExamTaking = () => {
         isOpen={confirmOpen}
         onClose={() => setConfirmOpen(false)}
         onConfirm={performSubmission}
-        title="Submit Examination"
+        title="Nộp bài thi"
         message={
           unansweredCount > 0
-            ? `Warning: You have ${unansweredCount} unanswered questions. Are you sure you want to finalize your submission?`
-            : 'Ready to finalize your assessment? You will not be able to change your answers after submission.'
+            ? `Cảnh báo: Bạn còn ${unansweredCount} câu chưa trả lời. Bạn có chắc muốn nộp bài?`
+            : 'Bạn đã sẵn sàng nộp bài? Sau khi nộp, bạn sẽ không thể thay đổi câu trả lời.'
         }
-        confirmText="Yes, Submit Final"
+        confirmText="Nộp bài"
         type="warning"
         loading={submitting}
       />

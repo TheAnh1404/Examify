@@ -23,21 +23,21 @@ export const authMiddleware = async (req, res, next) => {
       });
 
       if (!user) {
-        return errorResponse(res, 'User not found', 401);
+        return errorResponse(res, 'Không tìm thấy người dùng', 401);
       }
 
       if (user.status === 'LOCKED') {
-        return errorResponse(res, 'Your account is locked. Please contact admin.', 403);
+        return errorResponse(res, 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.', 403);
       }
 
       req.user = user;
       next();
     } catch (error) {
-      return errorResponse(res, 'Not authorized, token failed', 401);
+      return errorResponse(res, 'Chưa xác thực, token không hợp lệ', 401);
     }
   }
 
   if (!token) {
-    return errorResponse(res, 'Not authorized, no token', 401);
+    return errorResponse(res, 'Chưa xác thực, thiếu token đăng nhập', 401);
   }
 };

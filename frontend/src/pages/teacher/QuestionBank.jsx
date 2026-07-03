@@ -10,6 +10,7 @@ import Button from '../../components/common/Button';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Loading from '../../components/common/Loading';
 import { Plus, Eye, Edit, Trash2, ShieldAlert, CheckCircle2, BookMarked } from 'lucide-react';
+import { formatDifficulty } from '../../utils/i18n';
 
 const QuestionBank = () => {
   const navigate = useNavigate();
@@ -40,7 +41,7 @@ const QuestionBank = () => {
       })
       .catch((err) => {
         console.error(err);
-        if (active) setError('Failed to fetch questionnaires from database.');
+        if (active) setError('Không thể tải ngân hàng câu hỏi.');
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -65,11 +66,11 @@ const QuestionBank = () => {
       setDeleteLoading(true);
       await questionService.delete(questionToDelete.id);
       setQuestions(prev => prev.filter(q => q.id !== questionToDelete.id));
-      setSuccess('Question prompt deleted successfully.');
+      setSuccess('Đã xóa câu hỏi.');
       setDeleteOpen(false);
       setQuestionToDelete(null);
     } catch (err) {
-      setError(err.message || 'Failed to delete question.');
+      setError(err.message || 'Không thể xóa câu hỏi.');
       setDeleteOpen(false);
     } finally {
       setDeleteLoading(false);
@@ -91,7 +92,7 @@ const QuestionBank = () => {
 
   const columns = [
     { 
-      header: 'Subject', 
+      header: 'Môn học',
       key: 'subjectCode', 
       render: (row) => (
         <div className="flex items-center gap-2">
@@ -99,32 +100,32 @@ const QuestionBank = () => {
             <BookMarked className="h-4 w-4" />
           </div>
           <span className="font-bold text-secondary-900">
-            {row.subjectCode || 'N/A'}
+            {row.subjectCode || 'Không có'}
           </span>
         </div>
       ) 
     },
     { 
-      header: 'Question Prompt', 
+      header: 'Nội dung câu hỏi',
       key: 'text', 
       render: (row) => (
         <div className="max-w-md">
           <Link to={`/teacher/questions/${row.id}`} className="font-bold text-secondary-900 hover:text-primary-600 transition-colors line-clamp-1">
             {row.text}
           </Link>
-          <p className="text-xs text-secondary-400 font-medium mt-0.5">{row.options?.length || 0} options available</p>
+          <p className="text-xs text-secondary-400 font-medium mt-0.5">{row.options?.length || 0} lựa chọn</p>
         </div>
       ) 
     },
     { 
-      header: 'Points', 
+      header: 'Điểm',
       key: 'marks', 
-      render: (row) => <span className="font-bold text-secondary-700">{row.marks} pts</span> 
+      render: (row) => <span className="font-bold text-secondary-700">{row.marks} điểm</span>
     },
     { 
-      header: 'Difficulty', 
+      header: 'Độ khó',
       key: 'difficulty', 
-      render: (row) => <Badge variant={getDifficultyVariant(row.difficulty)} dot>{row.difficulty}</Badge> 
+      render: (row) => <Badge variant={getDifficultyVariant(row.difficulty)} dot>{formatDifficulty(row.difficulty)}</Badge>
     },
     {
       header: '',
@@ -156,7 +157,7 @@ const QuestionBank = () => {
 
   if (loading) return (
     <div className="min-h-[60vh] flex items-center justify-center">
-      <Loading message="Loading questionnaires..." />
+      <Loading message="Đang tải câu hỏi..." />
     </div>
   );
 
@@ -165,8 +166,8 @@ const QuestionBank = () => {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="h1 mb-1">Question Bank</h1>
-          <p className="p">Manage and pool subject questions. Link them into active examination sheets.</p>
+          <h1 className="h1 mb-1">Ngân hàng câu hỏi</h1>
+          <p className="p">Quản lý câu hỏi theo môn và liên kết vào các bài thi.</p>
         </div>
         <Button 
           variant="primary" 
@@ -174,7 +175,7 @@ const QuestionBank = () => {
           icon={<Plus className="h-5 w-5" />}
           className="shadow-lg shadow-primary-500/20"
         >
-          Add Questions
+          Thêm câu hỏi
         </Button>
       </div>
 
@@ -196,15 +197,15 @@ const QuestionBank = () => {
         <SearchBox 
           value={search} 
           onChange={(e) => setSearch(e.target.value)} 
-          placeholder="Search question prompts..." 
+          placeholder="Tìm nội dung câu hỏi..."
         />
         
         <FilterBar 
           value={subjectFilter} 
           onChange={(e) => setSubjectFilter(e.target.value)}
-          label="Subject:"
+          label="Môn học:"
           options={[
-            { value: 'ALL', label: 'All Categories' },
+            { value: 'ALL', label: 'Tất cả môn học' },
             ...subjects.map(s => ({ value: s.id, label: s.name }))
           ]} 
         />
@@ -215,16 +216,16 @@ const QuestionBank = () => {
         columns={columns} 
         data={filteredQuestions} 
         pageSize={8} 
-        emptyMessage="No question records matched the current filters."
+        emptyMessage="Không có câu hỏi nào khớp với bộ lọc hiện tại."
       />
 
       <ConfirmDialog 
         isOpen={deleteOpen}
         onClose={() => setDeleteOpen(false)}
         onConfirm={handleConfirmDelete}
-        title="Delete Question Prompt"
-        message="Are you sure you want to permanently delete this question from the pool? Questions linked in published examinations cannot be deleted."
-        confirmText="Confirm Delete"
+        title="Xóa câu hỏi"
+        message="Bạn có chắc muốn xóa vĩnh viễn câu hỏi này khỏi ngân hàng? Câu hỏi đã liên kết với bài thi đã công bố sẽ không thể xóa."
+        confirmText="Xác nhận xóa"
         loading={deleteLoading}
       />
     </div>

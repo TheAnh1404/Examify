@@ -10,6 +10,7 @@ import Badge from '../../components/common/Badge';
 import Input from '../../components/common/Input';
 import Loading from '../../components/common/Loading';
 import { User, Mail, Award, CheckCircle, ShieldAlert, RotateCcw, Lock, Clipboard, School, Camera, Edit2, Save, X } from 'lucide-react';
+import { formatRole } from '../../utils/i18n';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -60,17 +61,17 @@ const Profile = () => {
     }
   };
 
-  if (loading) return <Loading message="Loading profile metrics..." />;
+  if (loading) return <Loading message="Đang tải hồ sơ..." />;
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto select-none">
       <PageHeader 
-        title="My Profile Account" 
-        subtitle="Manage your personal credentials, view academic metrics, and adjust platform settings."
+        title="Hồ sơ cá nhân"
+        subtitle="Quản lý thông tin cá nhân, xem số liệu học tập và cài đặt tài khoản."
         actions={
           !isEditing ? (
             <Button variant="primary" onClick={() => setIsEditing(true)} icon={<Edit2 className="h-4 w-4" />}>
-              Edit Profile
+              Chỉnh sửa hồ sơ
             </Button>
           ) : null
         }
@@ -98,7 +99,7 @@ const Profile = () => {
             
             <h3 className="font-extrabold text-2xl text-secondary-900 leading-snug tracking-tight">{currentUser.name}</h3>
             <div className="mt-2 flex justify-center gap-2">
-              <Badge variant="info" className="uppercase tracking-widest text-[10px] py-1 px-3">{currentUser.role}</Badge>
+              <Badge variant="info" className="uppercase tracking-widest text-[10px] py-1 px-3">{formatRole(currentUser.role)}</Badge>
             </div>
 
             <div className="mt-8 pt-8 border-t border-secondary-50 text-left space-y-4 px-4">
@@ -130,36 +131,36 @@ const Profile = () => {
         <div className="lg:col-span-2 space-y-8">
           
           {isEditing ? (
-            <Card title="Update Personal Information" subtitle="Keep your profile data accurate for academic reporting.">
+            <Card title="Cập nhật thông tin cá nhân" subtitle="Giữ thông tin hồ sơ chính xác cho báo cáo học tập.">
               <form onSubmit={handleUpdateProfile} className="space-y-6 mt-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <Input
-                    label="Full Name"
+                    label="Họ và tên"
                     value={formData.fullName}
                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                     required
-                    placeholder="Enter your legal name"
+                    placeholder="Nhập họ tên đầy đủ"
                   />
                   <Input
-                    label="School / Institution"
+                    label="Trường / Cơ sở"
                     value={formData.schoolName}
                     onChange={(e) => setFormData({ ...formData, schoolName: e.target.value })}
-                    placeholder="e.g. Stanford University"
+                    placeholder="Ví dụ: Trường THPT Nguyễn Trãi"
                   />
                 </div>
                 <Input
-                  label="Avatar Image URL"
+                  label="URL ảnh đại diện"
                   value={formData.avatarUrl}
                   onChange={(e) => setFormData({ ...formData, avatarUrl: e.target.value })}
                   placeholder="https://example.com/avatar.jpg"
-                  description="Provide a direct link to your profile picture."
+                  description="Nhập liên kết trực tiếp đến ảnh hồ sơ của bạn."
                 />
                 <div className="flex items-center justify-end gap-3 pt-4 border-t border-secondary-50">
                   <Button variant="outline" onClick={() => setIsEditing(false)} disabled={saving} icon={<X className="h-4 w-4" />}>
-                    Cancel
+                    Hủy
                   </Button>
                   <Button type="submit" variant="primary" loading={saving} icon={<Save className="h-4 w-4" />}>
-                    Save Profile
+                    Lưu hồ sơ
                   </Button>
                 </div>
               </form>
@@ -167,38 +168,38 @@ const Profile = () => {
           ) : (
             <>
               {/* Performance Summary Card */}
-              <Card title="Assessment Metrics Overview" subtitle="High-level dashboard aggregates computed from your exam results history.">
+              <Card title="Tổng quan kết quả học tập" subtitle="Số liệu tổng hợp từ lịch sử làm bài của bạn.">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-4">
                   <div className="bg-secondary-50 border border-secondary-100 rounded-3xl p-6 shadow-sm">
-                    <span className="text-[10px] text-secondary-400 uppercase font-extrabold tracking-widest block mb-2">Total Taken</span>
+                    <span className="text-[10px] text-secondary-400 uppercase font-extrabold tracking-widest block mb-2">Đã làm</span>
                     <span className="text-4xl font-black text-secondary-900 block tracking-tighter">
                       {stats ? stats.examsTaken : 0}
                     </span>
-                    <span className="text-[11px] text-secondary-500 block mt-2 font-bold uppercase tracking-tight">completed tests</span>
+                    <span className="text-[11px] text-secondary-500 block mt-2 font-bold uppercase tracking-tight">bài thi hoàn thành</span>
                   </div>
 
                   <div className="bg-primary-50/30 border border-primary-100 rounded-3xl p-6 shadow-sm">
-                    <span className="text-[10px] text-primary-600 uppercase font-extrabold tracking-widest block mb-2">Average Grade</span>
+                    <span className="text-[10px] text-primary-600 uppercase font-extrabold tracking-widest block mb-2">Điểm trung bình</span>
                     <span className="text-4xl font-black text-primary-750 block tracking-tighter">
                       {stats ? `${stats.averageScore}%` : '0%'}
                     </span>
-                    <span className="text-[11px] text-primary-600/70 block mt-2 font-bold uppercase tracking-tight">overall percentile</span>
+                    <span className="text-[11px] text-primary-600/70 block mt-2 font-bold uppercase tracking-tight">tổng quan</span>
                   </div>
 
                   <div className="bg-accent-50/30 border border-accent-100 rounded-3xl p-6 shadow-sm">
-                    <span className="text-[10px] text-accent-600 uppercase font-extrabold tracking-widest block mb-2">Passing Ratio</span>
+                    <span className="text-[10px] text-accent-600 uppercase font-extrabold tracking-widest block mb-2">Tỷ lệ đạt</span>
                     <span className="text-4xl font-black text-accent-750 block tracking-tighter">
                       {stats ? `${stats.passRate}%` : '0%'}
                     </span>
-                    <span className="text-[11px] text-accent-600/70 block mt-2 font-bold uppercase tracking-tight">success index</span>
+                    <span className="text-[11px] text-accent-600/70 block mt-2 font-bold uppercase tracking-tight">chỉ số hoàn thành</span>
                   </div>
                 </div>
               </Card>
 
               {/* Account Security Card */}
               <Card 
-                title="Account Security & Access" 
-                subtitle="Manage your authentication settings and session credentials."
+                title="Bảo mật và truy cập"
+                subtitle="Quản lý thông tin xác thực và phiên đăng nhập."
               >
                 <div className="space-y-4">
                   <div className="p-5 rounded-2xl bg-secondary-50 border border-secondary-100 flex items-center justify-between group">
@@ -207,11 +208,11 @@ const Profile = () => {
                         <Lock className="h-5 w-5" />
                       </div>
                       <div>
-                        <p className="font-bold text-secondary-900 text-sm">Account Password</p>
-                        <p className="text-[11px] text-secondary-500 font-bold uppercase tracking-wider">Security enabled</p>
+                        <p className="font-bold text-secondary-900 text-sm">Mật khẩu tài khoản</p>
+                        <p className="text-[11px] text-secondary-500 font-bold uppercase tracking-wider">Đã bật bảo mật</p>
                       </div>
                     </div>
-                    <Button variant="secondary" size="sm">Update</Button>
+                    <Button variant="secondary" size="sm">Cập nhật</Button>
                   </div>
                 </div>
               </Card>

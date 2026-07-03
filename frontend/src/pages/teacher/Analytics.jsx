@@ -19,7 +19,7 @@ const Analytics = () => {
       })
       .catch((requestError) => {
         console.error(requestError);
-        if (active) setError('Failed to load teacher analytics.');
+        if (active) setError('Không thể tải thống kê giáo viên.');
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -29,7 +29,7 @@ const Analytics = () => {
     };
   }, []);
 
-  if (loading) return <Loading message="Compiling analytics trends..." />;
+  if (loading) return <Loading message="Đang tổng hợp thống kê..." />;
   if (error) {
     return (
       <div className="p-4 rounded-xl bg-danger-50 border border-danger-100 text-danger-700 text-sm flex items-center gap-3">
@@ -45,21 +45,21 @@ const Analytics = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Analytics & Insights"
-        subtitle="Real performance distribution and difficult-question analysis from your exams."
+        title="Thống kê và phân tích"
+        subtitle="Phân bố điểm và phân tích câu hỏi khó từ các bài thi của bạn."
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <StatCard title="Average Passing Rate" value={`${stats.passRate}%`} icon={Award} />
-        <StatCard title="Total Attempts Logged" value={stats.totalSubmissions} icon={LineChart} />
-        <StatCard title="Active Student Pool" value={stats.totalStudents} icon={Users} />
-        <StatCard title="Published Exams" value={stats.totalExams} icon={FileQuestion} />
+        <StatCard title="Tỷ lệ đạt trung bình" value={`${stats.passRate}%`} icon={Award} />
+        <StatCard title="Tổng lượt làm bài" value={stats.totalSubmissions} icon={LineChart} />
+        <StatCard title="Học sinh hoạt động" value={stats.totalStudents} icon={Users} />
+        <StatCard title="Bài thi đã công bố" value={stats.totalExams} icon={FileQuestion} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card
-          title="Score Distribution"
-          subtitle="Submitted attempts grouped by normalized score"
+          title="Phân bố điểm"
+          subtitle="Các lượt nộp bài được nhóm theo khoảng điểm"
           className="lg:col-span-2"
         >
           <div className="space-y-5 py-2">
@@ -78,13 +78,13 @@ const Analytics = () => {
           </div>
         </Card>
 
-        <Card title="Toughest Questions Pool" subtitle="Highest incorrect-answer rates">
+        <Card title="Câu hỏi khó nhất" subtitle="Các câu có tỷ lệ trả lời sai cao nhất">
           <div className="space-y-4">
             {hardestQuestions.map((question) => (
               <div key={question.id} className="p-4 border border-secondary-200 rounded-xl bg-secondary-50/50 space-y-3">
                 <p className="text-xs font-semibold text-secondary-800 leading-relaxed line-clamp-3">{question.text}</p>
                 <div className="pt-2 border-t border-secondary-200 flex justify-between text-xs">
-                  <span className="text-secondary-400">Incorrect:</span>
+                  <span className="text-secondary-400">Sai:</span>
                   <span className="font-bold text-danger-600">
                     {question.incorrectAttempts}/{question.totalAttempts} ({question.percentageWrong}%)
                   </span>
@@ -92,11 +92,11 @@ const Analytics = () => {
               </div>
             ))}
             {hardestQuestions.length === 0 && (
-              <p className="text-sm text-secondary-500 text-center py-8">No submitted answers are available for analysis.</p>
+              <p className="text-sm text-secondary-500 text-center py-8">Chưa có câu trả lời nào để phân tích.</p>
             )}
             <div className="p-3.5 rounded-lg bg-primary-50 border border-primary-100 text-primary-600 text-[10px] font-semibold tracking-wide flex items-center gap-2 uppercase">
               <AlertCircle className="h-4.5 w-4.5 shrink-0" />
-              <span>Review prompts with high error margins.</span>
+              <span>Hãy rà soát các câu hỏi có tỷ lệ sai cao.</span>
             </div>
           </div>
         </Card>

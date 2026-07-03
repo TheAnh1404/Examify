@@ -17,7 +17,7 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name || !email || !password) {
-      setError('Please fill in all fields.');
+      setError('Vui lòng điền đầy đủ thông tin.');
       return;
     }
 
@@ -49,14 +49,14 @@ const Register = () => {
             <GraduationCap className="h-8 w-8" />
           </div>
           <h1 className="font-display font-bold text-3xl text-slate-100 tracking-wide">
-            Join <span className="bg-gradient-to-r from-brand-400 to-indigo-400 bg-clip-text text-transparent">Examify</span>
+            Tham gia <span className="bg-gradient-to-r from-brand-400 to-indigo-400 bg-clip-text text-transparent">Examify</span>
           </h1>
-          <p className="text-slate-400 text-sm mt-1.5">Create your SaaS account today</p>
+          <p className="text-slate-400 text-sm mt-1.5">Tạo tài khoản học tập của bạn</p>
         </div>
 
         {/* Register Form Card */}
         <div className="glass-panel p-8 mb-6">
-          <h2 className="font-semibold text-lg text-slate-200 mb-6">Register</h2>
+          <h2 className="font-semibold text-lg text-slate-200 mb-6">Đăng ký</h2>
           
           {error && (
             <div className="mb-5 flex items-center gap-2.5 p-3.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm animate-slide-up">
@@ -67,14 +67,14 @@ const Register = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Full Name</label>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Họ và tên</label>
               <div className="relative">
                 <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-slate-500" />
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="John Doe"
+                  placeholder="Nguyễn Văn A"
                   className="glass-input pl-11"
                   required
                 />
@@ -82,14 +82,14 @@ const Register = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Email Address</label>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Địa chỉ email</label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-slate-500" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="john@example.com"
+                  placeholder="nguyenvana@example.com"
                   className="glass-input pl-11"
                   required
                 />
@@ -97,14 +97,14 @@ const Register = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Password</label>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Mật khẩu</label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-slate-500" />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Min. 6 characters"
+                  placeholder="Tối thiểu 6 ký tự"
                   className="glass-input pl-11"
                   required
                 />
@@ -113,7 +113,7 @@ const Register = () => {
 
             {/* Role Radio Cards */}
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">I am registering as a:</label>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Tôi đăng ký với vai trò:</label>
               <div className="grid grid-cols-2 gap-3 mt-1.5">
                 <div
                   onClick={() => setRole('student')}
@@ -125,8 +125,8 @@ const Register = () => {
                   `}
                 >
                   <GraduationCap className={`h-6 w-6 mb-2 ${role === 'student' ? 'text-brand-400' : 'text-slate-500'}`} />
-                  <span className="text-sm font-semibold">Student</span>
-                  <span className="text-[10px] text-slate-500 mt-0.5">Take tests & view feedback</span>
+                  <span className="text-sm font-semibold">Học sinh</span>
+                  <span className="text-[10px] text-slate-500 mt-0.5">Làm bài và xem phản hồi</span>
                 </div>
 
                 <div
@@ -139,8 +139,8 @@ const Register = () => {
                   `}
                 >
                   <UserCheck className={`h-6 w-6 mb-2 ${role === 'teacher' ? 'text-indigo-400' : 'text-slate-500'}`} />
-                  <span className="text-sm font-semibold">Teacher</span>
-                  <span className="text-[10px] text-slate-500 mt-0.5">Build exams & check scores</span>
+                  <span className="text-sm font-semibold">Giáo viên</span>
+                  <span className="text-[10px] text-slate-500 mt-0.5">Tạo bài thi và xem điểm</span>
                 </div>
               </div>
             </div>
@@ -153,16 +153,16 @@ const Register = () => {
               {loading ? (
                 <div className="h-5 w-5 rounded-full border-2 border-white/20 border-t-white animate-spin"></div>
               ) : (
-                'Create Account'
+                'Tạo tài khoản'
               )}
             </button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-slate-400 text-sm">
-              Already have an account?{' '}
+              Đã có tài khoản?{' '}
               <Link to="/login" className="text-brand-400 hover:text-brand-300 font-semibold transition-colors duration-150">
-                Sign In
+                Đăng nhập
               </Link>
             </p>
           </div>

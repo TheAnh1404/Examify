@@ -34,17 +34,17 @@ const RegisterPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name || !email || !password || !confirmPassword) {
-      setError('Please fill in all fields.');
+      setError('Vui lòng điền đầy đủ thông tin.');
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match. Please verify your input.');
+      setError('Mật khẩu xác nhận không khớp.');
       return;
     }
 
     if (strengthScore < 4) {
-      setError('Password does not meet all security requirements.');
+      setError('Mật khẩu chưa đáp ứng đầy đủ yêu cầu bảo mật.');
       return;
     }
 
@@ -57,7 +57,7 @@ const RegisterPage = () => {
       if (roleUpper === 'TEACHER') navigate('/teacher/dashboard');
       else navigate('/student/dashboard');
     } catch (err) {
-      setError(err.message || 'Registration failed. Try a different email address.');
+      setError(err.message || 'Đăng ký thất bại. Vui lòng thử email khác.');
     } finally {
       setLoading(false);
     }
@@ -89,9 +89,9 @@ const RegisterPage = () => {
             <Logo className="h-14 w-14 text-white" />
           </div>
           <h2 className="text-3xl font-extrabold text-white tracking-tighter mb-2">Examify</h2>
-          <p className="text-primary-400 font-extrabold text-[10px] uppercase tracking-[0.25em] mb-6">Enterprise Edition</p>
+          <p className="text-primary-400 font-extrabold text-[10px] uppercase tracking-[0.25em] mb-6">Nền tảng giáo dục</p>
           <p className="text-slate-400 font-bold text-xs leading-relaxed text-center px-4 uppercase tracking-wide">
-            Transforming education through secure and intelligent assessment infrastructure.
+            Tổ chức kiểm tra trực tuyến an toàn, thông minh và dễ mở rộng cho nhà trường.
           </p>
         </div>
         
@@ -106,8 +106,8 @@ const RegisterPage = () => {
         <div className="w-full max-w-[480px] bg-white border border-secondary-50 rounded-[2.5rem] shadow-2xl shadow-secondary-200/50 p-10 sm:p-14">
           
           <div className="mb-10">
-            <h1 className="text-4xl font-extrabold text-secondary-900 tracking-tight mb-2">Create Account</h1>
-            <p className="text-secondary-400 text-sm font-bold uppercase tracking-widest">Join the enterprise assessment network</p>
+            <h1 className="text-4xl font-extrabold text-secondary-900 tracking-tight mb-2">Tạo tài khoản Examify</h1>
+            <p className="text-secondary-400 text-sm font-bold uppercase tracking-widest">Tham gia nền tảng kiểm tra trực tuyến</p>
           </div>
 
           {error && (
@@ -119,7 +119,7 @@ const RegisterPage = () => {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label className="text-[10px] font-extrabold text-secondary-400 uppercase tracking-[0.2em] ml-1">Full Name</label>
+              <label className="text-[10px] font-extrabold text-secondary-400 uppercase tracking-[0.2em] ml-1">Họ và tên</label>
               <div className="relative group">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary-300 group-focus-within:text-primary-500 transition-colors">
                   <User size={18} />
@@ -128,7 +128,7 @@ const RegisterPage = () => {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Official registered name"
+                  placeholder="Nhập họ tên đầy đủ"
                   required
                   className="w-full pl-12 pr-4 py-4 border border-secondary-200 rounded-2xl text-sm bg-white focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 transition-all"
                 />
@@ -136,7 +136,7 @@ const RegisterPage = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-extrabold text-secondary-400 uppercase tracking-[0.2em] ml-1">Work Email</label>
+              <label className="text-[10px] font-extrabold text-secondary-400 uppercase tracking-[0.2em] ml-1">Địa chỉ email</label>
               <div className="relative group">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary-300 group-focus-within:text-primary-500 transition-colors">
                   <Mail size={18} />
@@ -145,7 +145,7 @@ const RegisterPage = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@institution.edu"
+                  placeholder="ten@truong.edu.vn"
                   required
                   className="w-full pl-12 pr-4 py-4 border border-secondary-200 rounded-2xl text-sm bg-white focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 transition-all"
                 />
@@ -153,7 +153,7 @@ const RegisterPage = () => {
             </div>
 
             <div className="space-y-3">
-              <label className="text-[10px] font-extrabold text-secondary-400 uppercase tracking-[0.2em] ml-1">Create Password</label>
+              <label className="text-[10px] font-extrabold text-secondary-400 uppercase tracking-[0.2em] ml-1">Mật khẩu</label>
               <div className="relative group">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary-300 group-focus-within:text-primary-500 transition-colors">
                   <Lock size={18} />
@@ -162,7 +162,7 @@ const RegisterPage = () => {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Must be highly secure"
+                  placeholder="Nhập mật khẩu an toàn"
                   required
                   className="w-full pl-12 pr-12 py-4 border border-secondary-200 rounded-2xl text-sm bg-white focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 transition-all"
                 />
@@ -185,10 +185,10 @@ const RegisterPage = () => {
               {/* Security Checklist */}
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-5 bg-secondary-50/50 rounded-2xl border border-secondary-50 mt-4">
                 {[
-                  { met: hasMinLength, label: '8+ Characters' },
-                  { met: hasUppercase, label: 'Uppercase' },
-                  { met: hasNumber, label: 'Number' },
-                  { met: hasSpecialChar, label: 'Special Symbol' }
+                  { met: hasMinLength, label: 'Tối thiểu 8 ký tự' },
+                  { met: hasUppercase, label: 'Chữ hoa' },
+                  { met: hasNumber, label: 'Chữ số' },
+                  { met: hasSpecialChar, label: 'Ký tự đặc biệt' }
                 ].map((req, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <CheckCircle2 className={`h-3.5 w-3.5 transition-colors ${req.met ? 'text-accent-500' : 'text-secondary-200'}`} />
@@ -199,7 +199,7 @@ const RegisterPage = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-extrabold text-secondary-400 uppercase tracking-[0.2em] ml-1">Confirm Access Password</label>
+              <label className="text-[10px] font-extrabold text-secondary-400 uppercase tracking-[0.2em] ml-1">Xác nhận mật khẩu</label>
               <div className="relative group">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary-300 group-focus-within:text-primary-500 transition-colors">
                   <Lock size={18} />
@@ -208,7 +208,7 @@ const RegisterPage = () => {
                   type={showConfirmPassword ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Repeat for validation"
+                  placeholder="Nhập lại mật khẩu"
                   required
                   className="w-full pl-12 pr-12 py-4 border border-secondary-200 rounded-2xl text-sm bg-white focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 transition-all"
                 />
@@ -227,15 +227,15 @@ const RegisterPage = () => {
               isLoading={loading}
               className="w-full h-14 text-base shadow-xl shadow-primary-500/30 mt-4"
             >
-              Establish Account
+              Tạo tài khoản
             </Button>
           </form>
 
           <div className="mt-10 text-center">
             <p className="text-[11px] font-bold text-secondary-400 uppercase tracking-widest">
-              Already a member?{' '}
+              Đã có tài khoản?{' '}
               <Link to="/login" className="text-primary-500 hover:text-primary-700 font-extrabold transition-all ml-1">
-                Access Portal
+                Đăng nhập
               </Link>
             </p>
           </div>

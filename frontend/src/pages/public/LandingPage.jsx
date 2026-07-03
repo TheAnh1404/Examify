@@ -39,16 +39,16 @@ const LandingPage = () => {
             <div className="space-y-8 text-center lg:text-left animate-fade-in">
               <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-primary-50 border border-primary-100 text-primary-600 text-xs font-extrabold uppercase tracking-widest">
                 <div className="h-2 w-2 rounded-full bg-primary-600 animate-pulse" />
-                <span>Learn Smarter, Test Better</span>
+                <span>Học thông minh hơn, kiểm tra hiệu quả hơn</span>
               </div>
               
               <h1 className="text-5xl lg:text-7xl font-extrabold text-[#0F172A] leading-[1.05] tracking-tight">
-                Online Exam Management <br className="hidden xl:block" />
-                <span className="text-primary-600">Made Simple.</span>
+                Quản lý bài thi trực tuyến <br className="hidden xl:block" />
+                <span className="text-primary-600">dễ dàng và hiệu quả.</span>
               </h1>
               
               <p className="text-secondary-500 text-lg lg:text-xl max-w-xl mx-auto lg:mx-0 leading-relaxed font-medium">
-                Create exams, manage question banks, automate grading, and track student performance with a powerful SaaS platform designed for modern education.
+                Tạo bài thi, quản lý ngân hàng câu hỏi, tự động chấm điểm và theo dõi năng lực học sinh trên một nền tảng SaaS giáo dục hiện đại.
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
@@ -60,7 +60,7 @@ const LandingPage = () => {
                   icon={<ArrowRight className="h-5 w-5" />}
                   iconRight
                 >
-                  Start Free Trial
+                  Bắt đầu dùng thử
                 </Button>
                 <Button 
                   variant="outline" 
@@ -68,7 +68,7 @@ const LandingPage = () => {
                   onClick={() => navigate('/register')}
                   className="px-10 h-14 border-secondary-200 text-secondary-900 font-bold hover:bg-secondary-50 text-base bg-white"
                 >
-                  View Live Demo
+                  Xem demo
                 </Button>
               </div>
 
@@ -77,7 +77,7 @@ const LandingPage = () => {
                 <div className="flex -space-x-3">
                   {[1, 2, 3, 4].map((i) => (
                     <div key={i} className="h-10 w-10 rounded-full border-2 border-white bg-secondary-100 flex items-center justify-center overflow-hidden">
-                      <img src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="User" className="h-full w-full object-cover" />
+                      <img src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="Người dùng" className="h-full w-full object-cover" />
                     </div>
                   ))}
                   <div className="h-10 w-10 rounded-full border-2 border-white bg-primary-600 flex items-center justify-center text-white text-[10px] font-bold">
@@ -85,7 +85,7 @@ const LandingPage = () => {
                   </div>
                 </div>
                 <p className="text-sm font-bold text-secondary-400">
-                  Trusted by <span className="text-secondary-900">500+ educators</span> worldwide
+                  Được <span className="text-secondary-900">500+ giáo viên</span> tin dùng
                 </p>
               </div>
             </div>
@@ -117,7 +117,7 @@ const LandingPage = () => {
                     <TrendingUpIcon />
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest">Avg. Score</p>
+                    <p className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest">Điểm TB</p>
                     <p className="text-lg font-bold text-secondary-900 leading-none">85.4%</p>
                   </div>
                 </div>
@@ -129,8 +129,8 @@ const LandingPage = () => {
                     <ShieldCheck className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest">Auto Grading</p>
-                    <p className="text-lg font-bold text-secondary-900 leading-none">98% Accuracy</p>
+                    <p className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest">Chấm tự động</p>
+                    <p className="text-lg font-bold text-secondary-900 leading-none">98% chính xác</p>
                   </div>
                 </div>
               </div>
@@ -143,10 +143,10 @@ const LandingPage = () => {
           <div className="max-w-7xl mx-auto px-6">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
               {[
-                { label: 'Exams Created', value: '1.2K+', icon: BookOpen },
-                { label: 'Student Attempts', value: '25K+', icon: MousePointer2 },
-                { label: 'Auto Grading', value: '98%', icon: Zap },
-                { label: 'Teachers Active', value: '500+', icon: Users }
+                { label: 'Bài thi đã tạo', value: '1.2K+', icon: BookOpen },
+                { label: 'Lượt làm bài', value: '25K+', icon: MousePointer2 },
+                { label: 'Chấm tự động', value: '98%', icon: Zap },
+                { label: 'Giáo viên hoạt động', value: '500+', icon: Users }
               ].map((stat, idx) => (
                 <div key={idx} className="flex flex-col items-center lg:items-start text-center lg:text-left space-y-2">
                   <div className="flex items-center gap-3">
@@ -166,21 +166,21 @@ const LandingPage = () => {
         <section id="features" className="py-24 lg:py-32 bg-secondary-50/50">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center max-w-3xl mx-auto mb-20 space-y-4">
-              <h2 className="text-xs font-bold text-primary-600 uppercase tracking-[0.2em]">Core Capabilities</h2>
-              <h3 className="text-3xl lg:text-5xl font-extrabold text-secondary-900 tracking-tight">Enterprise Assessment Infrastructure</h3>
+              <h2 className="text-xs font-bold text-primary-600 uppercase tracking-[0.2em]">Năng lực cốt lõi</h2>
+              <h3 className="text-3xl lg:text-5xl font-extrabold text-secondary-900 tracking-tight">Hạ tầng kiểm tra cho giáo dục hiện đại</h3>
               <p className="text-secondary-500 text-lg font-medium leading-relaxed">
-                Everything you need to conduct high-stakes examinations at scale with confidence and security.
+                Đầy đủ công cụ để tổ chức kiểm tra quy mô lớn, bảo mật và đáng tin cậy.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[
-                { icon: ShieldCheck, color: 'bg-blue-50 text-blue-600', title: 'Smart Proctoring', desc: 'Real-time focus tracking and tab switching logs for every student attempt.' },
-                { icon: Timer, color: 'bg-emerald-50 text-emerald-600', title: 'Automated Timers', desc: 'Precision countdowns with instant submission upon clock expiration.' },
-                { icon: BarChart3, color: 'bg-indigo-50 text-indigo-600', title: 'Rich Analytics', desc: 'Detailed heatmaps and difficulty ratings for every question in your bank.' },
-                { icon: Lock, color: 'bg-rose-50 text-rose-600', title: 'Payload Security', desc: 'Answers are never sent to the client. All grading logic is 100% server-side.' },
-                { icon: Database, color: 'bg-amber-50 text-amber-600', title: 'Question Banking', desc: 'Build a centralized repository of questions tagged by subject and difficulty.' },
-                { icon: Globe, color: 'bg-purple-50 text-purple-600', title: 'Global Access', desc: 'Students can attempt assessments from anywhere with a stable internet connection.' }
+                { icon: ShieldCheck, color: 'bg-blue-50 text-blue-600', title: 'Giám sát thông minh', desc: 'Theo dõi chuyển tab và mất tập trung theo thời gian thực trong từng lượt làm bài.' },
+                { icon: Timer, color: 'bg-emerald-50 text-emerald-600', title: 'Bộ đếm tự động', desc: 'Đếm ngược chính xác và tự động nộp bài khi hết thời gian.' },
+                { icon: BarChart3, color: 'bg-indigo-50 text-indigo-600', title: 'Thống kê chuyên sâu', desc: 'Phân tích điểm số, độ khó và tỷ lệ sai của từng câu hỏi trong ngân hàng.' },
+                { icon: Lock, color: 'bg-rose-50 text-rose-600', title: 'Bảo mật dữ liệu', desc: 'Đáp án không gửi xuống client; toàn bộ logic chấm điểm được xử lý phía máy chủ.' },
+                { icon: Database, color: 'bg-amber-50 text-amber-600', title: 'Ngân hàng câu hỏi', desc: 'Xây dựng kho câu hỏi tập trung theo môn học, độ khó và điểm số.' },
+                { icon: Globe, color: 'bg-purple-50 text-purple-600', title: 'Truy cập linh hoạt', desc: 'Học sinh có thể làm bài từ mọi nơi khi có kết nối internet ổn định.' }
               ].map((feat, idx) => (
                 <div key={idx} className="saas-card p-10 hover:translate-y-[-8px] transition-all duration-300 border-none shadow-sm hover:shadow-2xl hover:shadow-primary-500/10">
                   <div className={`h-14 w-14 rounded-2xl ${feat.color} flex items-center justify-center mb-8 shadow-sm`}>
@@ -204,23 +204,23 @@ const LandingPage = () => {
             <div className="relative z-10 max-w-3xl mx-auto space-y-10">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 text-white text-xs font-bold uppercase tracking-widest">
                 <Sparkles className="h-4 w-4 text-accent-400" />
-                <span>Ready to start?</span>
+                <span>Sẵn sàng bắt đầu?</span>
               </div>
               
               <h2 className="text-4xl lg:text-6xl font-extrabold text-white tracking-tighter leading-[1.1]">
-                Transform your assessment process today.
+                Nâng cấp quy trình kiểm tra ngay hôm nay.
               </h2>
               
               <p className="text-secondary-400 text-lg lg:text-xl font-medium leading-relaxed">
-                Join 500+ global institutions using Examify to deliver secure and intelligent examinations.
+                Cùng hơn 500 đơn vị giáo dục sử dụng Examify để tổ chức kiểm tra an toàn và thông minh.
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
                 <Button variant="primary" size="lg" className="px-12 h-14 shadow-2xl shadow-primary-500/40 text-base" onClick={() => navigate('/login')}>
-                  Get Started for Free
+                  Bắt đầu miễn phí
                 </Button>
                 <Button variant="outline" size="lg" className="px-12 h-14 border-white/20 text-white hover:bg-white/10 text-base bg-transparent">
-                  Schedule Demo
+                  Đặt lịch demo
                 </Button>
               </div>
             </div>

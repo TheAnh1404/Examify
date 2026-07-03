@@ -22,7 +22,7 @@ const AttemptDetail = () => {
         setDetails(res.data);
       } catch (err) {
         console.error(err);
-        setError('Failed to fetch detailed results.');
+        setError('Không thể tải chi tiết kết quả.');
       } finally {
         setLoading(false);
       }
@@ -31,7 +31,7 @@ const AttemptDetail = () => {
     fetchDetails();
   }, [id]);
 
-  if (loading) return <Loading message="Loading graded responses..." />;
+  if (loading) return <Loading message="Đang tải bài làm đã chấm..." />;
 
   if (error) {
     return (
@@ -57,8 +57,8 @@ const AttemptDetail = () => {
         </button>
         <div>
           <PageHeader 
-            title="Attempt Graded Review" 
-            subtitle={`Auditing scorecard for: ${student?.name || 'Unknown Student'}`}
+            title="Chi tiết bài làm"
+            subtitle={`Đang xem phiếu điểm của: ${student?.name || 'Học sinh không xác định'}`}
           />
         </div>
       </div>
@@ -68,20 +68,20 @@ const AttemptDetail = () => {
         <div className="space-y-2.5 z-10 text-center md:text-left">
           <span className="text-xs font-semibold text-secondary-400 uppercase tracking-widest block">{exam.title}</span>
           <h3 className="font-display font-extrabold text-3xl text-secondary-800 tracking-tight">
-            {attempt.score} <span className="text-secondary-400 text-base font-normal">/ {exam.totalMarks} points</span>
+            {attempt.score} <span className="text-secondary-400 text-base font-normal">/ {exam.totalMarks} điểm</span>
           </h3>
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-1.5 text-xs text-secondary-500 font-medium">
-            <span>{scorePct.toFixed(0)}% Score</span>
-            <span>•</span>
-            <span>{attempt.totalCorrect} / {exam.questions.length} Correct</span>
-            <span>•</span>
-            <span>Criteria: {exam.passPercentage}%</span>
+            <span>Điểm {scorePct.toFixed(0)}%</span>
+            <span>-</span>
+            <span>{attempt.totalCorrect} / {exam.questions.length} câu đúng</span>
+            <span>-</span>
+            <span>Ngưỡng đạt: {exam.passPercentage}%</span>
           </div>
         </div>
 
         <div className="z-10 text-center shrink-0">
           <Badge variant={isPass ? 'success' : 'danger'} className="text-xs px-3.5 py-1 font-bold">
-            {isPass ? 'Pass' : 'Fail'}
+            {isPass ? 'Đạt' : 'Chưa đạt'}
           </Badge>
         </div>
       </div>
@@ -91,9 +91,9 @@ const AttemptDetail = () => {
         <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-100 text-amber-600 text-xs animate-slide-up leading-relaxed">
           <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
           <div>
-            <p className="font-bold text-amber-700">Visual Proctoring Alert Triggered</p>
+            <p className="font-bold text-amber-700">Có cảnh báo giám sát</p>
             <p className="text-secondary-500 mt-0.5">
-              The browser logged <strong className="text-amber-700">{attempt.tabFocusLosses} occurrences</strong> where the student left the active exam window context (swapping tabs, windows, or screen focus).
+              Trình duyệt ghi nhận <strong className="text-amber-700">{attempt.tabFocusLosses} lần</strong> học sinh rời khỏi cửa sổ làm bài đang hoạt động.
             </p>
           </div>
         </div>
@@ -101,7 +101,7 @@ const AttemptDetail = () => {
 
       {/* Question Graded details */}
       <div className="space-y-4">
-        <h3 className="font-semibold text-lg text-secondary-800 border-b border-secondary-200 pb-2.5">Graded Answers Key</h3>
+        <h3 className="font-semibold text-lg text-secondary-800 border-b border-secondary-200 pb-2.5">Đáp án và phản hồi</h3>
         
         {exam.questions.map((q, idx) => {
           const studentAnsObj = attempt.answers.find(a => a.questionId === q.id);
@@ -111,10 +111,10 @@ const AttemptDetail = () => {
           return (
             <Card 
               key={q.id}
-              title={`Question ${idx + 1}`}
+              title={`Câu hỏi ${idx + 1}`}
               actions={
                 <span className={`text-xs font-bold ${isCorrect ? 'text-accent-600' : 'text-red-600'}`}>
-                  {isCorrect ? `+${q.marks} pts` : `0 / ${q.marks} pts`}
+                  {isCorrect ? `+${q.marks} điểm` : `0 / ${q.marks} điểm`}
                 </span>
               }
             >
@@ -141,8 +141,8 @@ const AttemptDetail = () => {
                         className={`px-4 py-2.5 rounded-xl border text-xs flex justify-between items-center ${style}`}
                       >
                         <span>{String.fromCharCode(65 + optIdx)}. {option}</span>
-                        {isSelected && <span className="text-[9px] uppercase tracking-wide font-bold">{isCorrect ? 'Correct' : 'Your Selection'}</span>}
-                        {!isSelected && isAnswerKey && <span className="text-[9px] uppercase tracking-wide font-bold text-accent-600">Correct Answer</span>}
+                        {isSelected && <span className="text-[9px] uppercase tracking-wide font-bold">{isCorrect ? 'Đúng' : 'Học sinh chọn'}</span>}
+                        {!isSelected && isAnswerKey && <span className="text-[9px] uppercase tracking-wide font-bold text-accent-600">Đáp án đúng</span>}
                       </div>
                     );
                   })}

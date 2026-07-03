@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { formatRole } from '../utils/i18n';
 import { 
   GraduationCap, 
   LayoutDashboard, 
@@ -26,23 +27,26 @@ const DashboardLayout = ({ children }) => {
 
   // Define navigation based on user roles
   const getNavLinks = () => {
-    switch (user?.role) {
+    switch (user?.role?.toUpperCase()) {
       case 'admin':
+      case 'ADMIN':
         return [
-          { name: 'Overview', path: '/admin', icon: LayoutDashboard },
-          { name: 'Manage Users', path: '/admin/users', icon: Users },
+          { name: 'Tổng quan', path: '/admin', icon: LayoutDashboard },
+          { name: 'Quản lý người dùng', path: '/admin/users', icon: Users },
         ];
       case 'teacher':
+      case 'TEACHER':
         return [
-          { name: 'Dashboard', path: '/teacher', icon: LayoutDashboard },
-          { name: 'My Exams', path: '/teacher/exams', icon: BookOpen },
-          { name: 'Gradebook', path: '/teacher/submissions', icon: Award },
+          { name: 'Bảng điều khiển', path: '/teacher', icon: LayoutDashboard },
+          { name: 'Bài thi của tôi', path: '/teacher/exams', icon: BookOpen },
+          { name: 'Sổ điểm', path: '/teacher/submissions', icon: Award },
         ];
       case 'student':
+      case 'STUDENT':
         return [
-          { name: 'Dashboard', path: '/student', icon: LayoutDashboard },
-          { name: 'Take an Exam', path: '/student/exams', icon: BookOpen },
-          { name: 'My Submissions', path: '/student/history', icon: Award },
+          { name: 'Bảng điều khiển', path: '/student', icon: LayoutDashboard },
+          { name: 'Làm bài thi', path: '/student/exams', icon: BookOpen },
+          { name: 'Bài đã nộp', path: '/student/history', icon: Award },
         ];
       default:
         return [];
@@ -50,7 +54,7 @@ const DashboardLayout = ({ children }) => {
   };
 
   const links = getNavLinks();
-  const currentPathName = links.find(l => location.pathname === l.path)?.name || 'Dashboard';
+  const currentPathName = links.find(l => location.pathname === l.path)?.name || 'Bảng điều khiển';
 
   return (
     <div className="min-h-screen bg-dark-950 flex">
@@ -95,7 +99,7 @@ const DashboardLayout = ({ children }) => {
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-slate-200 truncate">{user?.name}</p>
-              <p className="text-xs text-slate-400 capitalize truncate">{user?.role}</p>
+              <p className="text-xs text-slate-400 truncate">{formatRole(user?.role)}</p>
             </div>
           </div>
           <button
@@ -103,7 +107,7 @@ const DashboardLayout = ({ children }) => {
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-dark-700 bg-dark-800 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30 text-slate-300 font-medium text-sm transition-all duration-200"
           >
             <LogOut className="h-4 w-4" />
-            Logout
+            Đăng xuất
           </button>
         </div>
       </aside>
@@ -128,7 +132,7 @@ const DashboardLayout = ({ children }) => {
                 Examify
               </span>
             </div>
-            <button onClick={() => setSidebarOpen(false)} className="text-slate-400 hover:text-slate-200">
+            <button onClick={() => setSidebarOpen(false)} className="text-slate-400 hover:text-slate-200" aria-label="Đóng menu điều hướng">
               <X className="h-6 w-6" />
             </button>
           </div>
@@ -163,7 +167,7 @@ const DashboardLayout = ({ children }) => {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-slate-200 truncate">{user?.name}</p>
-                <p className="text-xs text-slate-400 capitalize truncate">{user?.role}</p>
+                <p className="text-xs text-slate-400 truncate">{formatRole(user?.role)}</p>
               </div>
             </div>
             <button
@@ -171,7 +175,7 @@ const DashboardLayout = ({ children }) => {
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-dark-700 bg-dark-800 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30 text-slate-300 font-medium text-sm transition-all duration-200"
             >
               <LogOut className="h-4 w-4" />
-              Logout
+              Đăng xuất
             </button>
           </div>
         </aside>
@@ -195,7 +199,7 @@ const DashboardLayout = ({ children }) => {
           
           <div className="flex items-center gap-3">
             <span className="text-xs px-2.5 py-1 rounded-full border border-brand-500/20 bg-brand-500/5 text-brand-400 font-semibold uppercase tracking-wide">
-              {user?.role} Portal
+              Cổng {formatRole(user?.role)}
             </span>
           </div>
         </header>

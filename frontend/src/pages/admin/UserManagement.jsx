@@ -10,6 +10,7 @@ import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Loading from '../../components/common/Loading';
 import { Plus, Edit, Trash2, ShieldAlert, CheckCircle2, UserCircle, Mail, Calendar, Lock, Unlock } from 'lucide-react';
 import { authService } from '../../services/authService';
+import { formatRole, formatStatus } from '../../utils/i18n';
 
 const UserManagement = () => {
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ const UserManagement = () => {
       })
       .catch((err) => {
         console.error(err);
-        if (active) setError('Failed to fetch users catalog.');
+        if (active) setError('Không thể tải danh sách người dùng.');
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -49,7 +50,7 @@ const UserManagement = () => {
 
   const handleDeleteClick = (user) => {
     if (user.id === currentUser.id) {
-      setError('You cannot delete your own active administrator profile.');
+      setError('Bạn không thể xóa tài khoản quản trị viên đang sử dụng.');
       return;
     }
     setUserToDelete(user);
@@ -64,11 +65,11 @@ const UserManagement = () => {
       setDeleteLoading(true);
       await userService.delete(userToDelete.id);
       setUsers(prev => prev.filter(u => u.id !== userToDelete.id));
-      setSuccess(`User account for "${userToDelete.name}" deleted successfully.`);
+      setSuccess(`Đã xóa tài khoản "${userToDelete.name}".`);
       setDeleteDialogOpen(false);
       setUserToDelete(null);
     } catch (err) {
-      setError(err.message || 'Failed to delete user.');
+      setError(err.message || 'Không thể xóa người dùng.');
     } finally {
       setDeleteLoading(false);
     }
@@ -84,9 +85,9 @@ const UserManagement = () => {
       setUsers((current) => current.map((item) => (
         item.id === user.id ? { ...item, status: nextStatus } : item
       )));
-      setSuccess(`${user.name} is now ${nextStatus.toLowerCase()}.`);
+      setSuccess(`${user.name} hiện ở trạng thái ${formatStatus(nextStatus)}.`);
     } catch (err) {
-      setError(err.message || 'Failed to update account status.');
+      setError(err.message || 'Không thể cập nhật trạng thái tài khoản.');
     } finally {
       setStatusLoadingId(null);
     }
@@ -110,7 +111,7 @@ const UserManagement = () => {
 
   const columns = [
     { 
-      header: 'User Profile', 
+      header: 'Hồ sơ người dùng',
       key: 'name', 
       render: (row) => (
         <div className="flex items-center gap-3">
@@ -128,27 +129,27 @@ const UserManagement = () => {
       ) 
     },
     { 
-      header: 'Role Permissions', 
+      header: 'Vai trò',
       key: 'role', 
-      render: (row) => <Badge variant={getRoleBadgeVariant(row.role)} dot>{row.role}</Badge> 
+      render: (row) => <Badge variant={getRoleBadgeVariant(row.role)} dot>{formatRole(row.role)}</Badge>
     },
     {
-      header: 'Teaching Subjects',
+      header: 'Môn giảng dạy',
       key: 'teachingSubjects',
       render: (row) => row.role === 'TEACHER' ? (
         <div className="max-w-56 space-y-1">
           {(row.teachingSubjects || []).map((assignment) => (
             <div key={assignment.subjectId} className="text-xs">
               <span className="font-bold text-secondary-700">{assignment.subject?.code}</span>
-              <span className="text-secondary-400"> {assignment.note || 'No note'}</span>
+              <span className="text-secondary-400"> {assignment.note || 'Không có ghi chú'}</span>
             </div>
           ))}
-          {(row.teachingSubjects || []).length === 0 && <span className="text-xs text-warning-600">Not assigned</span>}
+          {(row.teachingSubjects || []).length === 0 && <span className="text-xs text-warning-600">Chưa phân công</span>}
         </div>
-      ) : <span className="text-xs text-secondary-300">Not applicable</span>
+      ) : <span className="text-xs text-secondary-300">Không áp dụng</span>
     },
     { 
-      header: 'Registration', 
+      header: 'Ngày tạo',
       key: 'createdAt', 
       render: (row) => (
         <div className="flex items-center gap-2 text-secondary-500">
@@ -164,11 +165,11 @@ const UserManagement = () => {
       ) 
     },
     {
-      header: 'Status',
+      header: 'Trạng thái',
       key: 'status',
       render: (row) => (
         <Badge variant={row.status === 'ACTIVE' ? 'success' : 'danger'} dot>
-          {row.status}
+          {formatStatus(row.status)}
         </Badge>
       )
     },
@@ -182,7 +183,7 @@ const UserManagement = () => {
             size="sm"
             onClick={() => navigate(`/admin/users/${row.id}/edit`)}
             icon={<Edit className="h-4 w-4" />}
-            aria-label={`Edit ${row.name}`}
+            aria-label={`Chỉnh sửa ${row.name}`}
           />
           <Button
             variant={row.status === 'LOCKED' ? 'success' : 'secondary'}
@@ -191,7 +192,7 @@ const UserManagement = () => {
             disabled={row.id === currentUser.id}
             loading={statusLoadingId === row.id}
             icon={row.status === 'LOCKED' ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-            aria-label={`${row.status === 'LOCKED' ? 'Unlock' : 'Lock'} ${row.name}`}
+            aria-label={`${row.status === 'LOCKED' ? 'Mở khóa' : 'Khóa'} ${row.name}`}
           />
           <Button
             variant="danger"
@@ -199,7 +200,7 @@ const UserManagement = () => {
             onClick={() => handleDeleteClick(row)}
             disabled={row.id === currentUser.id}
             icon={<Trash2 className="h-4 w-4" />}
-            aria-label={`Delete ${row.name}`}
+            aria-label={`Xóa ${row.name}`}
           />
         </div>
       )
@@ -208,7 +209,7 @@ const UserManagement = () => {
 
   if (loading) return (
     <div className="min-h-[60vh] flex items-center justify-center">
-      <Loading message="Loading system users..." />
+      <Loading message="Đang tải người dùng hệ thống..." />
     </div>
   );
 
@@ -216,8 +217,8 @@ const UserManagement = () => {
     <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="h1 mb-1">User Management</h1>
-          <p className="p">Manage and provision client credentials, teacher permissions, and student profiles.</p>
+          <h1 className="h1 mb-1">Quản lý người dùng</h1>
+          <p className="p">Quản lý tài khoản, quyền giáo viên và hồ sơ học sinh.</p>
         </div>
         <Button 
           variant="primary" 
@@ -225,7 +226,7 @@ const UserManagement = () => {
           icon={<Plus className="h-5 w-5" />}
           className="shadow-lg shadow-primary-500/20"
         >
-          Create New User
+          Tạo người dùng
         </Button>
       </div>
 
@@ -247,29 +248,29 @@ const UserManagement = () => {
         <SearchBox 
           value={search} 
           onChange={(e) => setSearch(e.target.value)} 
-          placeholder="Search by name or email..." 
+          placeholder="Tìm theo tên hoặc email..."
         />
         
         <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto">
           <FilterBar
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
-            label="Role:"
+            label="Vai trò:"
             options={[
-              { value: 'ALL', label: 'All System Roles' },
-              { value: 'ADMIN', label: 'Administrators' },
-              { value: 'TEACHER', label: 'Teachers' },
-              { value: 'STUDENT', label: 'Students' }
+              { value: 'ALL', label: 'Tất cả vai trò' },
+              { value: 'ADMIN', label: 'Quản trị viên' },
+              { value: 'TEACHER', label: 'Giáo viên' },
+              { value: 'STUDENT', label: 'Học sinh' }
             ]}
           />
           <FilterBar
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            label="Status:"
+            label="Trạng thái:"
             options={[
-              { value: 'ALL', label: 'All Statuses' },
-              { value: 'ACTIVE', label: 'Active' },
-              { value: 'LOCKED', label: 'Locked' }
+              { value: 'ALL', label: 'Tất cả trạng thái' },
+              { value: 'ACTIVE', label: 'Hoạt động' },
+              { value: 'LOCKED', label: 'Đã khóa' }
             ]}
           />
         </div>
@@ -280,16 +281,16 @@ const UserManagement = () => {
         columns={columns} 
         data={filteredUsers} 
         pageSize={8} 
-        emptyMessage="No account records matched the current criteria search."
+        emptyMessage="Không có tài khoản nào khớp với điều kiện tìm kiếm."
       />
 
       <ConfirmDialog 
         isOpen={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleConfirmDelete}
-        title="Delete User Account"
-        message={`Permanently delete "${userToDelete?.name}"? Accounts with related questions, exams, or attempts must be locked instead.`}
-        confirmText="Confirm Deletion"
+        title="Xóa tài khoản người dùng"
+        message={`Xóa vĩnh viễn "${userToDelete?.name}"? Tài khoản đã có câu hỏi, bài thi hoặc lượt làm bài liên quan nên được khóa thay vì xóa.`}
+        confirmText="Xác nhận xóa"
         loading={deleteLoading}
       />
     </div>

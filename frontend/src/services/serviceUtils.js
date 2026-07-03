@@ -1,4 +1,4 @@
-export const getApiErrorMessage = (error, fallback = 'Request failed') => {
+export const getApiErrorMessage = (error, fallback = 'Yêu cầu không thành công') => {
   return error.response?.data?.message || error.message || fallback;
 };
 

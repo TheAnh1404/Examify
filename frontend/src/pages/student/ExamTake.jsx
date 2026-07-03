@@ -44,7 +44,7 @@ const ExamTake = () => {
         setAnswers(initialAnswers);
       } catch (err) {
         console.error(err);
-        setError(err.response?.data?.message || 'Failed to load exam. It might not exist.');
+        setError(err.response?.data?.message || 'Không thể tải bài thi. Bài thi có thể không tồn tại.');
       } finally {
         setLoading(false);
       }
@@ -57,7 +57,7 @@ const ExamTake = () => {
   useEffect(() => {
     const handleBeforeUnload = (e) => {
       e.preventDefault();
-      e.returnValue = 'Warning: leaving this page will submit your exam with current answers.';
+      e.returnValue = 'Cảnh báo: rời khỏi trang này sẽ nộp bài với các câu trả lời hiện tại.';
       return e.returnValue;
     };
     
@@ -150,16 +150,16 @@ const ExamTake = () => {
       navigate(`/student/history/${res.data.submission.id}`);
     } catch (err) {
       console.error(err);
-      alert('An error occurred during submission. We will try again.');
+      alert('Đã xảy ra lỗi khi nộp bài. Hệ thống sẽ thử lại.');
       setSubmitting(false);
     }
   };
 
   const handleManualSubmit = () => {
     const unansweredCount = answers.filter(a => a.selectedOption === null).length;
-    let message = 'Are you sure you want to submit your exam responses?';
+    let message = 'Bạn có chắc muốn nộp bài thi?';
     if (unansweredCount > 0) {
-      message = `You have ${unansweredCount} unanswered questions. Are you sure you want to submit?`;
+      message = `Bạn còn ${unansweredCount} câu chưa trả lời. Bạn có chắc muốn nộp bài?`;
     }
 
     if (window.confirm(message)) {
@@ -168,7 +168,7 @@ const ExamTake = () => {
   };
 
   const handleAutoSubmit = () => {
-    console.log('Time expired. Auto-submitting responses.');
+    console.log('Hết thời gian. Tự động nộp bài.');
     submitExamPayload(true);
   };
 
@@ -183,7 +183,7 @@ const ExamTake = () => {
     return (
       <div className="min-h-screen bg-dark-950 flex flex-col items-center justify-center">
         <div className="h-10 w-10 border-4 border-brand-500/25 border-t-brand-500 rounded-full animate-spin"></div>
-        <p className="mt-4 text-slate-400 text-sm font-semibold tracking-wide">Assembling Exam Workspace...</p>
+        <p className="mt-4 text-slate-400 text-sm font-semibold tracking-wide">Đang chuẩn bị không gian làm bài...</p>
       </div>
     );
   }
@@ -195,10 +195,10 @@ const ExamTake = () => {
           <div className="h-14 w-14 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 mb-5">
             <ShieldAlert className="h-8 w-8" />
           </div>
-          <h2 className="font-semibold text-lg text-slate-200 mb-2">Failed to Start Exam</h2>
+          <h2 className="font-semibold text-lg text-slate-200 mb-2">Không thể bắt đầu bài thi</h2>
           <p className="text-slate-400 text-sm mb-6">{error}</p>
           <button onClick={() => navigate('/student')} className="glow-button w-full">
-            Return to Dashboard
+            Quay về bảng điều khiển
           </button>
         </div>
       </div>
@@ -224,7 +224,7 @@ const ExamTake = () => {
             <h1 className="font-semibold text-slate-200 text-sm md:text-base tracking-wide max-w-[200px] md:max-w-md truncate">
               {exam.title}
             </h1>
-            <p className="text-[10px] text-slate-500 capitalize">Student Examination Workspace</p>
+            <p className="text-[10px] text-slate-500 capitalize">Không gian làm bài của học sinh</p>
           </div>
         </div>
 
@@ -232,7 +232,7 @@ const ExamTake = () => {
         {tabFocusLosses > 0 && (
           <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-500 text-xs font-semibold">
             <ShieldAlert className="h-3.5 w-3.5" />
-            <span>Proctoring Alert: {tabFocusLosses} Incidents</span>
+            <span>Cảnh báo giám sát: {tabFocusLosses} lần</span>
           </div>
         )}
 
@@ -255,7 +255,7 @@ const ExamTake = () => {
         <div className="bg-amber-500/15 border-b border-amber-500/25 px-6 py-2.5 text-center flex items-center justify-center gap-2 text-amber-400 text-xs font-medium animate-slide-up shrink-0">
           <AlertTriangle className="h-4 w-4 shrink-0" />
           <span>
-            <strong>Warning:</strong> Browser focus change detected! Do not leave the exam tab. Your browser focus loss has been logged ({tabFocusLosses} incidents).
+            <strong>Cảnh báo:</strong> Phát hiện trình duyệt mất tập trung. Không rời khỏi tab bài thi. Hệ thống đã ghi nhận {tabFocusLosses} lần.
           </span>
         </div>
       )}
@@ -271,9 +271,9 @@ const ExamTake = () => {
             <div className="glass-panel p-6 md:p-8 space-y-6">
               <div className="flex justify-between items-start gap-4">
                 <span className="px-3 py-1 bg-brand-500/10 border border-brand-500/25 text-brand-400 text-xs font-semibold rounded-lg">
-                  Question {currentIdx + 1} of {exam.questions.length}
+                  Câu {currentIdx + 1} / {exam.questions.length}
                 </span>
-                <span className="text-xs text-slate-500 font-semibold">{currentQuestion.marks} points</span>
+                <span className="text-xs text-slate-500 font-semibold">{currentQuestion.marks} điểm</span>
               </div>
 
               {/* Question Text */}
@@ -323,7 +323,7 @@ const ExamTake = () => {
                 className="secondary-button flex items-center gap-2 text-sm disabled:opacity-40 disabled:pointer-events-none"
               >
                 <ChevronLeft className="h-4.5 w-4.5" />
-                Previous
+                Trước
               </button>
 
               <button
@@ -332,7 +332,7 @@ const ExamTake = () => {
                 disabled={currentIdx === exam.questions.length - 1}
                 className="secondary-button flex items-center gap-2 text-sm disabled:opacity-40 disabled:pointer-events-none"
               >
-                Next
+                Tiếp
                 <ChevronRight className="h-4.5 w-4.5" />
               </button>
             </div>
@@ -342,7 +342,7 @@ const ExamTake = () => {
         {/* Right pane: Side proctor dashboard & Navigation Grid */}
         <aside className="w-full md:w-80 bg-dark-900 border-t md:border-t-0 md:border-l border-dark-800 flex flex-col shrink-0 p-6 space-y-6">
           <div>
-            <h4 className="font-semibold text-slate-300 text-sm mb-4">Question Sheets</h4>
+            <h4 className="font-semibold text-slate-300 text-sm mb-4">Danh sách câu hỏi</h4>
             <div className="grid grid-cols-5 gap-2.5">
               {exam.questions.map((q, idx) => {
                 const isSelected = answers.find(a => a.questionId === q.id)?.selectedOption !== null;
@@ -373,19 +373,19 @@ const ExamTake = () => {
 
           <div className="pt-6 border-t border-dark-800/80 flex-1 flex flex-col justify-between">
             <div className="space-y-4">
-              <h4 className="font-semibold text-slate-300 text-sm">Testing Guidelines</h4>
+              <h4 className="font-semibold text-slate-300 text-sm">Quy định làm bài</h4>
               <ul className="text-xs text-slate-500 space-y-2.5">
                 <li className="flex items-start gap-2">
                   <span className="h-1.5 w-1.5 rounded-full bg-slate-500 shrink-0 mt-1.5"></span>
-                  <span>Do not leave or minimize the window. Focus lost triggers proctor alerts.</span>
+                  <span>Không rời khỏi hoặc thu nhỏ cửa sổ. Mất tập trung sẽ tạo cảnh báo giám sát.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="h-1.5 w-1.5 rounded-full bg-slate-500 shrink-0 mt-1.5"></span>
-                  <span>The exam will automatically submit when the countdown reaches 00:00.</span>
+                  <span>Bài thi sẽ tự động nộp khi đồng hồ về 00:00.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="h-1.5 w-1.5 rounded-full bg-slate-500 shrink-0 mt-1.5"></span>
-                  <span>Double-check your choices using the navigation grids above.</span>
+                  <span>Hãy kiểm tra lại lựa chọn bằng bảng điều hướng phía trên.</span>
                 </li>
               </ul>
             </div>
@@ -402,7 +402,7 @@ const ExamTake = () => {
                 ) : (
                   <>
                     <Send className="h-4.5 w-4.5" />
-                    Submit Examination
+                    Nộp bài thi
                   </>
                 )}
               </button>

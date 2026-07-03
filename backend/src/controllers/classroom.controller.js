@@ -34,7 +34,7 @@ export const getClassrooms = async (req, res, next) => {
       orderBy: { createdAt: 'desc' }
     });
 
-    return successResponse(res, classrooms, 'Classrooms retrieved successfully');
+    return successResponse(res, classrooms, 'Lấy danh sách lớp học thành công');
   } catch (error) {
     next(error);
   }
@@ -71,19 +71,19 @@ export const getClassroomById = async (req, res, next) => {
       }
     });
 
-    if (!classroom) return errorResponse(res, 'Classroom not found', 404);
+    if (!classroom) return errorResponse(res, 'Không tìm thấy lớp học', 404);
     
     // Auth check
     const { role, id: userId } = req.user;
     if (role === 'TEACHER' && classroom.teacherId !== userId) {
-      return errorResponse(res, 'Access denied', 403);
+      return errorResponse(res, 'Bạn không có quyền truy cập', 403);
     }
     if (role === 'STUDENT') {
       const isEnrolled = classroom.students.some(s => s.studentId === userId);
-      if (!isEnrolled) return errorResponse(res, 'Access denied', 403);
+      if (!isEnrolled) return errorResponse(res, 'Bạn không có quyền truy cập', 403);
     }
 
-    return successResponse(res, classroom, 'Classroom details retrieved');
+    return successResponse(res, classroom, 'Lấy chi tiết lớp học thành công');
   } catch (error) {
     next(error);
   }
@@ -95,7 +95,7 @@ export const createClassroom = async (req, res, next) => {
     const teacherId = req.user.id;
 
     if (!name || !subjectId) {
-      return errorResponse(res, 'Name and subjectId are required', 400);
+      return errorResponse(res, 'Vui lòng nhập tên lớp và môn học', 400);
     }
 
     // Auto-generate code if not provided
@@ -104,11 +104,11 @@ export const createClassroom = async (req, res, next) => {
     }
 
     const existingCode = await prisma.classroom.findUnique({ where: { code } });
-    if (existingCode) return errorResponse(res, 'Classroom code already in use. Please provide a unique code.', 400);
+    if (existingCode) return errorResponse(res, 'Mã lớp đã được sử dụng. Vui lòng chọn mã khác.', 400);
 
     // Verify subject exists
     const subject = await prisma.subject.findUnique({ where: { id: parseInt(subjectId) } });
-    if (!subject) return errorResponse(res, 'Invalid subjectId', 400);
+    if (!subject) return errorResponse(res, 'Môn học không hợp lệ', 400);
 
     const classroom = await prisma.classroom.create({
       data: {
@@ -125,7 +125,7 @@ export const createClassroom = async (req, res, next) => {
       }
     });
 
-    return successResponse(res, classroom, 'Classroom created successfully', 201);
+    return successResponse(res, classroom, 'Tạo lớp học thành công', 201);
   } catch (error) {
     next(error);
   }
@@ -137,9 +137,9 @@ export const updateClassroom = async (req, res, next) => {
     const { name, description, schoolName, subjectId, bannerUrl, status } = req.body;
 
     const classroom = await prisma.classroom.findUnique({ where: { id: classroomId } });
-    if (!classroom) return errorResponse(res, 'Classroom not found', 404);
+    if (!classroom) return errorResponse(res, 'Không tìm thấy lớp học', 404);
     if (req.user.role !== 'ADMIN' && classroom.teacherId !== req.user.id) {
-      return errorResponse(res, 'Access denied', 403);
+      return errorResponse(res, 'Bạn không có quyền truy cập', 403);
     }
 
     const updated = await prisma.classroom.update({
@@ -154,7 +154,7 @@ export const updateClassroom = async (req, res, next) => {
       }
     });
 
-    return successResponse(res, updated, 'Classroom updated successfully');
+    return successResponse(res, updated, 'Cập nhật lớp học thành công');
   } catch (error) {
     next(error);
   }
@@ -165,13 +165,13 @@ export const deleteClassroom = async (req, res, next) => {
     const classroomId = parseInt(req.params.id);
     const classroom = await prisma.classroom.findUnique({ where: { id: classroomId } });
     
-    if (!classroom) return errorResponse(res, 'Classroom not found', 404);
+    if (!classroom) return errorResponse(res, 'Không tìm thấy lớp học', 404);
     if (req.user.role !== 'ADMIN' && classroom.teacherId !== req.user.id) {
-      return errorResponse(res, 'Access denied', 403);
+      return errorResponse(res, 'Bạn không có quyền truy cập', 403);
     }
 
     await prisma.classroom.delete({ where: { id: classroomId } });
-    return successResponse(res, null, 'Classroom deleted successfully');
+    return successResponse(res, null, 'Xóa lớp học thành công');
   } catch (error) {
     next(error);
   }
@@ -181,7 +181,7 @@ export const searchStudents = async (req, res, next) => {
   try {
     const { query } = req.query;
     if (!query || query.length < 2) {
-      return successResponse(res, [], 'Search query too short');
+      return successResponse(res, [], 'Từ khóa tìm kiếm quá ngắn');
     }
 
     const students = await prisma.user.findMany({
@@ -205,7 +205,7 @@ export const searchStudents = async (req, res, next) => {
       take: 10
     });
 
-    return successResponse(res, students, 'Students found successfully');
+    return successResponse(res, students, 'Tìm thấy học sinh thành công');
   } catch (error) {
     next(error);
   }
@@ -221,12 +221,12 @@ export const addStudentToClass = async (req, res, next) => {
     if (!targetStudentId && studentEmail) {
       const student = await prisma.user.findUnique({ where: { email: studentEmail.toLowerCase() } });
       if (!student || student.role !== 'STUDENT') {
-        return errorResponse(res, 'Student not found with this email', 404);
+        return errorResponse(res, 'Không tìm thấy học sinh với email này', 404);
       }
       targetStudentId = student.id;
     }
 
-    if (!targetStudentId) return errorResponse(res, 'Student ID or Email is required', 400);
+    if (!targetStudentId) return errorResponse(res, 'Vui lòng nhập ID hoặc email học sinh', 400);
 
     const enrollment = await prisma.classStudent.create({
       data: {
@@ -238,9 +238,9 @@ export const addStudentToClass = async (req, res, next) => {
       }
     });
 
-    return successResponse(res, enrollment, 'Student added to classroom');
+    return successResponse(res, enrollment, 'Thêm học sinh vào lớp thành công');
   } catch (error) {
-    if (error.code === 'P2002') return errorResponse(res, 'Student is already in this class', 400);
+    if (error.code === 'P2002') return errorResponse(res, 'Học sinh đã có trong lớp này', 400);
     next(error);
   }
 };
@@ -256,7 +256,7 @@ export const removeStudentFromClass = async (req, res, next) => {
       }
     });
 
-    return successResponse(res, null, 'Student removed from classroom');
+    return successResponse(res, null, 'Đã xóa học sinh khỏi lớp');
   } catch (error) {
     next(error);
   }
@@ -287,14 +287,14 @@ export const checkClassCode = async (req, res, next) => {
     });
 
     if (!classroom) {
-      return errorResponse(res, 'No classroom found with this code', 404);
+      return errorResponse(res, 'Không tìm thấy lớp học với mã này', 404);
     }
 
     if (classroom.status !== 'ACTIVE') {
-      return errorResponse(res, 'This classroom is no longer active', 400);
+      return errorResponse(res, 'Lớp học này không còn hoạt động', 400);
     }
 
-    return successResponse(res, classroom, 'Classroom found');
+    return successResponse(res, classroom, 'Tìm thấy lớp học');
   } catch (error) {
     next(error);
   }
@@ -306,7 +306,7 @@ export const enrollRequest = async (req, res, next) => {
     const { classroomId, message } = req.body;
 
     if (!classroomId) {
-      return errorResponse(res, 'classroomId is required', 400);
+      return errorResponse(res, 'Vui lòng cung cấp classroomId', 400);
     }
 
     const parsedClassroomId = parseInt(classroomId);
@@ -315,9 +315,9 @@ export const enrollRequest = async (req, res, next) => {
     const classroom = await prisma.classroom.findUnique({
       where: { id: parsedClassroomId }
     });
-    if (!classroom) return errorResponse(res, 'Classroom not found', 404);
+    if (!classroom) return errorResponse(res, 'Không tìm thấy lớp học', 404);
     if (classroom.status !== 'ACTIVE') {
-      return errorResponse(res, 'This classroom is no longer active', 400);
+      return errorResponse(res, 'Lớp học này không còn hoạt động', 400);
     }
 
     // Check if already a member
@@ -327,7 +327,7 @@ export const enrollRequest = async (req, res, next) => {
       }
     });
     if (existingMember) {
-      return errorResponse(res, 'You are already a member of this classroom', 400);
+      return errorResponse(res, 'Bạn đã là thành viên của lớp học này', 400);
     }
 
     // Check existing request
@@ -339,7 +339,7 @@ export const enrollRequest = async (req, res, next) => {
 
     if (existingRequest) {
       if (existingRequest.status === 'PENDING') {
-        return errorResponse(res, 'You already have a pending request for this classroom', 400);
+        return errorResponse(res, 'Bạn đã có yêu cầu tham gia đang chờ duyệt cho lớp học này', 400);
       }
       // If previously rejected, allow re-request by updating
       if (existingRequest.status === 'REJECTED') {
@@ -352,7 +352,7 @@ export const enrollRequest = async (req, res, next) => {
             }
           }
         });
-        return successResponse(res, updated, 'Join request re-submitted successfully', 201);
+        return successResponse(res, updated, 'Gửi lại yêu cầu tham gia thành công', 201);
       }
     }
 
@@ -369,7 +369,7 @@ export const enrollRequest = async (req, res, next) => {
       }
     });
 
-    return successResponse(res, request, 'Join request sent successfully', 201);
+    return successResponse(res, request, 'Gửi yêu cầu tham gia thành công', 201);
   } catch (error) {
     next(error);
   }
@@ -398,7 +398,7 @@ export const getMyRequests = async (req, res, next) => {
       orderBy: { createdAt: 'desc' }
     });
 
-    return successResponse(res, requests, 'Enrollment requests retrieved');
+    return successResponse(res, requests, 'Lấy danh sách yêu cầu tham gia thành công');
   } catch (error) {
     next(error);
   }
@@ -413,9 +413,9 @@ export const getEnrollmentRequests = async (req, res, next) => {
     const classroom = await prisma.classroom.findUnique({
       where: { id: classroomId }
     });
-    if (!classroom) return errorResponse(res, 'Classroom not found', 404);
+    if (!classroom) return errorResponse(res, 'Không tìm thấy lớp học', 404);
     if (classroom.teacherId !== teacherId) {
-      return errorResponse(res, 'Access denied. You are not the owner of this classroom.', 403);
+      return errorResponse(res, 'Bạn không có quyền truy cập. Bạn không phải chủ sở hữu lớp học này.', 403);
     }
 
     const { status } = req.query;
@@ -442,7 +442,7 @@ export const getEnrollmentRequests = async (req, res, next) => {
       orderBy: { createdAt: 'desc' }
     });
 
-    return successResponse(res, requests, 'Enrollment requests retrieved');
+    return successResponse(res, requests, 'Lấy danh sách yêu cầu tham gia thành công');
   } catch (error) {
     next(error);
   }
@@ -455,7 +455,7 @@ export const updateEnrollmentStatus = async (req, res, next) => {
     const { status } = req.body;
 
     if (!status || !['APPROVED', 'REJECTED'].includes(status)) {
-      return errorResponse(res, 'Status must be APPROVED or REJECTED', 400);
+      return errorResponse(res, 'Trạng thái phải là APPROVED hoặc REJECTED', 400);
     }
 
     // Fetch request with classroom for ownership check
@@ -468,13 +468,13 @@ export const updateEnrollmentStatus = async (req, res, next) => {
     });
 
     if (!enrollmentRequest) {
-      return errorResponse(res, 'Enrollment request not found', 404);
+      return errorResponse(res, 'Không tìm thấy yêu cầu tham gia', 404);
     }
     if (enrollmentRequest.classroom.teacherId !== teacherId) {
-      return errorResponse(res, 'Access denied. You are not the owner of this classroom.', 403);
+      return errorResponse(res, 'Bạn không có quyền truy cập. Bạn không phải chủ sở hữu lớp học này.', 403);
     }
     if (enrollmentRequest.status !== 'PENDING') {
-      return errorResponse(res, 'This request has already been processed', 400);
+      return errorResponse(res, 'Yêu cầu này đã được xử lý', 400);
     }
 
     if (status === 'APPROVED') {
@@ -494,7 +494,7 @@ export const updateEnrollmentStatus = async (req, res, next) => {
           }
         })
       ]);
-      return successResponse(res, updatedRequest, 'Student approved and added to classroom');
+      return successResponse(res, updatedRequest, 'Đã duyệt và thêm học sinh vào lớp');
     } else {
       const updatedRequest = await prisma.enrollmentRequest.update({
         where: { id: requestId },
@@ -503,7 +503,7 @@ export const updateEnrollmentStatus = async (req, res, next) => {
           student: { select: { id: true, fullName: true, email: true } }
         }
       });
-      return successResponse(res, updatedRequest, 'Enrollment request rejected');
+      return successResponse(res, updatedRequest, 'Đã từ chối yêu cầu tham gia');
     }
   } catch (error) {
     next(error);

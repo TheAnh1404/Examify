@@ -12,12 +12,12 @@ const handle = async (request, fallback) => {
 
 export const userService = {
   getAll: async (params = {}) => {
-    const result = await handle(() => API.get('/users', { params }), 'Failed to fetch users');
+    const result = await handle(() => API.get('/users', { params }), 'Không thể tải danh sách người dùng');
     return { ...result, data: result.data.map(toUserView) };
   },
 
   getById: async (id) => {
-    const result = await handle(() => API.get(`/users/${id}`), 'Failed to fetch user');
+    const result = await handle(() => API.get(`/users/${id}`), 'Không thể tải người dùng');
     return { ...result, data: toUserView(result.data) };
   },
 
@@ -28,7 +28,7 @@ export const userService = {
       password: userData.password,
       role: userData.role,
       teachingAssignments: userData.teachingAssignments || []
-    }), 'Failed to create user');
+    }), 'Không thể tạo người dùng');
     return { ...result, data: toUserView(result.data) };
   },
 
@@ -39,17 +39,17 @@ export const userService = {
       password: userData.password || undefined,
       role: userData.role,
       status: userData.status
-    }), 'Failed to update user');
+    }), 'Không thể cập nhật người dùng');
     return { ...result, data: toUserView(result.data) };
   },
 
   updateStatus: async (id, status) => {
-    const result = await handle(() => API.patch(`/users/${id}/status`, { status }), 'Failed to update user status');
+    const result = await handle(() => API.patch(`/users/${id}/status`, { status }), 'Không thể cập nhật trạng thái người dùng');
     return result;
   },
 
   getTeachingSubjects: async (id) => {
-    const result = await handle(() => API.get(`/users/${id}/teaching-subjects`), 'Failed to fetch teaching subjects');
+    const result = await handle(() => API.get(`/users/${id}/teaching-subjects`), 'Không thể tải môn giảng dạy');
     return {
       ...result,
       data: result.data.map((assignment) => ({
@@ -61,7 +61,7 @@ export const userService = {
   },
 
   updateTeachingSubjects: async (id, assignments) => {
-    return handle(() => API.put(`/users/${id}/teaching-subjects`, { assignments }), 'Failed to update teaching subjects');
+    return handle(() => API.put(`/users/${id}/teaching-subjects`, { assignments }), 'Không thể cập nhật môn giảng dạy');
   },
 
   updateProfile: async (profileData) => {
@@ -70,11 +70,11 @@ export const userService = {
       avatarUrl: profileData.avatarUrl,
       schoolName: profileData.schoolName,
       password: profileData.password || undefined
-    }), 'Failed to update profile');
+    }), 'Không thể cập nhật hồ sơ');
     return { ...result, data: toUserView(result.data) };
   },
 
   delete: async (id) => {
-    return handle(() => API.delete(`/users/${id}`), 'Failed to delete user');
+    return handle(() => API.delete(`/users/${id}`), 'Không thể xóa người dùng');
   }
 };

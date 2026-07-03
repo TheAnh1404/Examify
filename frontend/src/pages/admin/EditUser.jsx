@@ -54,7 +54,7 @@ const EditUser = () => {
         });
       } catch (err) {
         console.error(err);
-        setError('Failed to load user credentials.');
+        setError('Không thể tải thông tin người dùng.');
       } finally {
         setLoading(false);
       }
@@ -71,11 +71,11 @@ const EditUser = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.email) {
-      setError('Name and Email are required.');
+      setError('Họ tên và email là bắt buộc.');
       return;
     }
     if (formData.password && formData.password.length < 8) {
-      setError('New password must contain at least 8 characters.');
+      setError('Mật khẩu mới phải có ít nhất 8 ký tự.');
       return;
     }
 
@@ -99,13 +99,13 @@ const EditUser = () => {
           note
         })));
       }
-      setSuccess(`User account updated successfully.`);
+      setSuccess('Cập nhật tài khoản thành công.');
       
       setTimeout(() => {
         navigate('/admin/users');
       }, 1200);
     } catch (err) {
-      setError(err.message || 'Failed to update user.');
+      setError(err.message || 'Không thể cập nhật người dùng.');
     } finally {
       setSaveLoading(false);
     }
@@ -124,7 +124,7 @@ const EditUser = () => {
     setTeachingAssignments((current) => ({ ...current, [subjectId]: note }));
   };
 
-  if (loading) return <Loading message="Loading user details..." />;
+  if (loading) return <Loading message="Đang tải thông tin người dùng..." />;
 
   return (
     <div className="space-y-6 max-w-xl mx-auto">
@@ -137,8 +137,8 @@ const EditUser = () => {
         </Link>
         <div>
           <PageHeader 
-            title="Edit User Profile" 
-            subtitle="Modify system permissions, role indicators, and access credentials."
+            title="Chỉnh sửa hồ sơ người dùng"
+            subtitle="Cập nhật quyền hệ thống, vai trò và thông tin truy cập."
           />
         </div>
       </div>
@@ -156,65 +156,65 @@ const EditUser = () => {
         </div>
       )}
 
-      <Card title="Account Details" subtitle={`Modifying profile ID: ${id}`}>
+      <Card title="Thông tin tài khoản" subtitle={`Đang chỉnh sửa hồ sơ ID: ${id}`}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input 
-            label="Full Name"
+            label="Họ và tên"
             name="name"
             value={formData.name}
             onChange={handleInputChange}
-            placeholder="John Doe"
+            placeholder="Nguyễn Văn A"
             required
             icon={<User className="h-4.5 w-4.5" />}
           />
 
           <Input 
-            label="Email Address"
+            label="Địa chỉ email"
             name="email"
             type="email"
             value={formData.email}
             onChange={handleInputChange}
-            placeholder="john.doe@example.com"
+            placeholder="nguyenvana@example.com"
             required
             icon={<Mail className="h-4.5 w-4.5" />}
           />
 
           <Input 
-            label="Account Password (Leave blank to keep current)"
+            label="Mật khẩu tài khoản (để trống nếu không đổi)"
             name="password"
             type="password"
             value={formData.password}
             onChange={handleInputChange}
-            placeholder="Enter a new password"
+            placeholder="Nhập mật khẩu mới"
             icon={<Lock className="h-4.5 w-4.5" />}
           />
 
           <Select 
-            label="System Access Role"
+            label="Vai trò truy cập"
             name="role"
             value={formData.role}
             onChange={handleInputChange}
             disabled={Number(id) === Number(currentUser.id)}
             options={[
-              { value: 'STUDENT', label: 'Student Taker' },
-              { value: 'TEACHER', label: 'Instructor/Teacher' },
-              { value: 'ADMIN', label: 'System Administrator' }
+              { value: 'STUDENT', label: 'Học sinh' },
+              { value: 'TEACHER', label: 'Giáo viên' },
+              { value: 'ADMIN', label: 'Quản trị viên' }
             ]}
             required
           />
           {Number(id) === Number(currentUser.id) && (
-            <p className="text-[10px] text-amber-600 font-semibold mt-1">You cannot modify your own administrative role indicator.</p>
+            <p className="text-[10px] text-amber-600 font-semibold mt-1">Bạn không thể tự thay đổi vai trò quản trị của mình.</p>
           )}
 
           <Select
-            label="Account Status"
+            label="Trạng thái tài khoản"
             name="status"
             value={formData.status}
             onChange={handleInputChange}
             disabled={Number(id) === Number(currentUser.id)}
             options={[
-              { value: 'ACTIVE', label: 'Active' },
-              { value: 'LOCKED', label: 'Locked' }
+              { value: 'ACTIVE', label: 'Hoạt động' },
+              { value: 'LOCKED', label: 'Đã khóa' }
             ]}
             required
           />
@@ -224,14 +224,14 @@ const EditUser = () => {
               <div className="flex items-center gap-2">
                 <BookOpen className="h-4 w-4 text-primary-600" />
                 <div>
-                  <h4 className="text-sm font-bold text-secondary-800">Teaching Subjects</h4>
-                  <p className="text-xs text-secondary-500">Teacher can only create questions and exams for selected subjects.</p>
+                  <h4 className="text-sm font-bold text-secondary-800">Môn giảng dạy</h4>
+                  <p className="text-xs text-secondary-500">Giáo viên chỉ có thể tạo câu hỏi và bài thi cho các môn đã chọn.</p>
                 </div>
               </div>
 
               {subjects.length === 0 ? (
                 <p className="text-xs text-warning-700 bg-warning-50 border border-warning-100 rounded-xl p-3">
-                  No subjects are available. Create a subject before assigning teaching access.
+                  Chưa có môn học. Hãy tạo môn học trước khi phân quyền giảng dạy.
                 </p>
               ) : (
                 <div className="space-y-2">
@@ -254,7 +254,7 @@ const EditUser = () => {
                           <input
                             value={teachingAssignments[subject.id]}
                             onChange={(event) => updateAssignmentNote(subject.id, event.target.value)}
-                            placeholder="Assignment note, class, or responsibility..."
+                            placeholder="Ghi chú phân công, lớp hoặc trách nhiệm..."
                             className="saas-input text-sm"
                           />
                         )}
@@ -273,7 +273,7 @@ const EditUser = () => {
               className="flex-1"
               disabled={saveLoading}
             >
-              Cancel
+              Hủy
             </Button>
             <Button
               type="submit"
@@ -281,7 +281,7 @@ const EditUser = () => {
               loading={saveLoading}
               className="flex-1"
             >
-              Save Changes
+              Lưu thay đổi
             </Button>
           </div>
         </form>

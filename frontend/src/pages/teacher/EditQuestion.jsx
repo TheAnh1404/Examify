@@ -9,6 +9,7 @@ import Select from '../../components/common/Select';
 import Button from '../../components/common/Button';
 import Loading from '../../components/common/Loading';
 import { ArrowLeft, Save, ShieldAlert, CheckCircle } from 'lucide-react';
+import { formatDifficulty } from '../../utils/i18n';
 
 const EditQuestion = () => {
   const { id } = useParams();
@@ -48,7 +49,7 @@ const EditQuestion = () => {
         });
       } catch (err) {
         console.error(err);
-        setError('Failed to fetch question details.');
+        setError('Không thể tải thông tin câu hỏi.');
       } finally {
         setLoading(false);
       }
@@ -75,16 +76,16 @@ const EditQuestion = () => {
 
     // Valids
     if (!formData.subjectId) {
-      setError('Please categorize this question under a subject.');
+      setError('Vui lòng chọn môn học cho câu hỏi.');
       return;
     }
     if (!formData.text.trim()) {
-      setError('Please input the question prompt text.');
+      setError('Vui lòng nhập nội dung câu hỏi.');
       return;
     }
     for (let i = 0; i < 4; i++) {
       if (!formData.options[i].trim()) {
-        setError(`Please fill in Option ${String.fromCharCode(65 + i)} text.`);
+        setError(`Vui lòng nhập nội dung lựa chọn ${String.fromCharCode(65 + i)}.`);
         return;
       }
     }
@@ -96,19 +97,19 @@ const EditQuestion = () => {
         correctOption: Number(formData.correctOption),
         marks: Number(formData.marks)
       });
-      setSuccess('Question changes saved to Question Bank catalog.');
+      setSuccess('Đã lưu thay đổi vào ngân hàng câu hỏi.');
       
       setTimeout(() => {
         navigate('/teacher/questions');
       }, 1200);
     } catch (err) {
-      setError(err.message || 'Failed to save changes.');
+      setError(err.message || 'Không thể lưu thay đổi.');
     } finally {
       setSaveLoading(false);
     }
   };
 
-  if (loading) return <Loading message="Loading question details..." />;
+  if (loading) return <Loading message="Đang tải thông tin câu hỏi..." />;
 
   return (
     <div className="space-y-6 max-w-xl mx-auto">
@@ -121,8 +122,8 @@ const EditQuestion = () => {
         </Link>
         <div>
           <PageHeader 
-            title="Edit Question Prompt" 
-            subtitle={`Modifying question ID: ${id}`}
+            title="Chỉnh sửa câu hỏi"
+            subtitle={`Đang chỉnh sửa câu hỏi ID: ${id}`}
           />
         </div>
       </div>
@@ -140,10 +141,10 @@ const EditQuestion = () => {
         </div>
       )}
 
-      <Card title="Question Parameters" subtitle="Fill in questionnaire fields to update">
+      <Card title="Thông tin câu hỏi" subtitle="Cập nhật các trường của câu hỏi">
         <form onSubmit={handleSubmit} className="space-y-5">
           <Select 
-            label="Subject Category"
+            label="Môn học"
             name="subjectId"
             value={formData.subjectId}
             onChange={handleInputChange}
@@ -152,7 +153,7 @@ const EditQuestion = () => {
           />
 
           <Input 
-            label="Question Prompt"
+            label="Nội dung câu hỏi"
             name="text"
             value={formData.text}
             onChange={handleInputChange}
@@ -160,7 +161,7 @@ const EditQuestion = () => {
           />
 
           <div className="space-y-3">
-            <label className="saas-label mb-1">Option Choices</label>
+            <label className="saas-label mb-1">Các lựa chọn</label>
             {formData.options.map((opt, idx) => {
               const label = String.fromCharCode(65 + idx); // A, B, C, D
               return (
@@ -182,21 +183,21 @@ const EditQuestion = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Select 
-              label="Correct Choice"
+              label="Đáp án đúng"
               name="correctOption"
               value={formData.correctOption}
               onChange={handleInputChange}
               options={[
-                { value: '0', label: 'Option A' },
-                { value: '1', label: 'Option B' },
-                { value: '2', label: 'Option C' },
-                { value: '3', label: 'Option D' }
+                { value: '0', label: 'Lựa chọn A' },
+                { value: '1', label: 'Lựa chọn B' },
+                { value: '2', label: 'Lựa chọn C' },
+                { value: '3', label: 'Lựa chọn D' }
               ]}
               required
             />
             
             <Input 
-              label="Weight (Points)"
+              label="Điểm"
               name="marks"
               type="number"
               value={formData.marks}
@@ -206,14 +207,14 @@ const EditQuestion = () => {
             />
 
             <Select 
-              label="Difficulty"
+              label="Độ khó"
               name="difficulty"
               value={formData.difficulty}
               onChange={handleInputChange}
               options={[
-                { value: 'Easy', label: 'Easy' },
-                { value: 'Medium', label: 'Medium' },
-                { value: 'Hard', label: 'Hard' }
+                { value: 'Easy', label: formatDifficulty('Easy') },
+                { value: 'Medium', label: formatDifficulty('Medium') },
+                { value: 'Hard', label: formatDifficulty('Hard') }
               ]}
               required
             />
@@ -226,7 +227,7 @@ const EditQuestion = () => {
               className="flex-1"
               disabled={saveLoading}
             >
-              Cancel
+              Hủy
             </Button>
             <Button
               type="submit"
@@ -235,7 +236,7 @@ const EditQuestion = () => {
               className="flex-1"
               icon={<Save className="h-4.5 w-4.5" />}
             >
-              Save Changes
+              Lưu thay đổi
             </Button>
           </div>
         </form>

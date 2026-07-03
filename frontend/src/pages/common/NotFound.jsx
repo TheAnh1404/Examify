@@ -25,9 +25,9 @@ const NotFound = () => {
         </div>
         
         <h1 className="font-display font-bold text-4xl text-slate-100 mb-2">404</h1>
-        <h2 className="font-semibold text-lg text-slate-300 mb-2">Page Not Found</h2>
+        <h2 className="font-semibold text-lg text-slate-300 mb-2">Không tìm thấy trang</h2>
         <p className="text-slate-400 text-sm mb-8">
-          The page you are looking for does not exist or has been moved.
+          Trang bạn tìm kiếm không tồn tại hoặc đã được di chuyển.
         </p>
 
         <button
@@ -35,7 +35,7 @@ const NotFound = () => {
           className="glow-button w-full flex items-center justify-center gap-2"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Dashboard
+          Quay về bảng điều khiển
         </button>
       </div>
     </div>

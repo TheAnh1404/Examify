@@ -1,4 +1,4 @@
-export const successResponse = (res, data, message = 'Success', statusCode = 200) => {
+export const successResponse = (res, data, message = 'Thành công', statusCode = 200) => {
   return res.status(statusCode).json({
     success: true,
     message,
@@ -6,7 +6,7 @@ export const successResponse = (res, data, message = 'Success', statusCode = 200
   });
 };
 
-export const errorResponse = (res, message = 'Error', statusCode = 500, errors = null) => {
+export const errorResponse = (res, message = 'Lỗi', statusCode = 500, errors = null) => {
   return res.status(statusCode).json({
     success: false,
     message,

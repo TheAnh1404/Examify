@@ -2,8 +2,8 @@ import { HelpCircle } from 'lucide-react';
 import Button from './Button';
 
 const EmptyState = ({
-  title = 'No records found',
-  description = 'There are no active items in this category at the moment.',
+  title = 'Không tìm thấy dữ liệu',
+  description = 'Hiện chưa có mục nào trong danh mục này.',
   icon: Icon,
   actionText,
   onAction,

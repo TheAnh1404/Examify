@@ -23,15 +23,15 @@ const PublicLayout = ({ children }) => {
             <Logo className="h-10 w-10 shadow-lg group-hover:scale-105 transition-transform duration-300" />
             <div className="flex flex-col">
               <span className="font-bold text-secondary-900 text-xl tracking-tight leading-none">Examify</span>
-              <span className="text-[10px] text-primary-600 font-bold uppercase tracking-[0.2em] mt-1">Platform</span>
+              <span className="text-[10px] text-primary-600 font-bold uppercase tracking-[0.2em] mt-1">Nền tảng</span>
             </div>
           </Link>
 
           <nav className="hidden lg:flex items-center gap-10">
-            <a href="#features" className="text-sm font-bold text-secondary-500 hover:text-primary-600 transition-colors">Features</a>
-            <a href="#solutions" className="text-sm font-bold text-secondary-500 hover:text-primary-600 transition-colors">Solutions</a>
-            <a href="#pricing" className="text-sm font-bold text-secondary-500 hover:text-primary-600 transition-colors">Pricing</a>
-            <a href="#contact" className="text-sm font-bold text-secondary-500 hover:text-primary-600 transition-colors">Contact</a>
+            <a href="#features" className="text-sm font-bold text-secondary-500 hover:text-primary-600 transition-colors">Tính năng</a>
+            <a href="#solutions" className="text-sm font-bold text-secondary-500 hover:text-primary-600 transition-colors">Giải pháp</a>
+            <a href="#pricing" className="text-sm font-bold text-secondary-500 hover:text-primary-600 transition-colors">Bảng giá</a>
+            <a href="#contact" className="text-sm font-bold text-secondary-500 hover:text-primary-600 transition-colors">Liên hệ</a>
           </nav>
 
           <div className="flex items-center gap-4">
@@ -43,13 +43,13 @@ const PublicLayout = ({ children }) => {
                 iconRight
                 className="px-6"
               >
-                Go to Dashboard
+                Vào bảng điều khiển
               </Button>
             ) : (
               <>
                 <Link to="/login">
                   <Button variant="ghost" className="hidden sm:inline-flex text-secondary-600 font-bold hover:text-primary-600 transition-colors px-6">
-                    Log in
+                    Đăng nhập
                   </Button>
                 </Link>
                 <Button 
@@ -57,7 +57,7 @@ const PublicLayout = ({ children }) => {
                   onClick={() => navigate('/register')}
                   className="px-6 shadow-lg shadow-primary-500/20"
                 >
-                  Get Started
+                  Bắt đầu
                 </Button>
               </>
             )}
@@ -81,7 +81,7 @@ const PublicLayout = ({ children }) => {
                 <span className="font-bold text-white text-2xl tracking-tight">Examify</span>
               </Link>
               <p className="text-secondary-400 text-sm leading-relaxed max-w-sm">
-                Empowering educational institutions with secure, scalable, and intelligent assessment tools designed for the modern world.
+                Hỗ trợ các cơ sở giáo dục tổ chức kiểm tra trực tuyến an toàn, linh hoạt và thông minh cho môi trường học tập hiện đại.
               </p>
               <div className="flex items-center gap-5">
                 <a href="#" className="text-secondary-400 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest">Facebook</a>
@@ -92,42 +92,42 @@ const PublicLayout = ({ children }) => {
 
             {/* Links */}
             <div className="space-y-6">
-              <h4 className="text-sm font-bold uppercase tracking-[0.2em] text-secondary-500">Product</h4>
+              <h4 className="text-sm font-bold uppercase tracking-[0.2em] text-secondary-500">Sản phẩm</h4>
               <ul className="space-y-4">
-                <li><a href="#" className="text-secondary-400 text-sm hover:text-white transition-colors">Features</a></li>
-                <li><a href="#" className="text-secondary-400 text-sm hover:text-white transition-colors">Integrations</a></li>
-                <li><a href="#" className="text-secondary-400 text-sm hover:text-white transition-colors">Proctoring</a></li>
-                <li><a href="#" className="text-secondary-400 text-sm hover:text-white transition-colors">Pricing</a></li>
+                <li><a href="#" className="text-secondary-400 text-sm hover:text-white transition-colors">Tính năng</a></li>
+                <li><a href="#" className="text-secondary-400 text-sm hover:text-white transition-colors">Tích hợp</a></li>
+                <li><a href="#" className="text-secondary-400 text-sm hover:text-white transition-colors">Giám sát</a></li>
+                <li><a href="#" className="text-secondary-400 text-sm hover:text-white transition-colors">Bảng giá</a></li>
               </ul>
             </div>
 
             <div className="space-y-6">
-              <h4 className="text-sm font-bold uppercase tracking-[0.2em] text-secondary-500">Resources</h4>
+              <h4 className="text-sm font-bold uppercase tracking-[0.2em] text-secondary-500">Tài nguyên</h4>
               <ul className="space-y-4">
-                <li><a href="#" className="text-secondary-400 text-sm hover:text-white transition-colors">Documentation</a></li>
-                <li><a href="#" className="text-secondary-400 text-sm hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="#" className="text-secondary-400 text-sm hover:text-white transition-colors">Community</a></li>
-                <li><a href="#" className="text-secondary-400 text-sm hover:text-white transition-colors">API Reference</a></li>
+                <li><a href="#" className="text-secondary-400 text-sm hover:text-white transition-colors">Tài liệu</a></li>
+                <li><a href="#" className="text-secondary-400 text-sm hover:text-white transition-colors">Trung tâm hỗ trợ</a></li>
+                <li><a href="#" className="text-secondary-400 text-sm hover:text-white transition-colors">Cộng đồng</a></li>
+                <li><a href="#" className="text-secondary-400 text-sm hover:text-white transition-colors">Tham chiếu API</a></li>
               </ul>
             </div>
 
             <div className="space-y-6">
-              <h4 className="text-sm font-bold uppercase tracking-[0.2em] text-secondary-500">Company</h4>
+              <h4 className="text-sm font-bold uppercase tracking-[0.2em] text-secondary-500">Công ty</h4>
               <ul className="space-y-4">
-                <li><a href="#" className="text-secondary-400 text-sm hover:text-white transition-colors">About Us</a></li>
-                <li><a href="#" className="text-secondary-400 text-sm hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#" className="text-secondary-400 text-sm hover:text-white transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="text-secondary-400 text-sm hover:text-white transition-colors">Terms of Service</a></li>
+                <li><a href="#" className="text-secondary-400 text-sm hover:text-white transition-colors">Về chúng tôi</a></li>
+                <li><a href="#" className="text-secondary-400 text-sm hover:text-white transition-colors">Tuyển dụng</a></li>
+                <li><a href="#" className="text-secondary-400 text-sm hover:text-white transition-colors">Chính sách bảo mật</a></li>
+                <li><a href="#" className="text-secondary-400 text-sm hover:text-white transition-colors">Điều khoản dịch vụ</a></li>
               </ul>
             </div>
           </div>
 
           <div className="pt-10 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-6">
             <p className="text-secondary-500 text-xs font-medium uppercase tracking-widest">
-              &copy; {new Date().getFullYear()} Examify SaaS Inc. All rights reserved.
+              &copy; {new Date().getFullYear()} Examify SaaS Inc. Mọi quyền được bảo lưu.
             </p>
             <div className="flex items-center gap-8">
-              <span className="text-[10px] font-bold text-secondary-600 uppercase tracking-widest">Status: Fully Operational</span>
+              <span className="text-[10px] font-bold text-secondary-600 uppercase tracking-widest">Trạng thái: Hoạt động ổn định</span>
               <span className="text-[10px] font-bold text-secondary-600 uppercase tracking-widest">Server: AWS US-East-1</span>
             </div>
           </div>

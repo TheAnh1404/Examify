@@ -12,14 +12,14 @@ class SubmissionController {
       // Find exam
       const exam = await ExamRepository.findById(examId);
       if (!exam) {
-        return res.status(404).json({ message: 'Exam not found.' });
+        return res.status(404).json({ message: 'Không tìm thấy bài thi.' });
       }
 
       // Check if student already submitted this exam
       const existingSubmissions = await SubmissionRepository.findByStudentId(studentId);
       const alreadySubmitted = existingSubmissions.some(s => s.examId === examId);
       if (alreadySubmitted) {
-        return res.status(400).json({ message: 'You have already submitted this exam.' });
+        return res.status(400).json({ message: 'Bạn đã nộp bài thi này.' });
       }
 
       // Calculate score
@@ -51,7 +51,7 @@ class SubmissionController {
       });
 
       return res.status(201).json({
-        message: 'Exam submitted successfully.',
+        message: 'Nộp bài thi thành công.',
         submission,
         details: {
           title: exam.title,
@@ -65,7 +65,7 @@ class SubmissionController {
       });
     } catch (error) {
       console.error('submitExam error:', error);
-      return res.status(500).json({ message: 'Internal server error submitting exam.' });
+      return res.status(500).json({ message: 'Lỗi máy chủ khi nộp bài thi.' });
     }
   }
 
@@ -79,7 +79,7 @@ class SubmissionController {
           const exam = await ExamRepository.findById(sub.examId);
           return {
             ...sub,
-            examTitle: exam ? exam.title : 'Deleted Exam',
+            examTitle: exam ? exam.title : 'Bài thi đã xóa',
             examTotalMarks: exam ? exam.totalMarks : 0,
             examPassPercentage: exam ? exam.passPercentage : 50,
             questionCount: exam ? exam.questions.length : 0
@@ -90,7 +90,7 @@ class SubmissionController {
       return res.status(200).json(enriched);
     } catch (error) {
       console.error('getStudentSubmissions error:', error);
-      return res.status(500).json({ message: 'Internal server error fetching submissions.' });
+      return res.status(500).json({ message: 'Lỗi máy chủ khi tải bài đã nộp.' });
     }
   }
 
@@ -105,9 +105,9 @@ class SubmissionController {
           const student = await UserRepository.findById(sub.studentId);
           return {
             ...sub,
-            examTitle: exam ? exam.title : 'Deleted Exam',
+            examTitle: exam ? exam.title : 'Bài thi đã xóa',
             examTotalMarks: exam ? exam.totalMarks : 0,
-            studentName: student ? student.name : 'Unknown Student',
+            studentName: student ? student.name : 'Học sinh không xác định',
             studentEmail: student ? student.email : ''
           };
         })
@@ -116,7 +116,7 @@ class SubmissionController {
       return res.status(200).json(enriched);
     } catch (error) {
       console.error('getTeacherSubmissions error:', error);
-      return res.status(500).json({ message: 'Internal server error fetching teacher gradebook.' });
+      return res.status(500).json({ message: 'Lỗi máy chủ khi tải sổ điểm giáo viên.' });
     }
   }
 
@@ -126,7 +126,7 @@ class SubmissionController {
       const submission = await SubmissionRepository.findById(id);
 
       if (!submission) {
-        return res.status(404).json({ message: 'Submission not found.' });
+        return res.status(404).json({ message: 'Không tìm thấy bài nộp.' });
       }
 
       const exam = await ExamRepository.findById(submission.examId);
@@ -138,7 +138,7 @@ class SubmissionController {
       const isAdmin = req.user.role === 'admin';
 
       if (!isOwnerStudent && !isOwnerTeacher && !isAdmin) {
-        return res.status(403).json({ message: 'Forbidden. You do not have permission to view this submission.' });
+        return res.status(403).json({ message: 'Bạn không có quyền xem bài nộp này.' });
       }
 
       // Return details along with the exam template (so they can match questions with selections)
@@ -160,7 +160,7 @@ class SubmissionController {
       });
     } catch (error) {
       console.error('getSubmissionById error:', error);
-      return res.status(500).json({ message: 'Internal server error fetching submission.' });
+      return res.status(500).json({ message: 'Lỗi máy chủ khi tải bài nộp.' });
     }
   }
 }

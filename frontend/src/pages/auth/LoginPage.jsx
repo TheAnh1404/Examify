@@ -18,7 +18,7 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) {
-      setError('Please enter both your email address and password.');
+      setError('Vui lòng nhập địa chỉ email và mật khẩu.');
       return;
     }
 
@@ -32,7 +32,7 @@ const LoginPage = () => {
       else if (roleUpper === 'TEACHER') navigate('/teacher/dashboard');
       else navigate('/student/dashboard');
     } catch (err) {
-      setError(err.message || 'Login failed. Please verify your credentials.');
+      setError(err.message || 'Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.');
     } finally {
       setLoading(false);
     }
@@ -51,7 +51,7 @@ const LoginPage = () => {
       else if (roleUpper === 'TEACHER') navigate('/teacher/dashboard');
       else navigate('/student/dashboard');
     } catch (err) {
-      setError(err.message || 'Demo sign in failed.');
+      setError(err.message || 'Đăng nhập tài khoản mẫu thất bại.');
     } finally {
       setLoading(false);
     }
@@ -77,10 +77,10 @@ const LoginPage = () => {
         <div className="relative z-10 max-w-md my-auto space-y-16">
           <div className="space-y-6">
             <h2 className="text-5xl lg:text-6xl font-extrabold text-white leading-[1.1] tracking-tight">
-              Enterprise <br />Assessments.
+              Kiểm tra <br />thông minh.
             </h2>
             <p className="text-slate-400 text-base leading-relaxed font-bold uppercase tracking-widest text-[11px]">
-              The Gold Standard for secure, scalable, and intelligent assessment solutions.
+              Nền tảng kiểm tra trực tuyến bảo mật, linh hoạt và tối ưu cho giáo dục hiện đại.
             </p>
           </div>
           
@@ -118,8 +118,8 @@ const LoginPage = () => {
                 <Clock className="h-4 w-4" />
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest leading-none mb-1">Exam in Progress</span>
-                <span className="text-sm font-black text-red-600 tracking-tight leading-none">12:45 remaining</span>
+                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest leading-none mb-1">Đang làm bài</span>
+                <span className="text-sm font-black text-red-600 tracking-tight leading-none">Còn 12:45</span>
               </div>
             </div>
 
@@ -147,8 +147,8 @@ const LoginPage = () => {
         <div className="w-full max-w-[460px] bg-white border border-secondary-50 rounded-[2.5rem] shadow-2xl shadow-secondary-200/50 p-10 sm:p-14">
           
           <div className="mb-10">
-            <h1 className="text-4xl font-extrabold text-secondary-900 tracking-tight mb-2">Welcome back</h1>
-            <p className="text-secondary-400 text-sm font-bold uppercase tracking-widest">Sign in to your enterprise portal</p>
+            <h1 className="text-4xl font-extrabold text-secondary-900 tracking-tight mb-2">Đăng nhập vào Examify</h1>
+            <p className="text-secondary-400 text-sm font-bold uppercase tracking-widest">Truy cập cổng học tập và kiểm tra</p>
           </div>
 
           {error && (
@@ -160,7 +160,7 @@ const LoginPage = () => {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label className="text-[10px] font-extrabold text-secondary-400 uppercase tracking-[0.2em] ml-1">Corporate Email</label>
+              <label className="text-[10px] font-extrabold text-secondary-400 uppercase tracking-[0.2em] ml-1">Địa chỉ email</label>
               <div className="relative group">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary-300 group-focus-within:text-primary-500 transition-colors">
                   <Mail size={18} />
@@ -169,7 +169,7 @@ const LoginPage = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@company.com"
+                  placeholder="ten@truong.edu.vn"
                   required
                   className="w-full pl-12 pr-4 py-4 border border-secondary-200 rounded-2xl text-sm bg-white focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 transition-all"
                 />
@@ -177,7 +177,7 @@ const LoginPage = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-extrabold text-secondary-400 uppercase tracking-[0.2em] ml-1">Access Password</label>
+              <label className="text-[10px] font-extrabold text-secondary-400 uppercase tracking-[0.2em] ml-1">Mật khẩu</label>
               <div className="relative group">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary-300 group-focus-within:text-primary-500 transition-colors">
                   <Lock size={18} />
@@ -211,10 +211,10 @@ const LoginPage = () => {
                   />
                   <CheckCircle className={`absolute h-3.5 w-3.5 text-white pointer-events-none transition-opacity ${rememberMe ? 'opacity-100' : 'opacity-0'}`} />
                 </div>
-                <span className="font-bold text-secondary-400 uppercase tracking-widest text-[10px]">Stay logged in</span>
+                <span className="font-bold text-secondary-400 uppercase tracking-widest text-[10px]">Ghi nhớ đăng nhập</span>
               </label>
               <Link to="/forgot-password" opacity-100 className="text-primary-500 hover:text-primary-700 font-extrabold uppercase tracking-widest text-[10px] transition-colors">
-                Recover Access
+                Quên mật khẩu
               </Link>
             </div>
 
@@ -223,7 +223,7 @@ const LoginPage = () => {
               isLoading={loading}
               className="w-full h-14 text-base shadow-xl shadow-primary-500/30"
             >
-              Sign In to System
+              Đăng nhập
             </Button>
           </form>
 
@@ -233,16 +233,16 @@ const LoginPage = () => {
               <div className="w-full border-t border-secondary-50" />
             </div>
             <span className="relative bg-white px-4 text-[9px] font-extrabold text-secondary-300 uppercase tracking-[0.25em]">
-              Credential Presets
+              Tài khoản mẫu
             </span>
           </div>
 
           {/* Quick login grid */}
           <div className="grid grid-cols-3 gap-4">
             {[
-              { role: 'Admin', email: 'admin@examify.com', pass: '123456', icon: Shield, color: 'text-primary-600 bg-primary-50 hover:bg-primary-100/50' },
-              { role: 'Teacher', email: 'teacher@examify.com', pass: '123456', icon: GraduationCap, color: 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100/50' },
-              { role: 'Student', email: 'student@examify.com', pass: '123456', icon: User, color: 'text-accent-600 bg-accent-50 hover:bg-accent-100/50' }
+              { role: 'Quản trị viên', email: 'admin@examify.com', pass: '123456', icon: Shield, color: 'text-primary-600 bg-primary-50 hover:bg-primary-100/50' },
+              { role: 'Giáo viên', email: 'teacher@examify.com', pass: '123456', icon: GraduationCap, color: 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100/50' },
+              { role: 'Học sinh', email: 'student@examify.com', pass: '123456', icon: User, color: 'text-accent-600 bg-accent-50 hover:bg-accent-100/50' }
             ].map((item) => (
               <button
                 key={item.role}
@@ -260,9 +260,9 @@ const LoginPage = () => {
 
           <div className="mt-10 text-center">
             <p className="text-[11px] font-bold text-secondary-400 uppercase tracking-widest">
-              New to the platform?{' '}
+              Chưa có tài khoản?{' '}
               <Link to="/register" className="text-primary-500 hover:text-primary-700 font-extrabold transition-all ml-1">
-                Establish Account
+                Đăng ký
               </Link>
             </p>
           </div>

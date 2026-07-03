@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Seeding database...');
+  console.log('Đang nạp dữ liệu mẫu...');
 
   // Clear existing data
   await prisma.studentAnswer.deleteMany();
@@ -23,77 +23,77 @@ async function main() {
 
   await prisma.systemSetting.create({ data: { id: 1 } });
 
-  // 1. Create Users
+  // 1. Tạo người dùng
   const admin = await prisma.user.create({
-    data: { fullName: 'System Admin', email: 'admin@examify.com', passwordHash, role: 'ADMIN' },
+    data: { fullName: 'Quản trị hệ thống', email: 'admin@examify.com', passwordHash, role: 'ADMIN' },
   });
 
   const teacher = await prisma.user.create({
-    data: { fullName: 'John Teacher', email: 'teacher@examify.com', passwordHash, role: 'TEACHER' },
+    data: { fullName: 'Nguyễn Minh Anh', email: 'teacher@examify.com', passwordHash, role: 'TEACHER' },
   });
 
   const s1 = await prisma.user.create({
-    data: { fullName: 'Alice Student', email: 'student@examify.com', passwordHash, role: 'STUDENT' },
+    data: { fullName: 'Trần Gia Bảo', email: 'student@examify.com', passwordHash, role: 'STUDENT' },
   });
 
   const s2 = await prisma.user.create({
-    data: { fullName: 'Bob Smith', email: 'bob@examify.com', passwordHash, role: 'STUDENT' },
+    data: { fullName: 'Lê Minh Châu', email: 'bob@examify.com', passwordHash, role: 'STUDENT' },
   });
 
-  // 2. Create Subjects
+  // 2. Tạo môn học
   const math = await prisma.subject.create({
-    data: { name: 'Mathematics', code: 'MATH101', description: 'Basic Mathematics' },
+    data: { name: 'Toán học', code: 'MATH101', description: 'Toán học cơ bản' },
   });
   await prisma.teacherSubject.create({
     data: {
       teacherId: teacher.id,
       subjectId: math.id,
       assignedById: admin.id,
-      note: 'Primary Mathematics instructor'
+      note: 'Giáo viên phụ trách môn Toán học'
     }
   });
 
-  // 3. Create Questions
+  // 3. Tạo câu hỏi
   const q1 = await prisma.question.create({
     data: {
-      subjectId: math.id, createdById: teacher.id, content: 'What is 2 + 2?',
+      subjectId: math.id, createdById: teacher.id, content: '2 + 2 bằng bao nhiêu?',
       optionA: '3', optionB: '4', optionC: '5', optionD: '6', correctAnswer: 'B', difficulty: 'EASY', defaultPoint: 10,
     },
   });
 
   const q2 = await prisma.question.create({
     data: {
-      subjectId: math.id, createdById: teacher.id, content: 'What is the square root of 16?',
+      subjectId: math.id, createdById: teacher.id, content: 'Căn bậc hai của 16 là bao nhiêu?',
       optionA: '2', optionB: '4', optionC: '8', optionD: '16', correctAnswer: 'B', difficulty: 'EASY', defaultPoint: 10,
     },
   });
 
-  // 4. Create Exams with Access Control
+  // 4. Tạo bài thi có kiểm soát truy cập
 
-  // Exam 1: PUBLIC Published
+  // Bài thi 1: PUBLIC, đã công bố
   const publicExam = await prisma.exam.create({
     data: {
-      subjectId: math.id, createdById: teacher.id, title: 'General Math Quiz',
+      subjectId: math.id, createdById: teacher.id, title: 'Bài kiểm tra Toán tổng quát',
       durationMinutes: 30, passPercentage: 50, status: 'PUBLISHED', visibility: 'PUBLIC'
     },
   });
   await prisma.examQuestion.create({ data: { examId: publicExam.id, questionId: q1.id, questionOrder: 1, point: 10 } });
 
-  // Exam 2: PRIVATE Published (Assigned to Alice)
+  // Bài thi 2: PRIVATE, đã công bố và phân công cho học sinh mẫu
   const privateExam = await prisma.exam.create({
     data: {
-      subjectId: math.id, createdById: teacher.id, title: 'Advanced Private Test',
+      subjectId: math.id, createdById: teacher.id, title: 'Bài kiểm tra nâng cao riêng tư',
       durationMinutes: 60, passPercentage: 60, status: 'PUBLISHED', visibility: 'PRIVATE'
     },
   });
   await prisma.examQuestion.create({ data: { examId: privateExam.id, questionId: q2.id, questionOrder: 1, point: 10 } });
   await prisma.examStudent.create({ data: { examId: privateExam.id, studentId: s1.id } });
 
-  // Exam 3: Password Protected (Password: "secret123")
+  // Bài thi 3: có mật khẩu truy cập (mật khẩu: "secret123")
   const accessPasswordHash = await bcrypt.hash('secret123', salt);
   const protectedExam = await prisma.exam.create({
     data: {
-      subjectId: math.id, createdById: teacher.id, title: 'Secret Final Exam',
+      subjectId: math.id, createdById: teacher.id, title: 'Bài thi cuối kỳ bảo mật',
       durationMinutes: 90, passPercentage: 70, status: 'PUBLISHED', visibility: 'PUBLIC',
       accessPasswordHash
     },
@@ -101,7 +101,7 @@ async function main() {
   await prisma.examQuestion.create({ data: { examId: protectedExam.id, questionId: q1.id, questionOrder: 1, point: 5 } });
   await prisma.examQuestion.create({ data: { examId: protectedExam.id, questionId: q2.id, questionOrder: 2, point: 5 } });
 
-  console.log('Seeding completed!');
+  console.log('Nạp dữ liệu mẫu hoàn tất!');
 }
 
 main()

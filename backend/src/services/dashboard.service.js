@@ -51,8 +51,8 @@ export const getAdminStats = async () => {
       select: { fullName: true, email: true }
     });
     return {
-      studentName: student?.fullName || 'Unknown',
-      studentEmail: student?.email || 'N/A',
+      studentName: student?.fullName || 'Không xác định',
+      studentEmail: student?.email || 'Không có',
       examsTaken: item._count._all,
       averageScore: Math.round(Number(item._avg.score || 0) * 10)
     };
@@ -158,8 +158,8 @@ export const getTeacherStats = async (teacherId) => {
 
   const recentAttempts = recentAttemptsRaw.map(a => ({
     id: a.id,
-    studentName: a.student?.fullName || 'Unknown Student',
-    examTitle: a.exam?.title || 'Unknown Exam',
+    studentName: a.student?.fullName || 'Học sinh không xác định',
+    examTitle: a.exam?.title || 'Bài thi không xác định',
     score: Number(a.score),
     submittedAt: a.submittedAt,
     status: a.status
@@ -216,9 +216,9 @@ export const getExamStats = async (examId, teacherId, role) => {
     select: { id: true, title: true, createdById: true, passPercentage: true }
   });
 
-  if (!exam) throw new Error('Exam not found');
+  if (!exam) throw new Error('Không tìm thấy bài thi');
   if (role !== 'ADMIN' && exam.createdById !== teacherId) {
-    throw new Error('Access denied. You do not own this exam.');
+    throw new Error('Bạn không có quyền truy cập. Bạn không sở hữu bài thi này.');
   }
 
   const attempts = await prisma.examAttempt.findMany({

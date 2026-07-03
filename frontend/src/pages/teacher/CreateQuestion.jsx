@@ -8,6 +8,7 @@ import Select from '../../components/common/Select';
 import Button from '../../components/common/Button';
 import Loading from '../../components/common/Loading';
 import { ArrowLeft, BookOpen, CheckCircle, Plus, Save, ShieldAlert, Trash2 } from 'lucide-react';
+import { formatDifficulty } from '../../utils/i18n';
 
 const emptyQuestion = () => ({
   text: '',
@@ -36,7 +37,7 @@ const CreateQuestion = () => {
         setSubjectId(response.data[0]?.id || '');
       })
       .catch((requestError) => {
-        if (active) setError(requestError.message || 'Failed to load assigned teaching subjects.');
+        if (active) setError(requestError.message || 'Không thể tải các môn được phân công.');
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -67,11 +68,11 @@ const CreateQuestion = () => {
   };
 
   const validate = () => {
-    if (!subjectId) return 'You have not been assigned to teach any subject.';
+    if (!subjectId) return 'Bạn chưa được phân công giảng dạy môn nào.';
     for (const [index, question] of questions.entries()) {
-      if (!question.text.trim()) return `Question ${index + 1} requires a prompt.`;
-      if (question.options.some(option => !option.trim())) return `Question ${index + 1} requires all four options.`;
-      if (Number(question.marks) <= 0) return `Question ${index + 1} point must be greater than 0.`;
+      if (!question.text.trim()) return `Câu hỏi ${index + 1} cần có nội dung.`;
+      if (question.options.some(option => !option.trim())) return `Câu hỏi ${index + 1} cần đủ bốn lựa chọn.`;
+      if (Number(question.marks) <= 0) return `Điểm của câu hỏi ${index + 1} phải lớn hơn 0.`;
     }
     return '';
   };
@@ -94,16 +95,16 @@ const CreateQuestion = () => {
         correctOption: Number(question.correctOption),
         marks: Number(question.marks)
       })));
-      setSuccess(`${questions.length} question${questions.length === 1 ? '' : 's'} created successfully.`);
+      setSuccess(`Đã tạo ${questions.length} câu hỏi thành công.`);
       setTimeout(() => navigate('/teacher/questions'), 900);
     } catch (requestError) {
-      setError(requestError.message || 'Failed to create questions.');
+      setError(requestError.message || 'Không thể tạo câu hỏi.');
     } finally {
       setSaveLoading(false);
     }
   };
 
-  if (loading) return <Loading message="Loading assigned teaching subjects..." />;
+  if (loading) return <Loading message="Đang tải môn được phân công..." />;
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto animate-fade-in">
@@ -112,13 +113,13 @@ const CreateQuestion = () => {
           <Link
             to="/teacher/questions"
             className="h-10 w-10 flex items-center justify-center rounded-xl bg-white border border-secondary-200 text-secondary-500 hover:text-secondary-900"
-            aria-label="Back to question bank"
+            aria-label="Quay lại ngân hàng câu hỏi"
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
-            <h1 className="h1 mb-1">Bulk Question Creator</h1>
-            <p className="p">Create multiple questions for one assigned subject in a single transaction.</p>
+            <h1 className="h1 mb-1">Tạo câu hỏi hàng loạt</h1>
+            <p className="p">Tạo nhiều câu hỏi cho một môn học trong một lần lưu.</p>
           </div>
         </div>
         <Button
@@ -127,7 +128,7 @@ const CreateQuestion = () => {
           icon={<Plus className="h-4 w-4" />}
           disabled={!subjectId}
         >
-          Add Question
+          Thêm câu hỏi
         </Button>
       </div>
 
@@ -148,15 +149,15 @@ const CreateQuestion = () => {
         <Card>
           <div className="py-10 text-center space-y-3">
             <BookOpen className="h-10 w-10 text-secondary-300 mx-auto" />
-            <h3 className="font-bold text-secondary-900">No teaching subject assigned</h3>
-            <p className="text-sm text-secondary-500">An administrator must assign at least one subject before you can create questions.</p>
+            <h3 className="font-bold text-secondary-900">Chưa có môn được phân công</h3>
+            <p className="text-sm text-secondary-500">Quản trị viên cần phân công ít nhất một môn học trước khi bạn tạo câu hỏi.</p>
           </div>
         </Card>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
-          <Card title="Question Set" subtitle={`${questions.length} question${questions.length === 1 ? '' : 's'} prepared`}>
+          <Card title="Bộ câu hỏi" subtitle={`${questions.length} câu hỏi đã chuẩn bị`}>
             <Select
-              label="Assigned Subject"
+              label="Môn được phân công"
               value={subjectId}
               onChange={(event) => setSubjectId(event.target.value)}
               options={subjects.map(subject => ({
@@ -170,8 +171,8 @@ const CreateQuestion = () => {
           {questions.map((question, questionIndex) => (
             <Card
               key={questionIndex}
-              title={`Question ${questionIndex + 1}`}
-              subtitle={`${question.marks || 0} default point${Number(question.marks) === 1 ? '' : 's'}`}
+              title={`Câu hỏi ${questionIndex + 1}`}
+              subtitle={`${question.marks || 0} điểm mặc định`}
             >
               <div className="space-y-5">
                 <div className="flex justify-end">
@@ -182,15 +183,15 @@ const CreateQuestion = () => {
                     disabled={questions.length === 1}
                     icon={<Trash2 className="h-4 w-4" />}
                   >
-                    Remove
+                    Xóa
                   </Button>
                 </div>
 
                 <Input
-                  label="Question Prompt"
+                  label="Nội dung câu hỏi"
                   value={question.text}
                   onChange={(event) => updateQuestion(questionIndex, 'text', event.target.value)}
-                  placeholder="Enter the question prompt"
+                  placeholder="Nhập nội dung câu hỏi"
                   required
                 />
 
@@ -198,7 +199,7 @@ const CreateQuestion = () => {
                   {question.options.map((option, optionIndex) => (
                     <Input
                       key={optionIndex}
-                      label={`Option ${String.fromCharCode(65 + optionIndex)}`}
+                      label={`Lựa chọn ${String.fromCharCode(65 + optionIndex)}`}
                       value={option}
                       onChange={(event) => updateOption(questionIndex, optionIndex, event.target.value)}
                       required
@@ -208,16 +209,16 @@ const CreateQuestion = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Select
-                    label="Correct Choice"
+                    label="Đáp án đúng"
                     value={question.correctOption}
                     onChange={(event) => updateQuestion(questionIndex, 'correctOption', event.target.value)}
                     options={[0, 1, 2, 3].map(index => ({
                       value: String(index),
-                      label: `Option ${String.fromCharCode(65 + index)}`
+                      label: `Lựa chọn ${String.fromCharCode(65 + index)}`
                     }))}
                   />
                   <Input
-                    label="Default Points"
+                    label="Điểm mặc định"
                     type="number"
                     min={0.1}
                     step={0.1}
@@ -226,10 +227,10 @@ const CreateQuestion = () => {
                     required
                   />
                   <Select
-                    label="Difficulty"
+                    label="Độ khó"
                     value={question.difficulty}
                     onChange={(event) => updateQuestion(questionIndex, 'difficulty', event.target.value)}
-                    options={['Easy', 'Medium', 'Hard'].map(value => ({ value, label: value }))}
+                    options={['Easy', 'Medium', 'Hard'].map(value => ({ value, label: formatDifficulty(value) }))}
                   />
                 </div>
               </div>
@@ -242,7 +243,7 @@ const CreateQuestion = () => {
               onClick={() => setQuestions((current) => [...current, emptyQuestion()])}
               icon={<Plus className="h-4 w-4" />}
             >
-              Add Another Question
+              Thêm câu hỏi khác
             </Button>
             <Button
               type="submit"
@@ -250,7 +251,7 @@ const CreateQuestion = () => {
               icon={<Save className="h-4 w-4" />}
               className="sm:min-w-52"
             >
-              Save All Questions
+              Lưu tất cả câu hỏi
             </Button>
           </div>
         </form>

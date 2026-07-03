@@ -30,7 +30,7 @@ const ExamHistory = () => {
         setAttempts(res.data);
       } catch (err) {
         console.error(err);
-        setError('Failed to fetch assessment attempt logs.');
+        setError('Không thể tải lịch sử làm bài.');
       } finally {
         setLoading(false);
       }
@@ -58,7 +58,7 @@ const ExamHistory = () => {
 
   const columns = [
     {
-      header: 'Examination Title',
+      header: 'Bài thi',
       key: 'examTitle',
       render: (row) => (
         <div>
@@ -68,33 +68,33 @@ const ExamHistory = () => {
       )
     },
     {
-      header: 'Submission Date',
+      header: 'Ngày nộp',
       key: 'submittedAt',
       render: (row) => {
         const dateObj = new Date(row.submittedAt);
         return (
           <div>
             <p className="text-xs font-semibold text-secondary-700">
-              {dateObj.toLocaleDateString(undefined, { dateStyle: 'medium' })}
+              {dateObj.toLocaleDateString('vi-VN', { dateStyle: 'medium' })}
             </p>
             <p className="text-[10px] text-secondary-400 mt-0.5">
-              {dateObj.toLocaleTimeString(undefined, { timeStyle: 'short' })}
+              {dateObj.toLocaleTimeString('vi-VN', { timeStyle: 'short' })}
             </p>
           </div>
         );
       }
     },
     {
-      header: 'Integrity Logs',
+      header: 'Nhật ký giám sát',
       key: 'tabFocusLosses',
       render: (row) => (
         <span className={`text-xs font-semibold ${row.tabFocusLosses > 0 ? 'text-amber-600 font-bold' : 'text-secondary-400'}`}>
-          {row.tabFocusLosses === 0 ? 'Clear (0 warnings)' : `${row.tabFocusLosses} window exit${row.tabFocusLosses > 1 ? 's' : ''}`}
+          {row.tabFocusLosses === 0 ? 'Không có cảnh báo' : `${row.tabFocusLosses} lần rời cửa sổ`}
         </span>
       )
     },
     {
-      header: 'Score Achieved',
+      header: 'Điểm',
       key: 'score',
       render: (row) => {
         const pct = row.examTotalMarks > 0 ? (row.score / row.examTotalMarks) * 100 : 0;
@@ -109,19 +109,19 @@ const ExamHistory = () => {
       }
     },
     {
-      header: 'Grade Result',
+      header: 'Kết quả',
       key: 'status',
       render: (row) => {
         const status = row.status.toUpperCase();
         return status === 'PASS' ? (
-          <Badge variant="success">Pass</Badge>
+          <Badge variant="success">Đạt</Badge>
         ) : (
-          <Badge variant="danger">Fail</Badge>
+          <Badge variant="danger">Chưa đạt</Badge>
         );
       }
     },
     {
-      header: 'Actions',
+      header: 'Thao tác',
       key: 'actions',
       render: (row) => (
         <Button
@@ -130,19 +130,19 @@ const ExamHistory = () => {
           onClick={() => navigate(`/student/results/${row.id}`)}
           icon={<Eye className="h-3.5 w-3.5" />}
         >
-          Review Report
+          Xem kết quả
         </Button>
       )
     }
   ];
 
-  if (loading) return <Loading message="Retrieving submission history..." />;
+  if (loading) return <Loading message="Đang tải lịch sử nộp bài..." />;
 
   return (
     <div className="space-y-6">
       <PageHeader 
-        title="Examination Attempts History" 
-        subtitle="Review records of previous multiple-choice submissions, grading results, and visual audit warnings."
+        title="Lịch sử làm bài"
+        subtitle="Xem các lượt nộp bài, kết quả chấm điểm và cảnh báo giám sát."
       />
 
       {error ? (
@@ -159,17 +159,17 @@ const ExamHistory = () => {
               <SearchBox 
                 value={search}
                 onChange={handleSearchChange}
-                placeholder="Search exams by title..."
+                placeholder="Tìm bài thi theo tiêu đề..."
               />
               <FilterBar 
                 value={statusFilter}
                 onChange={handleFilterChange}
                 options={[
-                  { value: 'ALL', label: 'All Results' },
-                  { value: 'PASS', label: 'Pass Only' },
-                  { value: 'FAIL', label: 'Fail Only' }
+                  { value: 'ALL', label: 'Tất cả kết quả' },
+                  { value: 'PASS', label: 'Chỉ bài đạt' },
+                  { value: 'FAIL', label: 'Chỉ bài chưa đạt' }
                 ]}
-                label="Passing Grade:"
+                label="Kết quả:"
               />
             </div>
           </Card>
@@ -179,7 +179,7 @@ const ExamHistory = () => {
             columns={columns}
             data={filteredAttempts}
             pageSize={10}
-            emptyMessage="No examination attempts match your selected search criteria."
+            emptyMessage="Không có lượt làm bài nào khớp với tiêu chí tìm kiếm."
           />
         </div>
       )}

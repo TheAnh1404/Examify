@@ -30,7 +30,7 @@ const DashboardLayout = ({ children }) => {
           <div className="flex justify-end p-6 border-b border-slate-800/50">
             <button 
               onClick={() => setIsSidebarOpen(false)}
-              aria-label="Close navigation menu"
+              aria-label="Đóng menu điều hướng"
               className="p-2.5 rounded-xl text-slate-400 hover:bg-white/5 transition-colors border border-white/5"
             >
               <X className="h-6 w-6" />

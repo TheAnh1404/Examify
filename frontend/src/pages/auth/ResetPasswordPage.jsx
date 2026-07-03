@@ -22,11 +22,11 @@ const ResetPasswordPage = () => {
   const hasSpecialChar = /[^A-Za-z0-9]/.test(password);
 
   const requirements = [
-    { label: 'At least 8 characters', met: hasMinLength },
-    { label: 'One uppercase letter', met: hasUppercase },
-    { label: 'One lowercase letter', met: hasLowercase },
-    { label: 'One number', met: hasNumber },
-    { label: 'One special character', met: hasSpecialChar }
+    { label: 'Tối thiểu 8 ký tự', met: hasMinLength },
+    { label: 'Có chữ hoa', met: hasUppercase },
+    { label: 'Có chữ thường', met: hasLowercase },
+    { label: 'Có chữ số', met: hasNumber },
+    { label: 'Có ký tự đặc biệt', met: hasSpecialChar }
   ];
 
   const allMet = requirements.every(r => r.met);
@@ -34,15 +34,15 @@ const ResetPasswordPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!password || !confirmPassword) {
-      setError('Please input all password fields.');
+      setError('Vui lòng nhập đầy đủ các trường mật khẩu.');
       return;
     }
     if (password !== confirmPassword) {
-      setError('Passwords do not match. Please verify your input.');
+      setError('Mật khẩu xác nhận không khớp.');
       return;
     }
     if (!allMet) {
-      setError('Password does not meet all the security requirements.');
+      setError('Mật khẩu chưa đáp ứng đầy đủ yêu cầu bảo mật.');
       return;
     }
 
@@ -52,13 +52,13 @@ const ResetPasswordPage = () => {
       setLoading(true);
       // Simulate API call
       await authService.resetPassword('mock-token', password);
-      setSuccess('Your password has been successfully updated.');
+      setSuccess('Mật khẩu của bạn đã được cập nhật thành công.');
       
       setTimeout(() => {
         navigate('/login');
       }, 2000);
     } catch (err) {
-      setError(err.message || 'Error updating password security credentials.');
+      setError(err.message || 'Không thể cập nhật mật khẩu.');
     } finally {
       setLoading(false);
     }
@@ -82,9 +82,9 @@ const ResetPasswordPage = () => {
               <CheckCircle2 className="h-9 w-9 animate-[bounce_1s_infinite]" />
             </div>
             <div className="space-y-2">
-              <h4 className="text-xl font-bold text-slate-900 tracking-tight">Update Successful</h4>
+              <h4 className="text-xl font-bold text-slate-900 tracking-tight">Cập nhật thành công</h4>
               <p className="text-sm text-slate-500 font-medium leading-relaxed px-2">
-                Your password has been reset. Redirecting you to login...
+                Mật khẩu đã được đặt lại. Đang chuyển về trang đăng nhập...
               </p>
             </div>
             <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
@@ -128,9 +128,9 @@ const ResetPasswordPage = () => {
             </div>
 
             <div className="text-center">
-              <h1 className="text-xl font-bold text-slate-900 mb-1">Create New Password</h1>
+              <h1 className="text-xl font-bold text-slate-900 mb-1">Tạo mật khẩu mới</h1>
               <p className="text-slate-400 text-[11px] leading-relaxed px-4">
-                Your new password must be different from previously used passwords.
+                Vui lòng tạo mật khẩu mới an toàn cho tài khoản của bạn.
               </p>
             </div>
 
@@ -143,13 +143,13 @@ const ResetPasswordPage = () => {
 
             {/* New Password input */}
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">New Password</label>
+              <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">Mật khẩu mới</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter new password"
+                  placeholder="Nhập mật khẩu mới"
                   required
                   className="w-full pl-3.5 pr-10 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition"
                 />
@@ -181,13 +181,13 @@ const ResetPasswordPage = () => {
 
             {/* Confirm Password input */}
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">Confirm Password</label>
+              <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">Xác nhận mật khẩu</label>
               <div className="relative">
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm new password"
+                  placeholder="Nhập lại mật khẩu mới"
                   required
                   className="w-full pl-3.5 pr-10 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition"
                 />
@@ -210,7 +210,7 @@ const ResetPasswordPage = () => {
               {loading ? (
                 <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
               ) : (
-                'Update Password'
+                'Cập nhật mật khẩu'
               )}
             </button>
           </form>
@@ -219,7 +219,7 @@ const ResetPasswordPage = () => {
 
       {/* Page Footer */}
       <div className="mt-8 text-slate-400 text-xs text-center font-medium">
-        &copy; 2024 Examify Education Systems. All rights reserved.
+        &copy; 2024 Examify Education Systems. Mọi quyền được bảo lưu.
       </div>
     </div>
   );
